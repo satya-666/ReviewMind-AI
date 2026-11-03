@@ -1,0 +1,16 @@
+{
+  "method": "Complete offline pipeline rerun with existing archive and language cache; byte SHA-256 comparison",
+  "identical": true,
+  "before": {
+    "data/processed/training_ready.parquet": "ef071b173be42543d43006793a47f25760eff50709b23e26f8d8397029accc6e",
+    "data/splits/test.parquet": "9d5be4bf66cdfbe1aa4ade5b69f6a4aa3259cf4a8c29c28a19624248d147cb0f",
+    "data/splits/train.parquet": "6091da21f6399493459fa843a2604410b627be25a10f115b71680791dc7b116e",
+    "data/splits/validation.parquet": "e46484e264212c6c633588b8b4d9e1b2c545bb5c6bf7636b3dda687a382394b6"
+  },
+  "after": {
+    "data/processed/training_ready.parquet": "ef071b173be42543d43006793a47f25760eff50709b23e26f8d8397029accc6e",
+    "data/splits/test.parquet": "9d5be4bf66cdfbe1aa4ade5b69f6a4aa3259cf4a8c29c28a19624248d147cb0f",
+    "data/splits/train.parquet": "6091da21f6399493459fa843a2604410b627be25a10f115b71680791dc7b116e",
+    "data/splits/validation.parquet": "e46484e264212c6c633588b8b4d9e1b2c545bb5c6bf7636b3dda687a382394b6"
+  }
+}

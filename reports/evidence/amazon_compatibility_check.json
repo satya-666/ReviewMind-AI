@@ -1,0 +1,13 @@
+{
+  "revision": "2b6d039ed471f2ba5fd2acb718bf33b0a7e5598e",
+  "license": null,
+  "starter_review_parquet_paths": [],
+  "raw_review_examples": [
+    "raw/review_categories/All_Beauty.jsonl",
+    "raw/review_categories/Amazon_Fashion.jsonl",
+    "raw/review_categories/Appliances.jsonl",
+    "raw/review_categories/Arts_Crafts_and_Sewing.jsonl",
+    "raw/review_categories/Automotive.jsonl"
+  ],
+  "raw_computers_category_exists": false
+}

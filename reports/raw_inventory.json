@@ -1,0 +1,20 @@
+[
+  {
+    "path": "data/raw/flipkart_v1.zip",
+    "bytes": 3970956,
+    "members": [
+      {
+        "name": "Dataset-SA.csv",
+        "rows": 205052,
+        "columns": [
+          "product_name",
+          "product_price",
+          "Rate",
+          "Review",
+          "Summary",
+          "Sentiment"
+        ]
+      }
+    ]
+  }
+]

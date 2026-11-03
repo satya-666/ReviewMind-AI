@@ -1,0 +1,18 @@
+seed: 42
+access_date: '2026-10-31'
+target_reviews: 50000
+split_fractions: [0.70, 0.15, 0.15]
+source:
+  dataset: niraliivaghani/flipkart-product-customer-reviews-dataset
+  version: 1
+  url: https://www.kaggle.com/datasets/niraliivaghani/flipkart-product-customer-reviews-dataset
+  license: ODbL-1.0 + DbCL-1.0
+  license_status: verified_publisher_declaration
+  market: india_marketplace_customer_location_unknown
+  rating_scale: [1, 5]
+  archive: data/raw/flipkart_v1.zip
+  member: Dataset-SA.csv
+near_duplicate:
+  min_characters: 40
+  jaccard_threshold: 0.90
+  permutations: 128

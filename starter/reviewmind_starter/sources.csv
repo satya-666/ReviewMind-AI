@@ -1,0 +1,4 @@
+name,url,contents,india_specific,license_status,included
+Amazon Reviews 2023,https://amazon-reviews-2023.github.io/,electronics and other product reviews,no,verify dataset terms,no
+Flipkart Kaggle reviews,https://www.kaggle.com/datasets/niraliivaghani/flipkart-product-customer-reviews-dataset,product reviews,potentially,verify uploader rights and dataset license,no
+Hinglish datasets discovery,https://huggingface.co/datasets?search=hinglish%20sentiment,language sentiment datasets,varies,verify per dataset,no

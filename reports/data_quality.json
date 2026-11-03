@@ -1,0 +1,216 @@
+{
+  "status": "phase1_pipeline_validated_collection_partial",
+  "access_date": "2026-10-31",
+  "target_reviews": 50000,
+  "total_raw_reviews_found": 205052,
+  "total_successfully_downloaded": 205052,
+  "total_cleaned_reviews_all_domains": 205050,
+  "technology_candidates": 26605,
+  "total_training_ready_reviews": 23322,
+  "category_distribution": {
+    "smartphones": 0,
+    "laptops": 3071,
+    "audio_devices": 7680,
+    "wearables": 1905,
+    "tvs_monitors": 0,
+    "accessories": 3617,
+    "tablets": 1043,
+    "networking_devices": 1176,
+    "chargers_power_banks": 4830,
+    "unknown": 0
+  },
+  "language_distribution": {
+    "english": 12433,
+    "hindi": 0,
+    "hinglish": 23,
+    "other_indic": 0,
+    "other": 249,
+    "unknown": 10617
+  },
+  "candidate_category_distribution": {
+    "audio_devices": 8564,
+    "chargers_power_banks": 5548,
+    "accessories": 4487,
+    "laptops": 3300,
+    "wearables": 2094,
+    "networking_devices": 1320,
+    "tablets": 1292
+  },
+  "candidate_language_distribution": {
+    "unknown": 13350,
+    "english": 12969,
+    "other": 262,
+    "hinglish": 24
+  },
+  "source_distribution": {
+    "niraliivaghani/flipkart-product-customer-reviews-dataset": 23322
+  },
+  "rating_distribution": {
+    "5.0": 14569,
+    "4.0": 4306,
+    "1.0": 2387,
+    "3.0": 1490,
+    "2.0": 570
+  },
+  "missing_percentages": {
+    "review_id": 0.0,
+    "product_id": 100.0,
+    "product_name": 0.0,
+    "product_category": 0.0,
+    "source_platform": 0.0,
+    "source_dataset": 0.0,
+    "review_text": 0.0,
+    "rating": 0.0,
+    "review_date": 100.0,
+    "language": 0.0,
+    "verified_purchase": 100.0,
+    "helpful_votes": 100.0,
+    "market": 0.0,
+    "source_record_id": 0.0
+  },
+  "cleaning_stages": [
+    {
+      "stage": "empty_or_unusable_text",
+      "input": 205052,
+      "removed": 2,
+      "remaining": 205050
+    },
+    {
+      "stage": "duplicate_source_record_id",
+      "input": 205050,
+      "removed": 0,
+      "remaining": 205050
+    },
+    {
+      "stage": "unknown_or_out_of_scope_product",
+      "input": 205050,
+      "removed": 178445,
+      "remaining": 26605
+    },
+    {
+      "stage": "license_not_cleared",
+      "input": 26605,
+      "removed": 0,
+      "remaining": 26605
+    },
+    {
+      "stage": "cross_split_duplicate_text_group",
+      "input": 26605,
+      "removed": 3283,
+      "remaining": 23322
+    }
+  ],
+  "duplicates": {
+    "exact_text_pairs": 11967,
+    "near_text_pairs": 4,
+    "identical_full_source_rows": 34375,
+    "policy": "Retain ambiguous identical rows and customer phrases; quarantine evaluation rows sharing a detected text group with higher-priority train/validation split."
+  },
+  "split_sizes": {
+    "train": 18367,
+    "validation": 2492,
+    "test": 2463
+  },
+  "proposed_split_sizes_before_quarantine": {
+    "train": 18367,
+    "validation": 4182,
+    "test": 4056
+  },
+  "split_percentages": {
+    "train": 78.754,
+    "validation": 10.685,
+    "test": 10.561
+  },
+  "split_distributions": {
+    "train": {
+      "product_category": {
+        "audio_devices": 5747,
+        "chargers_power_banks": 3834,
+        "accessories": 2882,
+        "laptops": 2356,
+        "wearables": 1617,
+        "tablets": 1043,
+        "networking_devices": 888
+      },
+      "language": {
+        "unknown": 9657,
+        "english": 8515,
+        "other": 180,
+        "hinglish": 15
+      }
+    },
+    "validation": {
+      "product_category": {
+        "audio_devices": 1081,
+        "chargers_power_banks": 550,
+        "laptops": 319,
+        "accessories": 317,
+        "networking_devices": 143,
+        "wearables": 82
+      },
+      "language": {
+        "english": 2059,
+        "unknown": 401,
+        "other": 27,
+        "hinglish": 5
+      }
+    },
+    "test": {
+      "product_category": {
+        "audio_devices": 852,
+        "chargers_power_banks": 446,
+        "accessories": 418,
+        "laptops": 396,
+        "wearables": 206,
+        "networking_devices": 145
+      },
+      "language": {
+        "english": 1859,
+        "unknown": 559,
+        "other": 42,
+        "hinglish": 3
+      }
+    }
+  },
+  "seed": 42,
+  "requested_split_fractions": [
+    0.7,
+    0.15,
+    0.15
+  ],
+  "leakage_checks": {
+    "review_id": 0,
+    "product_group": 0,
+    "duplicate_group": 0
+  },
+  "flags": {
+    "short_review": 7332,
+    "spam_like": 5,
+    "encoding_warning": 0,
+    "rating_invalid": 0,
+    "language_manual_review": 10640
+  },
+  "title_fallback_reviews": 0,
+  "unique_product_name_groups": 75,
+  "indian_marketplace_reviews": 23322,
+  "verified_indian_customer_reviews": 0,
+  "known_limitations": [
+    "Source lacks catalog IDs, customer IDs, original review IDs, review dates, purchase verification and helpful votes. Nulls are preserved.",
+    "Exact full product names are leakage proxies, not verified product identities. Different spellings/variants can still leak; similar names are never merged.",
+    "Flipkart is India-marketplace coverage; individual customer residence is unverified. No Indian-customer claim is supported.",
+    "Publisher reports prior text cleaning and scraping in December 2022. Originals mean the downloaded source strings, not recoverable marketplace originals.",
+    "Publisher-declared ODbL/DbCL permits reuse subject to attribution and database share-alike obligations. Underlying third-party rights are not independently established; no datasets are committed or redistributed.",
+    "Amazon Reviews 2023 has no license declaration in the inspected current card/API and is excluded pending manual clearance. Its starter review Parquet paths are absent.",
+    "Language labels are weak, uncalibrated estimates, not multilingual ground truth. Roman Hindi lexicon is incomplete; Devanagari is shared across languages. Short phrases often remain unknown.",
+    "MinHash LSH is approximate candidate retrieval (128 permutations, retrieval threshold 0.75), verified at 0.90 character-five-gram Jaccard for texts >=40 characters. Undetected similarities and semantic paraphrases remain possible. Short text uses exact matches only.",
+    "Generic repeated phrases are legitimate potential customer records, so they remain within a split. Ambiguous identical source rows are counted but not automatically deleted without author/record identity evidence.",
+    "To prevent detected leakage without merging products, text groups spanning proposed splits retain train first, then validation, then test. Conflicting evaluation rows are quarantined. This makes evaluation less representative and changes ratios.",
+    "Small numbers of products, category imbalance, source selection, historical collection, prior cleaning and short reviews limit generalization. Category/language proportions cannot all be preserved under product grouping.",
+    "Unknown/out-of-scope products are retained in standardized/excluded artifacts and excluded from technology training-ready splits. Missing or invalid ratings remain null; no aspect labels or sentiment ground truth are created.",
+    "Hinglish/Hindi/general sentiment discovery datasets were not ingested: no independently licensed electronics-specific source was established. No model or frontend was built."
+  ],
+  "acquisition_failures": [
+    "Starter downloader executed: all five categories failed sandbox DNS; authoritative inventory then confirmed no raw_review_<category> Parquet paths. Computers is not a raw category.",
+    "Amazon excluded on license grounds after successful card/API retrieval; no duplicate or full-corpus download attempted."
+  ]
+}

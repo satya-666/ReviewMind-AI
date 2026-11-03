@@ -1,0 +1,10 @@
+Publication preparation validation — 2026-11-03
+
+Command: .venv/bin/python -m pytest -q
+41 passed in 4.23s
+
+Command: .venv/bin/python -m pip check
+No broken requirements found.
+
+Existing training_ready.parquet and train/validation/test.parquet checksums verified against reports/reproducibility.json.
+No dataset download, transformation change, model training, or EDA executed for publication preparation.

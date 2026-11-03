@@ -1,0 +1,10 @@
+{
+  "dataset": "niraliivaghani/flipkart-product-customer-reviews-dataset",
+  "version": 1,
+  "url": "https://www.kaggle.com/api/v1/datasets/download/niraliivaghani/flipkart-product-customer-reviews-dataset?datasetVersionNumber=1",
+  "access_date": "2026-10-31",
+  "sha256": "993e30bc378df9a93563106e489068b8510d26302a40913714c09bf82151df2a",
+  "bytes": 3970956,
+  "reused_existing_archive": true,
+  "license": "Database: Open Database, Contents: Database Contents"
+}

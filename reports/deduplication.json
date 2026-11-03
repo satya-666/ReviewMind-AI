@@ -1,0 +1,6 @@
+{
+  "exact_text_pairs": 11967,
+  "near_text_pairs": 4,
+  "identical_full_source_rows": 34375,
+  "policy": "Retain ambiguous identical rows and customer phrases; quarantine evaluation rows sharing a detected text group with higher-priority train/validation split."
+}
