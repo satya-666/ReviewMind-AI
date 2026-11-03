@@ -1,0 +1,39 @@
+seed: 42
+splits:
+  train: data/splits/train.parquet
+  validation: data/splits/validation.parquet
+  test: data/splits/test.parquet
+output_root: models/phase3
+tracking_uri: sqlite:///models/phase3/mlflow.db
+bootstrap_product_resamples: 200
+minimum_language_metric_reviews: 20
+annotation_sample_per_split: 60
+baseline:
+  C: [0.5, 2.0]
+  class_weights: [null, balanced]
+  word_max_features: 20000
+  char_max_features: 30000
+  max_iterations: 2000
+transformer:
+  model_name: google/bert_uncased_L-2_H-128_A-2
+  revision: 30b0a37ccaaa32f332884b96992754e246e48c5f
+  pretrained_path: models/pretrained/bert_tiny
+  max_length: 96
+  batch_size: 32
+  gradient_accumulation: 2
+  epochs: 4
+  learning_rate: 0.0001
+  weight_decay: 0.01
+  warmup_fraction: 0.1
+  patience: 2
+  class_weight: balanced
+  device: auto
+  mixed_precision: false
+  max_train_reviews: 12000
+  max_validation_reviews: 2492
+  max_seconds: 900
+  threads: 4
+smoke:
+  train_reviews: 120
+  validation_reviews: 60
+  test_reviews: 60

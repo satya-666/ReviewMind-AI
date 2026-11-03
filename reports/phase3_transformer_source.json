@@ -1,0 +1,8 @@
+{
+  "model": "google/bert_uncased_L-2_H-128_A-2",
+  "revision": "30b0a37ccaaa32f332884b96992754e246e48c5f",
+  "license": "apache-2.0",
+  "source_url": "https://huggingface.co/google/bert_uncased_L-2_H-128_A-2",
+  "local_path": "models/pretrained/bert_tiny",
+  "scope": "Pretrained English-only compact encoder; classification head must be trained"
+}

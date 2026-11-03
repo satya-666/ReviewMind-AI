@@ -1,6 +1,6 @@
 # ReviewMind AI
 
-Phase 1 prepares real technology-product reviews for later review intelligence research in the Indian market. It collects, standardizes, cleans, categorizes, labels language, groups duplicates and writes reproducible dataset splits. No model training, recommendation engine or frontend is included.
+ReviewMind AI prepares real technology-product reviews for review intelligence research in the Indian market. Phase 1 collects and prepares data; Phase 2 performs EDA; Phase 3 adds weakly supervised sentiment experiments and rule-based aspect analysis. No recommendation engine or frontend is included.
 
 The workspace itself is the project root. The original starter ZIP contained scripts and notes, **no reviews**. It was extracted intact into `starter/reviewmind_starter/`; the replacement downloader fixes the obsolete Amazon review-Parquet assumption by using the licensed, versioned Flipkart source instead.
 
@@ -8,11 +8,11 @@ The workspace itself is the project root. The original starter ZIP contained scr
 
 The pipeline supports smartphones, laptops, audio devices, wearables, TVs/monitors, computer accessories, tablets, networking devices, and chargers/power banks. Supported categories are distinct from acquired coverage; two categories currently have no usable records.
 
-The seven-phase planning roadmap below records Phase 2 as the next step. Phases 3–7 are proposed milestones, not implemented features or a finalized research plan.
+The roadmap distinguishes implemented research work from future milestones. Phases 4–7 are proposed plans, not implemented features or a finalized research plan.
 
 1. Dataset collection and preparation — implemented and validated; collection coverage remains partial.
 2. Exploratory Data Analysis (EDA) — implemented and executed on the available Phase 1 data; unavailable analyses documented below.
-3. Sentiment and aspect analysis — proposed.
+3. Sentiment and aspect analysis — classical/compact-transformer training executed; overall phase partial without independent sentiment/ABSA annotations.
 4. Multilingual NLP evaluation and adaptation — proposed.
 5. Product intelligence and reliability analysis — proposed.
 6. Preference-based recommendations and evaluation — proposed.
@@ -132,4 +132,46 @@ EDA implementation, figures and notebooks are complete for available data. Tempo
 
 Validation: **52 tests passed**, including all 41 Phase 1 tests. All four notebooks executed in fresh kernels in a separate virtual environment installed from the pinned requirements. Repeated EDA runs produced identical metrics, reports, validation summaries and all 15 PNG checksums, while Phase 1 input hashes remained unchanged. Evidence is in `reports/phase2_verification.json`.
 
-Phase 3 is proposed to compare majority-class and word/character TF-IDF linear baselines, then consider multilingual encoders only after obtaining independent annotated evaluation data. Model selection, training and changes to split policy are future work. Phase 3 has not started.
+The original Phase 2 recommendations inform the Phase 3 experiments below. Whole-dataset EDA and weak supervision remain limitations even after model training.
+
+## Phase 3 — Sentiment training and aspect rules
+
+Phase 3 is **partially complete**. Two real TF-IDF models and a compact pretrained English BERT model were trained, saved, reloaded and evaluated. Independent human sentiment evaluation, supervised ABSA and credible multilingual model evaluation remain unavailable. No Phase 4 work is included.
+
+Install the pinned requirements (including PyTorch, Transformers and local MLflow/SQLite dependencies), then run:
+
+```sh
+.venv/bin/python scripts/cache_transformer.py
+.venv/bin/python scripts/run_phase3.py --mode full
+.venv/bin/python scripts/evaluate_models.py
+.venv/bin/python scripts/execute_notebooks.py --phase 3
+.venv/bin/python -m pytest -q
+```
+
+`--mode baseline` runs full classical experiments; `--mode smoke` performs a small, explicitly separate pipeline check. Configuration is in `configs/phase3_config.yaml`; taxonomies and label IDs are in `configs/aspect_taxonomy.yaml` and `configs/label_mapping.json`. All full tests now require locally prepared Phase 1 data plus cached/trained Phase 3 artifacts; these are excluded from Git. The documented download/preparation/training commands produce them. Existing Phase 2 notebook execution still defaults to its original four notebooks.
+
+Training derives views of **18,367 train / 2,489 validation / 2,451 test** records, quarantining 15 lower-priority evaluation rows that share Phase 2 canonical phrase keys. Original Parquet files are unchanged. Models receive text only; ratings provide weak overall labels, never aspect ground truth. Hyperparameters/checkpoints and the selected model are chosen by validation macro F1 before test predictions. Prior EDA makes this an exploratory development benchmark, not an untouched final holdout.
+
+| Actual model | Training reviews | Validation macro F1 | Weak test accuracy | Weak test macro F1 |
+|---|---:|---:|---:|---:|
+| TF-IDF + Logistic Regression | 18,367 | 0.6593 | 0.8462 | 0.6728 |
+| TF-IDF + Linear SVM | 18,367 | 0.6488 | 0.8792 | 0.6667 |
+| Google compact English BERT | 12,000 | 0.6547 | 0.8690 | 0.6988 |
+
+**Logistic Regression is the validation-selected model**. BERT's higher observed test macro F1 does not justify changing that frozen selection using test feedback. The BERT pilot used four completed epochs, selected epoch 3 and an Apple M3 MPS device with 8 GB RAM. Measured classical search times were 28.92 and 24.32 seconds; transformer optimization/validation/checkpoint time was 116.72 seconds, excluding initial model loading/tokenization. These are different workloads, not controlled speed comparisons.
+
+The nine-category aspect rule baseline found mentions in **1,094 of 2,451** held-out reviews. These are coverage counts, not extraction accuracy. No supervised aspect model or aspect F1 is claimed. There are no Hindi records and too few Hinglish examples to claim multilingual performance. A blank, private 180-review annotation queue and [annotation guide](docs/ANNOTATION_GUIDE.md) provide the next labeling workflow; no human labels were fabricated.
+
+Local artifacts are in `models/phase3/full/baseline/` and `models/phase3/full/sentiment/`; MLflow tracking is in `models/phase3/mlflow.db`. Models, tokenizer downloads, MLflow artifacts, raw annotation/error excerpts and credentials are ignored by Git.
+
+```sh
+.venv/bin/python scripts/predict_review.py \
+  --model models/phase3/full/baseline/logistic_regression.joblib \
+  --text "The sound is clear but the battery is poor" --category audio_devices
+```
+
+This is a synthetic inference illustration, not benchmark evidence. Single/batch inference exposes model versions and explicitly uncalibrated probabilities/softmax scores; SVM margins are not probabilities. Category-aware aspect rules use clause-local cues and limited negation handling, with unknown/mixed outputs and no confidence claims.
+
+Read [docs/PHASE_3.md](docs/PHASE_3.md), [the model report](reports/phase3_model_report.md), `reports/phase3_results.json`, and `reports/phase3_verification.json` for methods and executed checks. GPU bitwise repeatability is not guaranteed: PyTorch reports a nondeterministic MPS embedding-backward operation. Checkpoint-reloaded predictions and seeded classical fitting are verified separately. Human-annotated benchmarks, licensed supervised ABSA, reliable catalog identities, a fresh final holdout and multilingual annotation remain prerequisites for stronger Phase 4 readiness claims.
+
+Validation completed: **61 tests passed**, all three Phase 3 notebooks executed, and CPU reloads of all three checkpoints reproduced their original test confusion matrices. A Phase 2 rerun retained byte-identical outputs; original Phase 1 artifact hashes still match. Eleven full-run research figures were generated and visually inspected. Full training/evaluation took about 192 measured seconds, excluding final plotting/report overhead; timings are machine-dependent.
