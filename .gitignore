@@ -10,7 +10,7 @@ secrets/
 *.key
 kaggle.json
 .cache/
-models/
+/models/
 *.pkl
 *.pt
 *.pth
@@ -30,3 +30,12 @@ data/splits/*
 reports/phase2_execution.log
 reports/phase2_unit_tests.log
 reports/phase2_notebook_execution.log
+data/annotations/*
+*.joblib
+*.safetensors
+*.bin
+.huggingface/
+hf_cache/
+reports/phase3_execution.log
+reports/phase3_smoke_*
+reports/figures/phase3_smoke_*

@@ -1,0 +1,66 @@
+{
+  "verification_date": "2026-11-03",
+  "status": "partial_phase3_human_sentiment_and_supervised_absa_unavailable",
+  "tests": {
+    "passed": 61,
+    "failed": 0,
+    "includes_phase1_and_phase2": true
+  },
+  "notebooks": {
+    "passed": 3,
+    "fresh_kernel_each": true
+  },
+  "original_phase1_artifact_hashes_unchanged": true,
+  "phase2_rerun_original_output_hashes_identical": true,
+  "artifact_reload_verification": {
+    "logistic_regression": {
+      "path": "models/phase3/full/baseline/logistic_regression.joblib",
+      "checkpoint_sha256": "edb379f3f5ed60fb3f8321b12a90bed4c08b3a408e2812112bf12b988b3462d0",
+      "reloaded_confusion_matrix_matches": true
+    },
+    "linear_svm": {
+      "path": "models/phase3/full/baseline/linear_svm.joblib",
+      "checkpoint_sha256": "8f904d6a9b89150edecee817bcbe9adda38709992148dc46979d4128b7a7ac60",
+      "reloaded_confusion_matrix_matches": true
+    },
+    "compact_bert": {
+      "path": "models/phase3/full/sentiment",
+      "checkpoint_sha256": "7d6f34395c2469aeaae8d533014dc0de55e9079194e355328f1d2d94a5dfa16c",
+      "reloaded_confusion_matrix_matches": true
+    }
+  },
+  "mlflow_completed_runs": 4,
+  "mlflow_statuses": [
+    "FINISHED",
+    "FINISHED",
+    "FINISHED",
+    "FINISHED"
+  ],
+  "actual_transformer": {
+    "trained": true,
+    "completed_epochs": 4,
+    "best_epoch": 3,
+    "device": "mps",
+    "pretrained_source": {
+      "model": "google/bert_uncased_L-2_H-128_A-2",
+      "revision": "30b0a37ccaaa32f332884b96992754e246e48c5f",
+      "license": "apache-2.0",
+      "source_url": "https://huggingface.co/google/bert_uncased_L-2_H-128_A-2",
+      "local_path": "models/pretrained/bert_tiny",
+      "scope": "Pretrained English-only compact encoder; classification head must be trained"
+    },
+    "bitwise_gpu_training_reproducibility_claimed": false
+  },
+  "blank_human_annotation_queue_reviews": 180,
+  "human_labels_fabricated": false,
+  "smoke_executed_separately": true,
+  "figures_visually_inspected": 11,
+  "no_raw_text_or_model_weights_for_publication": true,
+  "remaining_incomplete": [
+    "Independent human sentiment benchmark",
+    "Supervised aspect training/evaluation",
+    "Credible Hindi/Hinglish model evaluation",
+    "Fresh catalog-linked final holdout"
+  ],
+  "phase4_implemented": false
+}

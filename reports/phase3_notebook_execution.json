@@ -1,0 +1,21 @@
+{
+  "fresh_kernel_per_notebook": true,
+  "interpreter": "active validated Python environment",
+  "results": [
+    {
+      "notebook": "05_sentiment_baseline.ipynb",
+      "code_cells_executed": 3,
+      "status": "passed"
+    },
+    {
+      "notebook": "06_transformer_training.ipynb",
+      "code_cells_executed": 3,
+      "status": "passed"
+    },
+    {
+      "notebook": "07_model_comparison.ipynb",
+      "code_cells_executed": 3,
+      "status": "passed"
+    }
+  ]
+}
