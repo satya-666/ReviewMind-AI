@@ -11,7 +11,7 @@ The pipeline supports smartphones, laptops, audio devices, wearables, TVs/monito
 The seven-phase planning roadmap below records Phase 2 as the next step. Phases 3–7 are proposed milestones, not implemented features or a finalized research plan.
 
 1. Dataset collection and preparation — implemented and validated; collection coverage remains partial.
-2. Exploratory Data Analysis (EDA) — next, not started.
+2. Exploratory Data Analysis (EDA) — implemented and executed on the available Phase 1 data; unavailable analyses documented below.
 3. Sentiment and aspect analysis — proposed.
 4. Multilingual NLP evaluation and adaptation — proposed.
 5. Product intelligence and reliability analysis — proposed.
@@ -101,4 +101,35 @@ Language estimates: English 12,433; Hinglish 23; other 249; unknown 10,617; Hind
 
 Actual measured results are in [reports/phase1_report.md](reports/phase1_report.md) and [reports/data_quality.json](reports/data_quality.json); executed test output is in `reports/test_results.txt`. Acquisition produced 205,052 source records across mixed domains, not 205,052 technology reviews. The pipeline selects actual technology reviews and reports the smaller usable total. Category/language/split distributions, all exclusion stages, missingness and limitations are generated from the retained artifacts.
 
-Phase 1 software and available-data execution are implemented; collection remains partial against the 50,000-review goal and nine-category multilingual coverage. More independently licensed catalog-linked data, smartphone/TV coverage, recent reviews and manually verified Indian-language evaluation are needed. Phase 2 has not started.
+Phase 1 software and available-data execution are implemented; collection remains partial against the 50,000-review goal and nine-category multilingual coverage. More independently licensed catalog-linked data, smartphone/TV coverage, recent reviews and manually verified Indian-language evaluation are needed.
+
+## Phase 2 — Exploratory Data Analysis
+
+Phase 2 reads existing split Parquet files without changing them. It validates the schema, reproduces the Phase 1 split mapping, checks input checksums, calculates descriptive rating/category/language/text/product statistics, audits leakage and creates 15 Matplotlib PNG figures. Rating-derived overall sentiment is an explicitly weak exploratory label, not human or aspect ground truth. No model is trained.
+
+Install the pinned `requirements.txt` as above (including Matplotlib, nbformat, nbclient and ipykernel), prepare Phase 1 data if necessary, then run:
+
+```sh
+.venv/bin/python scripts/run_phase2.py
+.venv/bin/python scripts/execute_notebooks.py
+.venv/bin/python -m pytest -q
+```
+
+Configuration is in `configs/phase2_config.yaml`. The first command generates `reports/phase2_metrics.json`, `reports/phase2_validation.json`, `reports/phase2_eda_report.md` and `reports/figures/*.png`. It uses a reproducible bounded MinHash sample rather than an all-pairs comparison. An alternate config can be passed with `--config PATH`.
+
+Four notebooks in `notebooks/` load actual data through reusable `src/analysis/` functions. The executor starts a fresh kernel for each notebook using its active Python environment, runs every code cell and keeps only small aggregate outputs and external figure links. Run EDA before notebooks; localhost kernel ports must be allowed. No raw excerpts or embedded datasets are committed. The environment used for clean-environment verification is documented in `reports/phase2_verification.json`.
+
+Measured findings:
+
+- 23,322 reviews, 75 exact-name product groups, seven represented categories; true unique catalog-product count is unavailable.
+- Mean rating 4.205/5; 80.93% of ratings are four or five stars.
+- Top ten product-name groups account for 49.62% of reviews.
+- No exact normalized-text or recorded product-group overlap across splits. A broader token-normalization screen flags 13 shared phrase groups involving 1,766 rows; these are potential leakage warnings, not proven duplicate customer identities.
+- A bounded independent long-text check sampled 5,673 records and found no cross-split pairs above its threshold. Sampling/LSH does not establish universal leakage absence.
+- Hindi data is absent, Hinglish labels number 23, and the private diagnostic sample shows apparent English text among `other` labels. Multilingual labels need human verification.
+
+EDA implementation, figures and notebooks are complete for available data. Temporal drift, verified catalog identity, customer geography and language-label accuracy remain unassessable; collection is still partial. Whole-dataset EDA exposes holdout distributions, so future confirmatory experiments need a fresh independent final holdout. See [docs/PHASE_2.md](docs/PHASE_2.md) and the research report for methods, bias assessment and test evidence.
+
+Validation: **52 tests passed**, including all 41 Phase 1 tests. All four notebooks executed in fresh kernels in a separate virtual environment installed from the pinned requirements. Repeated EDA runs produced identical metrics, reports, validation summaries and all 15 PNG checksums, while Phase 1 input hashes remained unchanged. Evidence is in `reports/phase2_verification.json`.
+
+Phase 3 is proposed to compare majority-class and word/character TF-IDF linear baselines, then consider multilingual encoders only after obtaining independent annotated evaluation data. Model selection, training and changes to split policy are future work. Phase 3 has not started.

@@ -26,3 +26,7 @@ data/splits/*
 .DS_Store
 .idea/
 .vscode/
+.ipynb_checkpoints/
+reports/phase2_execution.log
+reports/phase2_unit_tests.log
+reports/phase2_notebook_execution.log

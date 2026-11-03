@@ -1,0 +1,2827 @@
+{
+  "overview": {
+    "total_reviews": 23322,
+    "verified_catalog_products": 0,
+    "unique_product_name_groups": 75,
+    "represented_technology_categories": 7,
+    "reviews_per_source": {
+      "niraliivaghani/flipkart-product-customer-reviews-dataset": 23322
+    },
+    "reviews_per_platform": {
+      "flipkart": 23322
+    },
+    "reviews_per_category": {
+      "smartphones": 0,
+      "laptops": 3071,
+      "audio_devices": 7680,
+      "wearables": 1905,
+      "tvs_monitors": 0,
+      "accessories": 3617,
+      "tablets": 1043,
+      "networking_devices": 1176,
+      "chargers_power_banks": 4830,
+      "unknown": 0
+    },
+    "reviews_per_language": {
+      "english": 12433,
+      "hindi": 0,
+      "hinglish": 23,
+      "other_indic": 0,
+      "other": 249,
+      "unknown": 10617
+    },
+    "reviews_per_split": {
+      "train": 18367,
+      "validation": 2492,
+      "test": 2463
+    },
+    "rows_with_any_missing_schema_field": 23322,
+    "usable_count": 23322,
+    "usable_percent": 100.0,
+    "usable_definition": "Nonempty usable original text and nonmissing rating; does not validate language or catalog identity",
+    "reviews_per_product_group": {
+      "count": 75,
+      "mean": 310.96,
+      "median": 200.0,
+      "min": 3.0,
+      "p25": 71.5,
+      "p75": 354.0,
+      "p95": 1099.3999999999994,
+      "max": 2006.0
+    },
+    "review_date_range": {
+      "min": null,
+      "max": null,
+      "available_reviews": 0
+    },
+    "source_category_coverage": {
+      "niraliivaghani/flipkart-product-customer-reviews-dataset": {
+        "smartphones": 0,
+        "laptops": 3071,
+        "audio_devices": 7680,
+        "wearables": 1905,
+        "tvs_monitors": 0,
+        "accessories": 3617,
+        "tablets": 1043,
+        "networking_devices": 1176,
+        "chargers_power_banks": 4830,
+        "unknown": 0
+      }
+    },
+    "missingness": {
+      "review_id": {
+        "count": 0,
+        "percent": 0.0
+      },
+      "product_id": {
+        "count": 23322,
+        "percent": 100.0
+      },
+      "product_name": {
+        "count": 0,
+        "percent": 0.0
+      },
+      "product_category": {
+        "count": 0,
+        "percent": 0.0
+      },
+      "source_platform": {
+        "count": 0,
+        "percent": 0.0
+      },
+      "source_dataset": {
+        "count": 0,
+        "percent": 0.0
+      },
+      "review_text": {
+        "count": 0,
+        "percent": 0.0
+      },
+      "rating": {
+        "count": 0,
+        "percent": 0.0
+      },
+      "review_date": {
+        "count": 23322,
+        "percent": 100.0
+      },
+      "language": {
+        "count": 0,
+        "percent": 0.0
+      },
+      "verified_purchase": {
+        "count": 23322,
+        "percent": 100.0
+      },
+      "helpful_votes": {
+        "count": 23322,
+        "percent": 100.0
+      },
+      "market": {
+        "count": 0,
+        "percent": 0.0
+      },
+      "source_record_id": {
+        "count": 0,
+        "percent": 0.0
+      }
+    }
+  },
+  "categories": {
+    "smartphones": {
+      "reviews": 0,
+      "unique_product_name_groups": 0,
+      "reviews_per_product_group": {
+        "count": 0,
+        "mean": null,
+        "median": null,
+        "min": null,
+        "p25": null,
+        "p75": null,
+        "p95": null,
+        "max": null
+      },
+      "rating": {
+        "distribution": {
+          "1": 0,
+          "2": 0,
+          "3": 0,
+          "4": 0,
+          "5": 0
+        },
+        "summary": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "p25": null,
+          "p75": null,
+          "p95": null,
+          "max": null
+        },
+        "low_rated_percent": null,
+        "high_rated_percent": null,
+        "weak_sentiment_counts": {
+          "negative": 0,
+          "neutral": 0,
+          "positive": 0,
+          "unavailable": 0
+        },
+        "weak_label_definition": "1–2 negative, 3 neutral, 4–5 positive; exploratory overall rating-derived weak labels only"
+      },
+      "languages": {
+        "english": 0,
+        "hindi": 0,
+        "hinglish": 0,
+        "other_indic": 0,
+        "other": 0,
+        "unknown": 0
+      },
+      "sources": {},
+      "missing_schema_cells_percent": null,
+      "largest_product_group_share_percent": null,
+      "insufficient_reviews": true,
+      "product_concentrated": false,
+      "indic_labeled_reviews": 0,
+      "insufficient_indic_labeled_reviews": true
+    },
+    "laptops": {
+      "reviews": 3071,
+      "unique_product_name_groups": 14,
+      "reviews_per_product_group": {
+        "count": 14,
+        "mean": 219.35714285714286,
+        "median": 143.5,
+        "min": 31.0,
+        "p25": 56.0,
+        "p75": 265.0,
+        "p95": 677.25,
+        "max": 752.0
+      },
+      "rating": {
+        "distribution": {
+          "1": 165,
+          "2": 52,
+          "3": 154,
+          "4": 567,
+          "5": 2133
+        },
+        "summary": {
+          "count": 3071,
+          "mean": 4.44936502767828,
+          "median": 5.0,
+          "min": 1.0,
+          "p25": 4.0,
+          "p75": 5.0,
+          "p95": 5.0,
+          "max": 5.0
+        },
+        "low_rated_percent": 7.0661,
+        "high_rated_percent": 87.9192,
+        "weak_sentiment_counts": {
+          "negative": 217,
+          "neutral": 154,
+          "positive": 2700,
+          "unavailable": 0
+        },
+        "weak_label_definition": "1–2 negative, 3 neutral, 4–5 positive; exploratory overall rating-derived weak labels only"
+      },
+      "languages": {
+        "english": 2194,
+        "hindi": 0,
+        "hinglish": 0,
+        "other_indic": 0,
+        "other": 49,
+        "unknown": 828
+      },
+      "sources": {
+        "niraliivaghani/flipkart-product-customer-reviews-dataset": 3071
+      },
+      "missing_schema_cells_percent": 28.5714,
+      "largest_product_group_share_percent": 24.4871,
+      "insufficient_reviews": false,
+      "product_concentrated": false,
+      "indic_labeled_reviews": 0,
+      "insufficient_indic_labeled_reviews": true
+    },
+    "audio_devices": {
+      "reviews": 7680,
+      "unique_product_name_groups": 26,
+      "reviews_per_product_group": {
+        "count": 26,
+        "mean": 295.38461538461536,
+        "median": 213.5,
+        "min": 3.0,
+        "p25": 99.25,
+        "p75": 397.5,
+        "p95": 799.25,
+        "max": 1231.0
+      },
+      "rating": {
+        "distribution": {
+          "1": 959,
+          "2": 216,
+          "3": 530,
+          "4": 1339,
+          "5": 4636
+        },
+        "summary": {
+          "count": 7680,
+          "mean": 4.103776041666666,
+          "median": 5.0,
+          "min": 1.0,
+          "p25": 4.0,
+          "p75": 5.0,
+          "p95": 5.0,
+          "max": 5.0
+        },
+        "low_rated_percent": 15.2995,
+        "high_rated_percent": 77.7995,
+        "weak_sentiment_counts": {
+          "negative": 1175,
+          "neutral": 530,
+          "positive": 5975,
+          "unavailable": 0
+        },
+        "weak_label_definition": "1–2 negative, 3 neutral, 4–5 positive; exploratory overall rating-derived weak labels only"
+      },
+      "languages": {
+        "english": 4761,
+        "hindi": 0,
+        "hinglish": 13,
+        "other_indic": 0,
+        "other": 66,
+        "unknown": 2840
+      },
+      "sources": {
+        "niraliivaghani/flipkart-product-customer-reviews-dataset": 7680
+      },
+      "missing_schema_cells_percent": 28.5714,
+      "largest_product_group_share_percent": 16.0286,
+      "insufficient_reviews": false,
+      "product_concentrated": false,
+      "indic_labeled_reviews": 13,
+      "insufficient_indic_labeled_reviews": true
+    },
+    "wearables": {
+      "reviews": 1905,
+      "unique_product_name_groups": 4,
+      "reviews_per_product_group": {
+        "count": 4,
+        "mean": 476.25,
+        "median": 131.0,
+        "min": 26.0,
+        "p25": 48.5,
+        "p75": 558.75,
+        "p95": 1405.3499999999995,
+        "max": 1617.0
+      },
+      "rating": {
+        "distribution": {
+          "1": 273,
+          "2": 52,
+          "3": 155,
+          "4": 343,
+          "5": 1082
+        },
+        "summary": {
+          "count": 1905,
+          "mean": 4.0020997375328085,
+          "median": 5.0,
+          "min": 1.0,
+          "p25": 3.0,
+          "p75": 5.0,
+          "p95": 5.0,
+          "max": 5.0
+        },
+        "low_rated_percent": 17.0604,
+        "high_rated_percent": 74.8031,
+        "weak_sentiment_counts": {
+          "negative": 325,
+          "neutral": 155,
+          "positive": 1425,
+          "unavailable": 0
+        },
+        "weak_label_definition": "1–2 negative, 3 neutral, 4–5 positive; exploratory overall rating-derived weak labels only"
+      },
+      "languages": {
+        "english": 723,
+        "hindi": 0,
+        "hinglish": 0,
+        "other_indic": 0,
+        "other": 8,
+        "unknown": 1174
+      },
+      "sources": {
+        "niraliivaghani/flipkart-product-customer-reviews-dataset": 1905
+      },
+      "missing_schema_cells_percent": 28.5714,
+      "largest_product_group_share_percent": 84.8819,
+      "insufficient_reviews": false,
+      "product_concentrated": true,
+      "indic_labeled_reviews": 0,
+      "insufficient_indic_labeled_reviews": true
+    },
+    "tvs_monitors": {
+      "reviews": 0,
+      "unique_product_name_groups": 0,
+      "reviews_per_product_group": {
+        "count": 0,
+        "mean": null,
+        "median": null,
+        "min": null,
+        "p25": null,
+        "p75": null,
+        "p95": null,
+        "max": null
+      },
+      "rating": {
+        "distribution": {
+          "1": 0,
+          "2": 0,
+          "3": 0,
+          "4": 0,
+          "5": 0
+        },
+        "summary": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "p25": null,
+          "p75": null,
+          "p95": null,
+          "max": null
+        },
+        "low_rated_percent": null,
+        "high_rated_percent": null,
+        "weak_sentiment_counts": {
+          "negative": 0,
+          "neutral": 0,
+          "positive": 0,
+          "unavailable": 0
+        },
+        "weak_label_definition": "1–2 negative, 3 neutral, 4–5 positive; exploratory overall rating-derived weak labels only"
+      },
+      "languages": {
+        "english": 0,
+        "hindi": 0,
+        "hinglish": 0,
+        "other_indic": 0,
+        "other": 0,
+        "unknown": 0
+      },
+      "sources": {},
+      "missing_schema_cells_percent": null,
+      "largest_product_group_share_percent": null,
+      "insufficient_reviews": true,
+      "product_concentrated": false,
+      "indic_labeled_reviews": 0,
+      "insufficient_indic_labeled_reviews": true
+    },
+    "accessories": {
+      "reviews": 3617,
+      "unique_product_name_groups": 11,
+      "reviews_per_product_group": {
+        "count": 11,
+        "mean": 328.8181818181818,
+        "median": 126.0,
+        "min": 23.0,
+        "p25": 100.0,
+        "p75": 258.5,
+        "p95": 1208.5,
+        "max": 1999.0
+      },
+      "rating": {
+        "distribution": {
+          "1": 255,
+          "2": 71,
+          "3": 219,
+          "4": 802,
+          "5": 2270
+        },
+        "summary": {
+          "count": 3617,
+          "mean": 4.31628421343655,
+          "median": 5.0,
+          "min": 1.0,
+          "p25": 4.0,
+          "p75": 5.0,
+          "p95": 5.0,
+          "max": 5.0
+        },
+        "low_rated_percent": 9.013,
+        "high_rated_percent": 84.9323,
+        "weak_sentiment_counts": {
+          "negative": 326,
+          "neutral": 219,
+          "positive": 3072,
+          "unavailable": 0
+        },
+        "weak_label_definition": "1–2 negative, 3 neutral, 4–5 positive; exploratory overall rating-derived weak labels only"
+      },
+      "languages": {
+        "english": 1493,
+        "hindi": 0,
+        "hinglish": 2,
+        "other_indic": 0,
+        "other": 43,
+        "unknown": 2079
+      },
+      "sources": {
+        "niraliivaghani/flipkart-product-customer-reviews-dataset": 3617
+      },
+      "missing_schema_cells_percent": 28.5714,
+      "largest_product_group_share_percent": 55.2668,
+      "insufficient_reviews": false,
+      "product_concentrated": true,
+      "indic_labeled_reviews": 2,
+      "insufficient_indic_labeled_reviews": true
+    },
+    "tablets": {
+      "reviews": 1043,
+      "unique_product_name_groups": 1,
+      "reviews_per_product_group": {
+        "count": 1,
+        "mean": 1043.0,
+        "median": 1043.0,
+        "min": 1043.0,
+        "p25": 1043.0,
+        "p75": 1043.0,
+        "p95": 1043.0,
+        "max": 1043.0
+      },
+      "rating": {
+        "distribution": {
+          "1": 26,
+          "2": 10,
+          "3": 28,
+          "4": 141,
+          "5": 838
+        },
+        "summary": {
+          "count": 1043,
+          "mean": 4.682646212847555,
+          "median": 5.0,
+          "min": 1.0,
+          "p25": 5.0,
+          "p75": 5.0,
+          "p95": 5.0,
+          "max": 5.0
+        },
+        "low_rated_percent": 3.4516,
+        "high_rated_percent": 93.8639,
+        "weak_sentiment_counts": {
+          "negative": 36,
+          "neutral": 28,
+          "positive": 979,
+          "unavailable": 0
+        },
+        "weak_label_definition": "1–2 negative, 3 neutral, 4–5 positive; exploratory overall rating-derived weak labels only"
+      },
+      "languages": {
+        "english": 570,
+        "hindi": 0,
+        "hinglish": 1,
+        "other_indic": 0,
+        "other": 16,
+        "unknown": 456
+      },
+      "sources": {
+        "niraliivaghani/flipkart-product-customer-reviews-dataset": 1043
+      },
+      "missing_schema_cells_percent": 28.5714,
+      "largest_product_group_share_percent": 100.0,
+      "insufficient_reviews": false,
+      "product_concentrated": true,
+      "indic_labeled_reviews": 1,
+      "insufficient_indic_labeled_reviews": true
+    },
+    "networking_devices": {
+      "reviews": 1176,
+      "unique_product_name_groups": 5,
+      "reviews_per_product_group": {
+        "count": 5,
+        "mean": 235.2,
+        "median": 107.0,
+        "min": 36.0,
+        "p25": 90.0,
+        "p75": 145.0,
+        "p95": 667.3999999999999,
+        "max": 798.0
+      },
+      "rating": {
+        "distribution": {
+          "1": 130,
+          "2": 39,
+          "3": 92,
+          "4": 206,
+          "5": 709
+        },
+        "summary": {
+          "count": 1176,
+          "mean": 4.1267006802721085,
+          "median": 5.0,
+          "min": 1.0,
+          "p25": 4.0,
+          "p75": 5.0,
+          "p95": 5.0,
+          "max": 5.0
+        },
+        "low_rated_percent": 14.3707,
+        "high_rated_percent": 77.8061,
+        "weak_sentiment_counts": {
+          "negative": 169,
+          "neutral": 92,
+          "positive": 915,
+          "unavailable": 0
+        },
+        "weak_label_definition": "1–2 negative, 3 neutral, 4–5 positive; exploratory overall rating-derived weak labels only"
+      },
+      "languages": {
+        "english": 690,
+        "hindi": 0,
+        "hinglish": 1,
+        "other_indic": 0,
+        "other": 15,
+        "unknown": 470
+      },
+      "sources": {
+        "niraliivaghani/flipkart-product-customer-reviews-dataset": 1176
+      },
+      "missing_schema_cells_percent": 28.5714,
+      "largest_product_group_share_percent": 67.8571,
+      "insufficient_reviews": false,
+      "product_concentrated": true,
+      "indic_labeled_reviews": 1,
+      "insufficient_indic_labeled_reviews": true
+    },
+    "chargers_power_banks": {
+      "reviews": 4830,
+      "unique_product_name_groups": 14,
+      "reviews_per_product_group": {
+        "count": 14,
+        "mean": 345.0,
+        "median": 150.0,
+        "min": 20.0,
+        "p25": 49.0,
+        "p75": 463.5,
+        "p95": 1092.0999999999995,
+        "max": 2006.0
+      },
+      "rating": {
+        "distribution": {
+          "1": 579,
+          "2": 130,
+          "3": 312,
+          "4": 908,
+          "5": 2901
+        },
+        "summary": {
+          "count": 4830,
+          "mean": 4.122567287784679,
+          "median": 5.0,
+          "min": 1.0,
+          "p25": 4.0,
+          "p75": 5.0,
+          "p95": 5.0,
+          "max": 5.0
+        },
+        "low_rated_percent": 14.6791,
+        "high_rated_percent": 78.8613,
+        "weak_sentiment_counts": {
+          "negative": 709,
+          "neutral": 312,
+          "positive": 3809,
+          "unavailable": 0
+        },
+        "weak_label_definition": "1–2 negative, 3 neutral, 4–5 positive; exploratory overall rating-derived weak labels only"
+      },
+      "languages": {
+        "english": 2002,
+        "hindi": 0,
+        "hinglish": 6,
+        "other_indic": 0,
+        "other": 52,
+        "unknown": 2770
+      },
+      "sources": {
+        "niraliivaghani/flipkart-product-customer-reviews-dataset": 4830
+      },
+      "missing_schema_cells_percent": 28.5714,
+      "largest_product_group_share_percent": 41.5321,
+      "insufficient_reviews": false,
+      "product_concentrated": false,
+      "indic_labeled_reviews": 6,
+      "insufficient_indic_labeled_reviews": true
+    }
+  },
+  "ratings": {
+    "distribution": {
+      "1": 2387,
+      "2": 570,
+      "3": 1490,
+      "4": 4306,
+      "5": 14569
+    },
+    "summary": {
+      "count": 23322,
+      "mean": 4.204870937312409,
+      "median": 5.0,
+      "min": 1.0,
+      "p25": 4.0,
+      "p75": 5.0,
+      "p95": 5.0,
+      "max": 5.0
+    },
+    "low_rated_percent": 12.679,
+    "high_rated_percent": 80.9322,
+    "weak_sentiment_counts": {
+      "negative": 2957,
+      "neutral": 1490,
+      "positive": 18875,
+      "unavailable": 0
+    },
+    "weak_label_definition": "1–2 negative, 3 neutral, 4–5 positive; exploratory overall rating-derived weak labels only",
+    "by_product_category": {
+      "accessories": {
+        "distribution": {
+          "1": 255,
+          "2": 71,
+          "3": 219,
+          "4": 802,
+          "5": 2270
+        },
+        "summary": {
+          "count": 3617,
+          "mean": 4.31628421343655,
+          "median": 5.0,
+          "min": 1.0,
+          "p25": 4.0,
+          "p75": 5.0,
+          "p95": 5.0,
+          "max": 5.0
+        },
+        "low_rated_percent": 9.013,
+        "high_rated_percent": 84.9323,
+        "weak_sentiment_counts": {
+          "negative": 326,
+          "neutral": 219,
+          "positive": 3072,
+          "unavailable": 0
+        },
+        "weak_label_definition": "1–2 negative, 3 neutral, 4–5 positive; exploratory overall rating-derived weak labels only"
+      },
+      "audio_devices": {
+        "distribution": {
+          "1": 959,
+          "2": 216,
+          "3": 530,
+          "4": 1339,
+          "5": 4636
+        },
+        "summary": {
+          "count": 7680,
+          "mean": 4.103776041666666,
+          "median": 5.0,
+          "min": 1.0,
+          "p25": 4.0,
+          "p75": 5.0,
+          "p95": 5.0,
+          "max": 5.0
+        },
+        "low_rated_percent": 15.2995,
+        "high_rated_percent": 77.7995,
+        "weak_sentiment_counts": {
+          "negative": 1175,
+          "neutral": 530,
+          "positive": 5975,
+          "unavailable": 0
+        },
+        "weak_label_definition": "1–2 negative, 3 neutral, 4–5 positive; exploratory overall rating-derived weak labels only"
+      },
+      "chargers_power_banks": {
+        "distribution": {
+          "1": 579,
+          "2": 130,
+          "3": 312,
+          "4": 908,
+          "5": 2901
+        },
+        "summary": {
+          "count": 4830,
+          "mean": 4.122567287784679,
+          "median": 5.0,
+          "min": 1.0,
+          "p25": 4.0,
+          "p75": 5.0,
+          "p95": 5.0,
+          "max": 5.0
+        },
+        "low_rated_percent": 14.6791,
+        "high_rated_percent": 78.8613,
+        "weak_sentiment_counts": {
+          "negative": 709,
+          "neutral": 312,
+          "positive": 3809,
+          "unavailable": 0
+        },
+        "weak_label_definition": "1–2 negative, 3 neutral, 4–5 positive; exploratory overall rating-derived weak labels only"
+      },
+      "laptops": {
+        "distribution": {
+          "1": 165,
+          "2": 52,
+          "3": 154,
+          "4": 567,
+          "5": 2133
+        },
+        "summary": {
+          "count": 3071,
+          "mean": 4.44936502767828,
+          "median": 5.0,
+          "min": 1.0,
+          "p25": 4.0,
+          "p75": 5.0,
+          "p95": 5.0,
+          "max": 5.0
+        },
+        "low_rated_percent": 7.0661,
+        "high_rated_percent": 87.9192,
+        "weak_sentiment_counts": {
+          "negative": 217,
+          "neutral": 154,
+          "positive": 2700,
+          "unavailable": 0
+        },
+        "weak_label_definition": "1–2 negative, 3 neutral, 4–5 positive; exploratory overall rating-derived weak labels only"
+      },
+      "networking_devices": {
+        "distribution": {
+          "1": 130,
+          "2": 39,
+          "3": 92,
+          "4": 206,
+          "5": 709
+        },
+        "summary": {
+          "count": 1176,
+          "mean": 4.1267006802721085,
+          "median": 5.0,
+          "min": 1.0,
+          "p25": 4.0,
+          "p75": 5.0,
+          "p95": 5.0,
+          "max": 5.0
+        },
+        "low_rated_percent": 14.3707,
+        "high_rated_percent": 77.8061,
+        "weak_sentiment_counts": {
+          "negative": 169,
+          "neutral": 92,
+          "positive": 915,
+          "unavailable": 0
+        },
+        "weak_label_definition": "1–2 negative, 3 neutral, 4–5 positive; exploratory overall rating-derived weak labels only"
+      },
+      "tablets": {
+        "distribution": {
+          "1": 26,
+          "2": 10,
+          "3": 28,
+          "4": 141,
+          "5": 838
+        },
+        "summary": {
+          "count": 1043,
+          "mean": 4.682646212847555,
+          "median": 5.0,
+          "min": 1.0,
+          "p25": 5.0,
+          "p75": 5.0,
+          "p95": 5.0,
+          "max": 5.0
+        },
+        "low_rated_percent": 3.4516,
+        "high_rated_percent": 93.8639,
+        "weak_sentiment_counts": {
+          "negative": 36,
+          "neutral": 28,
+          "positive": 979,
+          "unavailable": 0
+        },
+        "weak_label_definition": "1–2 negative, 3 neutral, 4–5 positive; exploratory overall rating-derived weak labels only"
+      },
+      "wearables": {
+        "distribution": {
+          "1": 273,
+          "2": 52,
+          "3": 155,
+          "4": 343,
+          "5": 1082
+        },
+        "summary": {
+          "count": 1905,
+          "mean": 4.0020997375328085,
+          "median": 5.0,
+          "min": 1.0,
+          "p25": 3.0,
+          "p75": 5.0,
+          "p95": 5.0,
+          "max": 5.0
+        },
+        "low_rated_percent": 17.0604,
+        "high_rated_percent": 74.8031,
+        "weak_sentiment_counts": {
+          "negative": 325,
+          "neutral": 155,
+          "positive": 1425,
+          "unavailable": 0
+        },
+        "weak_label_definition": "1–2 negative, 3 neutral, 4–5 positive; exploratory overall rating-derived weak labels only"
+      }
+    },
+    "by_source_dataset": {
+      "niraliivaghani/flipkart-product-customer-reviews-dataset": {
+        "distribution": {
+          "1": 2387,
+          "2": 570,
+          "3": 1490,
+          "4": 4306,
+          "5": 14569
+        },
+        "summary": {
+          "count": 23322,
+          "mean": 4.204870937312409,
+          "median": 5.0,
+          "min": 1.0,
+          "p25": 4.0,
+          "p75": 5.0,
+          "p95": 5.0,
+          "max": 5.0
+        },
+        "low_rated_percent": 12.679,
+        "high_rated_percent": 80.9322,
+        "weak_sentiment_counts": {
+          "negative": 2957,
+          "neutral": 1490,
+          "positive": 18875,
+          "unavailable": 0
+        },
+        "weak_label_definition": "1–2 negative, 3 neutral, 4–5 positive; exploratory overall rating-derived weak labels only"
+      }
+    },
+    "by_language": {
+      "english": {
+        "distribution": {
+          "1": 1553,
+          "2": 392,
+          "3": 836,
+          "4": 2167,
+          "5": 7485
+        },
+        "summary": {
+          "count": 12433,
+          "mean": 4.096999919568889,
+          "median": 5.0,
+          "min": 1.0,
+          "p25": 4.0,
+          "p75": 5.0,
+          "p95": 5.0,
+          "max": 5.0
+        },
+        "low_rated_percent": 15.6439,
+        "high_rated_percent": 77.6321,
+        "weak_sentiment_counts": {
+          "negative": 1945,
+          "neutral": 836,
+          "positive": 9652,
+          "unavailable": 0
+        },
+        "weak_label_definition": "1–2 negative, 3 neutral, 4–5 positive; exploratory overall rating-derived weak labels only"
+      },
+      "hinglish": {
+        "distribution": {
+          "1": 3,
+          "2": 1,
+          "3": 2,
+          "4": 2,
+          "5": 15
+        },
+        "summary": {
+          "count": 23,
+          "mean": 4.086956521739131,
+          "median": 5.0,
+          "min": 1.0,
+          "p25": 3.5,
+          "p75": 5.0,
+          "p95": 5.0,
+          "max": 5.0
+        },
+        "low_rated_percent": 17.3913,
+        "high_rated_percent": 73.913,
+        "weak_sentiment_counts": {
+          "negative": 4,
+          "neutral": 2,
+          "positive": 17,
+          "unavailable": 0
+        },
+        "weak_label_definition": "1–2 negative, 3 neutral, 4–5 positive; exploratory overall rating-derived weak labels only"
+      },
+      "other": {
+        "distribution": {
+          "1": 45,
+          "2": 15,
+          "3": 10,
+          "4": 45,
+          "5": 134
+        },
+        "summary": {
+          "count": 249,
+          "mean": 3.8353413654618476,
+          "median": 5.0,
+          "min": 1.0,
+          "p25": 3.0,
+          "p75": 5.0,
+          "p95": 5.0,
+          "max": 5.0
+        },
+        "low_rated_percent": 24.0964,
+        "high_rated_percent": 71.8876,
+        "weak_sentiment_counts": {
+          "negative": 60,
+          "neutral": 10,
+          "positive": 179,
+          "unavailable": 0
+        },
+        "weak_label_definition": "1–2 negative, 3 neutral, 4–5 positive; exploratory overall rating-derived weak labels only"
+      },
+      "unknown": {
+        "distribution": {
+          "1": 786,
+          "2": 162,
+          "3": 642,
+          "4": 2092,
+          "5": 6935
+        },
+        "summary": {
+          "count": 10617,
+          "mean": 4.34011491004992,
+          "median": 5.0,
+          "min": 1.0,
+          "p25": 4.0,
+          "p75": 5.0,
+          "p95": 5.0,
+          "max": 5.0
+        },
+        "low_rated_percent": 8.9291,
+        "high_rated_percent": 85.024,
+        "weak_sentiment_counts": {
+          "negative": 948,
+          "neutral": 642,
+          "positive": 9027,
+          "unavailable": 0
+        },
+        "weak_label_definition": "1–2 negative, 3 neutral, 4–5 positive; exploratory overall rating-derived weak labels only"
+      }
+    },
+    "by_split": {
+      "test": {
+        "distribution": {
+          "1": 378,
+          "2": 96,
+          "3": 186,
+          "4": 399,
+          "5": 1404
+        },
+        "summary": {
+          "count": 2463,
+          "mean": 3.956151035322777,
+          "median": 5.0,
+          "min": 1.0,
+          "p25": 3.0,
+          "p75": 5.0,
+          "p95": 5.0,
+          "max": 5.0
+        },
+        "low_rated_percent": 19.2448,
+        "high_rated_percent": 73.2034,
+        "weak_sentiment_counts": {
+          "negative": 474,
+          "neutral": 186,
+          "positive": 1803,
+          "unavailable": 0
+        },
+        "weak_label_definition": "1–2 negative, 3 neutral, 4–5 positive; exploratory overall rating-derived weak labels only"
+      },
+      "train": {
+        "distribution": {
+          "1": 1688,
+          "2": 385,
+          "3": 1144,
+          "4": 3440,
+          "5": 11710
+        },
+        "summary": {
+          "count": 18367,
+          "mean": 4.257635977568465,
+          "median": 5.0,
+          "min": 1.0,
+          "p25": 4.0,
+          "p75": 5.0,
+          "p95": 5.0,
+          "max": 5.0
+        },
+        "low_rated_percent": 11.2865,
+        "high_rated_percent": 82.4849,
+        "weak_sentiment_counts": {
+          "negative": 2073,
+          "neutral": 1144,
+          "positive": 15150,
+          "unavailable": 0
+        },
+        "weak_label_definition": "1–2 negative, 3 neutral, 4–5 positive; exploratory overall rating-derived weak labels only"
+      },
+      "validation": {
+        "distribution": {
+          "1": 321,
+          "2": 89,
+          "3": 160,
+          "4": 467,
+          "5": 1455
+        },
+        "summary": {
+          "count": 2492,
+          "mean": 4.061797752808989,
+          "median": 5.0,
+          "min": 1.0,
+          "p25": 4.0,
+          "p75": 5.0,
+          "p95": 5.0,
+          "max": 5.0
+        },
+        "low_rated_percent": 16.4526,
+        "high_rated_percent": 77.1268,
+        "weak_sentiment_counts": {
+          "negative": 410,
+          "neutral": 160,
+          "positive": 1922,
+          "unavailable": 0
+        },
+        "weak_label_definition": "1–2 negative, 3 neutral, 4–5 positive; exploratory overall rating-derived weak labels only"
+      }
+    }
+  },
+  "languages": {
+    "counts": {
+      "english": 12433,
+      "hindi": 0,
+      "hinglish": 23,
+      "other_indic": 0,
+      "other": 249,
+      "unknown": 10617
+    },
+    "percentages": {
+      "english": 53.3102,
+      "hindi": 0.0,
+      "hinglish": 0.0986,
+      "other_indic": 0.0,
+      "other": 1.0677,
+      "unknown": 45.5235
+    },
+    "unknown_or_low_confidence_count": 10640,
+    "unknown_or_low_confidence_percent": 45.6222,
+    "confidence_summary": {
+      "count": 14003,
+      "mean": 0.976242644734431,
+      "median": 0.9999964772005987,
+      "min": 0.28571357572936296,
+      "p25": 0.9999955021155192,
+      "p75": 0.9999973194901521,
+      "p95": 0.9999983625087743,
+      "max": 0.9999998195338857
+    },
+    "confidence_missing_percent": 39.958,
+    "confidence_note": "Detector scores are uncalibrated. Null heuristic scores are unavailable, not evidence of high confidence.",
+    "by_language": {
+      "english": {
+        "reviews": 12433,
+        "characters": {
+          "count": 12433,
+          "mean": 118.66629132148314,
+          "median": 72.0,
+          "min": 14.0,
+          "p25": 39.0,
+          "p75": 152.0,
+          "p95": 422.0,
+          "max": 497.0
+        },
+        "whitespace_words": {
+          "count": 12433,
+          "mean": 21.71229791683423,
+          "median": 13.0,
+          "min": 4.0,
+          "p25": 7.0,
+          "p75": 28.0,
+          "p95": 76.0,
+          "max": 104.0
+        },
+        "rating": {
+          "distribution": {
+            "1": 1553,
+            "2": 392,
+            "3": 836,
+            "4": 2167,
+            "5": 7485
+          },
+          "summary": {
+            "count": 12433,
+            "mean": 4.096999919568889,
+            "median": 5.0,
+            "min": 1.0,
+            "p25": 4.0,
+            "p75": 5.0,
+            "p95": 5.0,
+            "max": 5.0
+          },
+          "low_rated_percent": 15.6439,
+          "high_rated_percent": 77.6321,
+          "weak_sentiment_counts": {
+            "negative": 1945,
+            "neutral": 836,
+            "positive": 9652,
+            "unavailable": 0
+          },
+          "weak_label_definition": "1–2 negative, 3 neutral, 4–5 positive; exploratory overall rating-derived weak labels only"
+        },
+        "sources": {
+          "niraliivaghani/flipkart-product-customer-reviews-dataset": 12433
+        },
+        "categories": {
+          "accessories": 1493,
+          "audio_devices": 4761,
+          "chargers_power_banks": 2002,
+          "laptops": 2194,
+          "networking_devices": 690,
+          "tablets": 570,
+          "wearables": 723
+        },
+        "confidence": {
+          "count": 12433,
+          "mean": 0.9999901844673094,
+          "median": 0.9999966555952232,
+          "min": 0.9639172998654636,
+          "p25": 0.9999958676941983,
+          "p75": 0.9999974277090836,
+          "p95": 0.9999984088036777,
+          "max": 0.9999998195338857
+        }
+      },
+      "hindi": {
+        "reviews": 0,
+        "characters": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "p25": null,
+          "p75": null,
+          "p95": null,
+          "max": null
+        },
+        "whitespace_words": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "p25": null,
+          "p75": null,
+          "p95": null,
+          "max": null
+        },
+        "rating": {
+          "distribution": {
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0
+          },
+          "summary": {
+            "count": 0,
+            "mean": null,
+            "median": null,
+            "min": null,
+            "p25": null,
+            "p75": null,
+            "p95": null,
+            "max": null
+          },
+          "low_rated_percent": null,
+          "high_rated_percent": null,
+          "weak_sentiment_counts": {
+            "negative": 0,
+            "neutral": 0,
+            "positive": 0,
+            "unavailable": 0
+          },
+          "weak_label_definition": "1–2 negative, 3 neutral, 4–5 positive; exploratory overall rating-derived weak labels only"
+        },
+        "sources": {},
+        "categories": {},
+        "confidence": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "p25": null,
+          "p75": null,
+          "p95": null,
+          "max": null
+        }
+      },
+      "hinglish": {
+        "reviews": 23,
+        "characters": {
+          "count": 23,
+          "mean": 59.73913043478261,
+          "median": 20.0,
+          "min": 7.0,
+          "p25": 15.5,
+          "p75": 44.5,
+          "p95": 212.7999999999999,
+          "max": 475.0
+        },
+        "whitespace_words": {
+          "count": 23,
+          "mean": 10.521739130434783,
+          "median": 4.0,
+          "min": 2.0,
+          "p25": 3.0,
+          "p75": 7.5,
+          "p95": 37.69999999999998,
+          "max": 81.0
+        },
+        "rating": {
+          "distribution": {
+            "1": 3,
+            "2": 1,
+            "3": 2,
+            "4": 2,
+            "5": 15
+          },
+          "summary": {
+            "count": 23,
+            "mean": 4.086956521739131,
+            "median": 5.0,
+            "min": 1.0,
+            "p25": 3.5,
+            "p75": 5.0,
+            "p95": 5.0,
+            "max": 5.0
+          },
+          "low_rated_percent": 17.3913,
+          "high_rated_percent": 73.913,
+          "weak_sentiment_counts": {
+            "negative": 4,
+            "neutral": 2,
+            "positive": 17,
+            "unavailable": 0
+          },
+          "weak_label_definition": "1–2 negative, 3 neutral, 4–5 positive; exploratory overall rating-derived weak labels only"
+        },
+        "sources": {
+          "niraliivaghani/flipkart-product-customer-reviews-dataset": 23
+        },
+        "categories": {
+          "accessories": 2,
+          "audio_devices": 13,
+          "chargers_power_banks": 6,
+          "networking_devices": 1,
+          "tablets": 1
+        },
+        "confidence": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "p25": null,
+          "p75": null,
+          "p95": null,
+          "max": null
+        }
+      },
+      "other_indic": {
+        "reviews": 0,
+        "characters": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "p25": null,
+          "p75": null,
+          "p95": null,
+          "max": null
+        },
+        "whitespace_words": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "p25": null,
+          "p75": null,
+          "p95": null,
+          "max": null
+        },
+        "rating": {
+          "distribution": {
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0
+          },
+          "summary": {
+            "count": 0,
+            "mean": null,
+            "median": null,
+            "min": null,
+            "p25": null,
+            "p75": null,
+            "p95": null,
+            "max": null
+          },
+          "low_rated_percent": null,
+          "high_rated_percent": null,
+          "weak_sentiment_counts": {
+            "negative": 0,
+            "neutral": 0,
+            "positive": 0,
+            "unavailable": 0
+          },
+          "weak_label_definition": "1–2 negative, 3 neutral, 4–5 positive; exploratory overall rating-derived weak labels only"
+        },
+        "sources": {},
+        "categories": {},
+        "confidence": {
+          "count": 0,
+          "mean": null,
+          "median": null,
+          "min": null,
+          "p25": null,
+          "p75": null,
+          "p95": null,
+          "max": null
+        }
+      },
+      "other": {
+        "reviews": 249,
+        "characters": {
+          "count": 249,
+          "mean": 26.096385542168676,
+          "median": 24.0,
+          "min": 13.0,
+          "p25": 21.0,
+          "p75": 29.0,
+          "p95": 42.599999999999994,
+          "max": 86.0
+        },
+        "whitespace_words": {
+          "count": 249,
+          "mean": 5.032128514056225,
+          "median": 5.0,
+          "min": 4.0,
+          "p25": 4.0,
+          "p75": 6.0,
+          "p95": 8.0,
+          "max": 19.0
+        },
+        "rating": {
+          "distribution": {
+            "1": 45,
+            "2": 15,
+            "3": 10,
+            "4": 45,
+            "5": 134
+          },
+          "summary": {
+            "count": 249,
+            "mean": 3.8353413654618476,
+            "median": 5.0,
+            "min": 1.0,
+            "p25": 3.0,
+            "p75": 5.0,
+            "p95": 5.0,
+            "max": 5.0
+          },
+          "low_rated_percent": 24.0964,
+          "high_rated_percent": 71.8876,
+          "weak_sentiment_counts": {
+            "negative": 60,
+            "neutral": 10,
+            "positive": 179,
+            "unavailable": 0
+          },
+          "weak_label_definition": "1–2 negative, 3 neutral, 4–5 positive; exploratory overall rating-derived weak labels only"
+        },
+        "sources": {
+          "niraliivaghani/flipkart-product-customer-reviews-dataset": 249
+        },
+        "categories": {
+          "accessories": 43,
+          "audio_devices": 66,
+          "chargers_power_banks": 52,
+          "laptops": 49,
+          "networking_devices": 15,
+          "tablets": 16,
+          "wearables": 8
+        },
+        "confidence": {
+          "count": 249,
+          "mean": 0.9996900407824733,
+          "median": 0.9999950198024863,
+          "min": 0.9645668384935755,
+          "p25": 0.9999939287293256,
+          "p75": 0.9999958532600391,
+          "p95": 0.9999973172434479,
+          "max": 0.9999990388559679
+        }
+      },
+      "unknown": {
+        "reviews": 10617,
+        "characters": {
+          "count": 10617,
+          "mean": 13.236978430818498,
+          "median": 12.0,
+          "min": 2.0,
+          "p25": 5.0,
+          "p75": 16.0,
+          "p95": 31.0,
+          "max": 483.0
+        },
+        "whitespace_words": {
+          "count": 10617,
+          "mean": 2.4214938306489593,
+          "median": 2.0,
+          "min": 1.0,
+          "p25": 1.0,
+          "p75": 3.0,
+          "p95": 6.0,
+          "max": 91.0
+        },
+        "rating": {
+          "distribution": {
+            "1": 786,
+            "2": 162,
+            "3": 642,
+            "4": 2092,
+            "5": 6935
+          },
+          "summary": {
+            "count": 10617,
+            "mean": 4.34011491004992,
+            "median": 5.0,
+            "min": 1.0,
+            "p25": 4.0,
+            "p75": 5.0,
+            "p95": 5.0,
+            "max": 5.0
+          },
+          "low_rated_percent": 8.9291,
+          "high_rated_percent": 85.024,
+          "weak_sentiment_counts": {
+            "negative": 948,
+            "neutral": 642,
+            "positive": 9027,
+            "unavailable": 0
+          },
+          "weak_label_definition": "1–2 negative, 3 neutral, 4–5 positive; exploratory overall rating-derived weak labels only"
+        },
+        "sources": {
+          "niraliivaghani/flipkart-product-customer-reviews-dataset": 10617
+        },
+        "categories": {
+          "accessories": 2079,
+          "audio_devices": 2840,
+          "chargers_power_banks": 2770,
+          "laptops": 828,
+          "networking_devices": 470,
+          "tablets": 456,
+          "wearables": 1174
+        },
+        "confidence": {
+          "count": 1321,
+          "mean": 0.7483156476755078,
+          "median": 0.8571367061840612,
+          "min": 0.28571357572936296,
+          "p25": 0.6654702543758969,
+          "p75": 0.8571400058852795,
+          "p95": 0.8571417564567057,
+          "max": 0.9999981308665279
+        }
+      }
+    },
+    "local_review_sample_count": 18
+  },
+  "text": {
+    "character_length": {
+      "count": 23322,
+      "mean": 69.62468913472257,
+      "median": 28.0,
+      "min": 2.0,
+      "p25": 12.0,
+      "p75": 79.0,
+      "p95": 301.0,
+      "max": 497.0
+    },
+    "whitespace_word_count": {
+      "count": 23322,
+      "mean": 12.741317211216877,
+      "median": 5.0,
+      "min": 1.0,
+      "p25": 2.0,
+      "p75": 14.0,
+      "p95": 56.0,
+      "max": 104.0
+    },
+    "extremely_short_count": 7332,
+    "extremely_short_percent": 31.4381,
+    "extremely_long_count": 0,
+    "extremely_long_percent": 0.0,
+    "short_definition": "fewer than 3 whitespace-separated words",
+    "long_definition": "more than 200 whitespace-separated words",
+    "empty_cleaned_text_count": 0,
+    "empty_cleaned_text_percent": 0.0,
+    "encoding_warning_count": 0,
+    "terms": {
+      "unigrams": [
+        {
+          "term": "good",
+          "review_document_frequency": 8393
+        },
+        {
+          "term": "product",
+          "review_document_frequency": 6392
+        },
+        {
+          "term": "is",
+          "review_document_frequency": 6018
+        },
+        {
+          "term": "and",
+          "review_document_frequency": 4775
+        },
+        {
+          "term": "very",
+          "review_document_frequency": 4197
+        },
+        {
+          "term": "for",
+          "review_document_frequency": 4193
+        },
+        {
+          "term": "it",
+          "review_document_frequency": 4031
+        },
+        {
+          "term": "this",
+          "review_document_frequency": 3842
+        },
+        {
+          "term": "nice",
+          "review_document_frequency": 3540
+        },
+        {
+          "term": "the",
+          "review_document_frequency": 3389
+        },
+        {
+          "term": "quality",
+          "review_document_frequency": 3302
+        },
+        {
+          "term": "sound",
+          "review_document_frequency": 2838
+        },
+        {
+          "term": "to",
+          "review_document_frequency": 2742
+        },
+        {
+          "term": "in",
+          "review_document_frequency": 2733
+        },
+        {
+          "term": "not",
+          "review_document_frequency": 2655
+        },
+        {
+          "term": "of",
+          "review_document_frequency": 2230
+        },
+        {
+          "term": "best",
+          "review_document_frequency": 2223
+        },
+        {
+          "term": "but",
+          "review_document_frequency": 2191
+        },
+        {
+          "term": "its",
+          "review_document_frequency": 2094
+        },
+        {
+          "term": "with",
+          "review_document_frequency": 2015
+        }
+      ],
+      "bigrams": [
+        {
+          "term": "very good",
+          "review_document_frequency": 1603
+        },
+        {
+          "term": "good product",
+          "review_document_frequency": 1596
+        },
+        {
+          "term": "sound quality",
+          "review_document_frequency": 1264
+        },
+        {
+          "term": "is very",
+          "review_document_frequency": 1097
+        },
+        {
+          "term": "nice product",
+          "review_document_frequency": 1054
+        },
+        {
+          "term": "is good",
+          "review_document_frequency": 998
+        },
+        {
+          "term": "quality is",
+          "review_document_frequency": 996
+        },
+        {
+          "term": "for money",
+          "review_document_frequency": 909
+        },
+        {
+          "term": "it is",
+          "review_document_frequency": 825
+        },
+        {
+          "term": "this price",
+          "review_document_frequency": 825
+        },
+        {
+          "term": "value for",
+          "review_document_frequency": 825
+        },
+        {
+          "term": "go for",
+          "review_document_frequency": 804
+        },
+        {
+          "term": "is not",
+          "review_document_frequency": 783
+        },
+        {
+          "term": "very nice",
+          "review_document_frequency": 777
+        },
+        {
+          "term": "battery backup",
+          "review_document_frequency": 768
+        },
+        {
+          "term": "this product",
+          "review_document_frequency": 712
+        },
+        {
+          "term": "in this",
+          "review_document_frequency": 704
+        },
+        {
+          "term": "for it",
+          "review_document_frequency": 661
+        },
+        {
+          "term": "this is",
+          "review_document_frequency": 623
+        },
+        {
+          "term": "product is",
+          "review_document_frequency": 569
+        }
+      ],
+      "selected_product_related_terms": {
+        "battery": 1684,
+        "charger": 658,
+        "charging": 679,
+        "display": 355,
+        "headphones": 190,
+        "keyboard": 243,
+        "laptop": 1039,
+        "network": 41,
+        "performance": 848,
+        "power": 355,
+        "price": 1540,
+        "quality": 3302,
+        "router": 241,
+        "sound": 2838,
+        "speaker": 432,
+        "watch": 344
+      },
+      "method": "Unicode letters/marks/numbers; NFC+casefold, no stopwords; document frequency, not validated aspects. Contact-like strings redacted; minimum document frequency applied. Selected product-related terms use an English diagnostic lexicon, not an exhaustive multilingual aspect taxonomy."
+    },
+    "empty_or_encoding_warning_percent": 0.0,
+    "by_product_category": {
+      "accessories": {
+        "characters": {
+          "count": 3617,
+          "mean": 46.028753110312415,
+          "median": 19.0,
+          "min": 2.0,
+          "p25": 9.0,
+          "p75": 49.0,
+          "p95": 188.19999999999982,
+          "max": 489.0
+        },
+        "whitespace_words": {
+          "count": 3617,
+          "mean": 8.505114735969036,
+          "median": 3.0,
+          "min": 1.0,
+          "p25": 2.0,
+          "p75": 9.0,
+          "p95": 35.0,
+          "max": 99.0
+        }
+      },
+      "audio_devices": {
+        "characters": {
+          "count": 7680,
+          "mean": 88.6671875,
+          "median": 38.0,
+          "min": 2.0,
+          "p25": 15.0,
+          "p75": 120.0,
+          "p95": 359.0499999999993,
+          "max": 497.0
+        },
+        "whitespace_words": {
+          "count": 7680,
+          "mean": 16.195052083333334,
+          "median": 7.0,
+          "min": 1.0,
+          "p25": 3.0,
+          "p75": 21.25,
+          "p95": 66.0,
+          "max": 103.0
+        }
+      },
+      "chargers_power_banks": {
+        "characters": {
+          "count": 4830,
+          "mean": 38.576190476190476,
+          "median": 19.0,
+          "min": 2.0,
+          "p25": 10.0,
+          "p75": 43.0,
+          "p95": 137.0,
+          "max": 492.0
+        },
+        "whitespace_words": {
+          "count": 4830,
+          "mean": 7.056314699792961,
+          "median": 3.0,
+          "min": 1.0,
+          "p25": 2.0,
+          "p75": 8.0,
+          "p95": 25.0,
+          "max": 100.0
+        }
+      },
+      "laptops": {
+        "characters": {
+          "count": 3071,
+          "mean": 116.4565288179746,
+          "median": 61.0,
+          "min": 2.0,
+          "p25": 23.0,
+          "p75": 153.0,
+          "p95": 466.0,
+          "max": 497.0
+        },
+        "whitespace_words": {
+          "count": 3071,
+          "mean": 21.198632367307066,
+          "median": 11.0,
+          "min": 1.0,
+          "p25": 4.0,
+          "p75": 28.0,
+          "p95": 83.0,
+          "max": 103.0
+        }
+      },
+      "networking_devices": {
+        "characters": {
+          "count": 1176,
+          "mean": 86.13180272108843,
+          "median": 36.0,
+          "min": 2.0,
+          "p25": 12.0,
+          "p75": 100.0,
+          "p95": 380.0,
+          "max": 492.0
+        },
+        "whitespace_words": {
+          "count": 1176,
+          "mean": 15.865646258503402,
+          "median": 6.0,
+          "min": 1.0,
+          "p25": 2.0,
+          "p75": 19.0,
+          "p95": 69.25,
+          "max": 104.0
+        }
+      },
+      "tablets": {
+        "characters": {
+          "count": 1043,
+          "mean": 63.90412272291467,
+          "median": 32.0,
+          "min": 2.0,
+          "p25": 13.0,
+          "p75": 78.0,
+          "p95": 235.0,
+          "max": 490.0
+        },
+        "whitespace_words": {
+          "count": 1043,
+          "mean": 11.713326941514861,
+          "median": 6.0,
+          "min": 1.0,
+          "p25": 2.0,
+          "p75": 14.0,
+          "p95": 43.799999999999955,
+          "max": 101.0
+        }
+      },
+      "wearables": {
+        "characters": {
+          "count": 1905,
+          "mean": 33.82309711286089,
+          "median": 16.0,
+          "min": 2.0,
+          "p25": 8.0,
+          "p75": 37.0,
+          "p95": 121.79999999999995,
+          "max": 492.0
+        },
+        "whitespace_words": {
+          "count": 1905,
+          "mean": 6.2750656167979,
+          "median": 3.0,
+          "min": 1.0,
+          "p25": 2.0,
+          "p75": 7.0,
+          "p95": 23.0,
+          "max": 93.0
+        }
+      }
+    },
+    "by_language": {
+      "english": {
+        "characters": {
+          "count": 12433,
+          "mean": 118.66629132148314,
+          "median": 72.0,
+          "min": 14.0,
+          "p25": 39.0,
+          "p75": 152.0,
+          "p95": 422.0,
+          "max": 497.0
+        },
+        "whitespace_words": {
+          "count": 12433,
+          "mean": 21.71229791683423,
+          "median": 13.0,
+          "min": 4.0,
+          "p25": 7.0,
+          "p75": 28.0,
+          "p95": 76.0,
+          "max": 104.0
+        }
+      },
+      "hinglish": {
+        "characters": {
+          "count": 23,
+          "mean": 59.73913043478261,
+          "median": 20.0,
+          "min": 7.0,
+          "p25": 15.5,
+          "p75": 44.5,
+          "p95": 212.7999999999999,
+          "max": 475.0
+        },
+        "whitespace_words": {
+          "count": 23,
+          "mean": 10.521739130434783,
+          "median": 4.0,
+          "min": 2.0,
+          "p25": 3.0,
+          "p75": 7.5,
+          "p95": 37.69999999999998,
+          "max": 81.0
+        }
+      },
+      "other": {
+        "characters": {
+          "count": 249,
+          "mean": 26.096385542168676,
+          "median": 24.0,
+          "min": 13.0,
+          "p25": 21.0,
+          "p75": 29.0,
+          "p95": 42.599999999999994,
+          "max": 86.0
+        },
+        "whitespace_words": {
+          "count": 249,
+          "mean": 5.032128514056225,
+          "median": 5.0,
+          "min": 4.0,
+          "p25": 4.0,
+          "p75": 6.0,
+          "p95": 8.0,
+          "max": 19.0
+        }
+      },
+      "unknown": {
+        "characters": {
+          "count": 10617,
+          "mean": 13.236978430818498,
+          "median": 12.0,
+          "min": 2.0,
+          "p25": 5.0,
+          "p75": 16.0,
+          "p95": 31.0,
+          "max": 483.0
+        },
+        "whitespace_words": {
+          "count": 10617,
+          "mean": 2.4214938306489593,
+          "median": 2.0,
+          "min": 1.0,
+          "p25": 1.0,
+          "p75": 3.0,
+          "p95": 6.0,
+          "max": 91.0
+        }
+      }
+    },
+    "by_rating": {
+      "1.0": {
+        "characters": {
+          "count": 2387,
+          "mean": 68.12526183493925,
+          "median": 38.0,
+          "min": 2.0,
+          "p25": 19.0,
+          "p75": 80.0,
+          "p95": 241.69999999999982,
+          "max": 492.0
+        },
+        "whitespace_words": {
+          "count": 2387,
+          "mean": 12.44574780058651,
+          "median": 7.0,
+          "min": 1.0,
+          "p25": 3.0,
+          "p75": 15.0,
+          "p95": 43.0,
+          "max": 103.0
+        }
+      },
+      "2.0": {
+        "characters": {
+          "count": 570,
+          "mean": 79.09473684210526,
+          "median": 41.0,
+          "min": 2.0,
+          "p25": 21.0,
+          "p75": 90.0,
+          "p95": 283.9999999999991,
+          "max": 479.0
+        },
+        "whitespace_words": {
+          "count": 570,
+          "mean": 14.519298245614035,
+          "median": 8.0,
+          "min": 1.0,
+          "p25": 4.0,
+          "p75": 17.0,
+          "p95": 52.0,
+          "max": 95.0
+        }
+      },
+      "3.0": {
+        "characters": {
+          "count": 1490,
+          "mean": 73.08120805369127,
+          "median": 30.0,
+          "min": 2.0,
+          "p25": 12.0,
+          "p75": 83.0,
+          "p95": 319.0,
+          "max": 490.0
+        },
+        "whitespace_words": {
+          "count": 1490,
+          "mean": 13.710738255033558,
+          "median": 6.0,
+          "min": 1.0,
+          "p25": 2.0,
+          "p75": 15.0,
+          "p95": 61.0,
+          "max": 102.0
+        }
+      },
+      "4.0": {
+        "characters": {
+          "count": 4306,
+          "mean": 71.10055736182072,
+          "median": 26.0,
+          "min": 2.0,
+          "p25": 11.0,
+          "p75": 78.0,
+          "p95": 339.75,
+          "max": 497.0
+        },
+        "whitespace_words": {
+          "count": 4306,
+          "mean": 13.10775661867162,
+          "median": 5.0,
+          "min": 1.0,
+          "p25": 2.0,
+          "p75": 14.0,
+          "p95": 63.0,
+          "max": 100.0
+        }
+      },
+      "5.0": {
+        "characters": {
+          "count": 14569,
+          "mean": 68.7101379641705,
+          "median": 27.0,
+          "min": 2.0,
+          "p25": 12.0,
+          "p75": 78.0,
+          "p95": 301.0,
+          "max": 494.0
+        },
+        "whitespace_words": {
+          "count": 14569,
+          "mean": 12.51273251424257,
+          "median": 5.0,
+          "min": 1.0,
+          "p25": 2.0,
+          "p75": 14.0,
+          "p95": 56.0,
+          "max": 104.0
+        }
+      }
+    }
+  },
+  "products": {
+    "identity_basis": "exact-name product_group proxy; true unique catalog-product count unavailable",
+    "unique_product_name_groups": 75,
+    "reviews_per_group": {
+      "count": 75,
+      "mean": 310.96,
+      "median": 200.0,
+      "min": 3.0,
+      "p25": 71.5,
+      "p75": 354.0,
+      "p95": 1099.3999999999994,
+      "max": 2006.0
+    },
+    "coverage_bands": {
+      "fewer_than_5": 1,
+      "5_to_20": 1,
+      "21_to_100": 26,
+      "more_than_100": 47
+    },
+    "unweighted_mean_product_group_rating": 4.036176615390093,
+    "product_group_rating_distribution": {
+      "count": 75,
+      "mean": 4.036176615390093,
+      "median": 4.1568627450980395,
+      "min": 2.3461538461538463,
+      "p25": 3.8188247959541335,
+      "p75": 4.4083148378714885,
+      "p95": 4.619398207426376,
+      "max": 4.780585106382978
+    },
+    "groups_by_category": {
+      "accessories": 11,
+      "audio_devices": 26,
+      "chargers_power_banks": 14,
+      "laptops": 14,
+      "networking_devices": 5,
+      "tablets": 1,
+      "wearables": 4
+    },
+    "top_1_review_share_percent": 8.6013,
+    "top_10_review_share_percent": 49.6184,
+    "review_concentration_hhi": 0.03590599898935807,
+    "groups_below_provisional_threshold": 1,
+    "provisional_min_reviews": 20,
+    "threshold_note": "A starting evidence floor, not proof of reliable ranking; validate with learning curves, independent customers, deduplication sensitivity and uncertainty intervals.",
+    "per_group": {
+      "04cd701a0845e3d67dbca943c3fae5e65b6d87269b76e691559b51bb5b297102": {
+        "reviews": 512,
+        "average_rating": 3.5,
+        "category": "chargers_power_banks"
+      },
+      "0ababb340eff1aa6f04d09cf52485cb943a652b4484e3f9fdf5bd24550a47723": {
+        "reviews": 90,
+        "average_rating": 4.311111111111111,
+        "category": "networking_devices"
+      },
+      "12a6f3e988be28e5acca3eb87ce53049a5f417cd4d0df79dafd62e6d8276b99b": {
+        "reviews": 580,
+        "average_rating": 4.406896551724138,
+        "category": "chargers_power_banks"
+      },
+      "1495e1f81d148aec2185b5f032d1ccc4ef14f1d8013859855e89f71ee8cc2918": {
+        "reviews": 72,
+        "average_rating": 2.8055555555555554,
+        "category": "chargers_power_banks"
+      },
+      "164cebabb4d87efca53e31e32414f76f4d8dd3cfec5b83d329a98dace6d73ca6": {
+        "reviews": 97,
+        "average_rating": 3.9381443298969074,
+        "category": "audio_devices"
+      },
+      "1c5759adfd126e9b1136397a64e38b4e922ba0b01775358807a427835de7f417": {
+        "reviews": 798,
+        "average_rating": 4.224310776942356,
+        "category": "networking_devices"
+      },
+      "1fe4b69a4c1b4b7d81bb695c354cf29528ca398f97b2c9dffcd21e2e4621cb93": {
+        "reviews": 200,
+        "average_rating": 3.075,
+        "category": "audio_devices"
+      },
+      "234bb91d6e818b20e462cf3f4c25053ce3450f8eea1d462b75d8872f31aa06a2": {
+        "reviews": 752,
+        "average_rating": 4.780585106382978,
+        "category": "laptops"
+      },
+      "25fc556fe7776f2d341462d84d41070c48cdd8ed962bb923b29a69bc3fdf5ec8": {
+        "reviews": 508,
+        "average_rating": 3.9035433070866143,
+        "category": "audio_devices"
+      },
+      "28ac685c1d01046e0005e6f1e7d513f1ed460e6fbcf2ab0369a4ddd852a5dff5": {
+        "reviews": 1231,
+        "average_rating": 4.185215272136475,
+        "category": "audio_devices"
+      },
+      "2b4d4b9c1032942bb0c0d8a524964296e800f2fa3a2cc839a38943bf1477a153": {
+        "reviews": 230,
+        "average_rating": 4.060869565217391,
+        "category": "audio_devices"
+      },
+      "2c23f32db87a80b29f52cf3f30d44a68d9ee667493ffcb8b39afd15bb43928ee": {
+        "reviews": 107,
+        "average_rating": 4.065420560747664,
+        "category": "networking_devices"
+      },
+      "2dc99bf3f9a1defabbea7788e046f83a31c7a083bc2ef765e9057dda6c129608": {
+        "reviews": 120,
+        "average_rating": 4.191666666666666,
+        "category": "accessories"
+      },
+      "332c54f62ec655a82e3680bcadaf26adddb3ab8778f3c2e1a3ab1e761e00f591": {
+        "reviews": 34,
+        "average_rating": 4.735294117647059,
+        "category": "laptops"
+      },
+      "34376a288c5cf4981165da28524cd430a39bab10c04c92a62488ba11f32583ea": {
+        "reviews": 206,
+        "average_rating": 4.111650485436893,
+        "category": "wearables"
+      },
+      "3a6421e209f28a7e3215dc628dda652cacfd6866c5c915b2a08445ccc1970f94": {
+        "reviews": 489,
+        "average_rating": 3.9406952965235176,
+        "category": "audio_devices"
+      },
+      "3bf88e749863c6c48a8e1edb1552f15e2153b1b1f2761d3ca736c5462ba15e5f": {
+        "reviews": 20,
+        "average_rating": 2.6,
+        "category": "chargers_power_banks"
+      },
+      "4845729dcaeb2cbfd6deb6dff8c8728ae7015652473ab21e17f8efe9fe4ea6fb": {
+        "reviews": 2006,
+        "average_rating": 4.261216350947159,
+        "category": "chargers_power_banks"
+      },
+      "49bf54498ed873f2e5ce2a08ed776e9f1fa116a324e0a2830c5f19b9be1b3708": {
+        "reviews": 37,
+        "average_rating": 4.405405405405405,
+        "category": "laptops"
+      },
+      "4c8ab9eccb2b862fdf45ab2b9426bd1a1e71e89c72171907ccbf9dd43bc20fcf": {
+        "reviews": 200,
+        "average_rating": 4.46,
+        "category": "audio_devices"
+      },
+      "4f67d9d237782eb7344663a94c7206f51cdd6234e10b8c7e716b0cddb6e0238d": {
+        "reviews": 99,
+        "average_rating": 3.5353535353535355,
+        "category": "audio_devices"
+      },
+      "50d6b675bc4bb92065fbe258754dcbcd6b3d505e939d0534a91569c516e4956b": {
+        "reviews": 241,
+        "average_rating": 4.377593360995851,
+        "category": "audio_devices"
+      },
+      "5bb8463196e5ab13106d41ce278a7d11ca77c1770019a8be3d0b5097e87217b0": {
+        "reviews": 23,
+        "average_rating": 4.565217391304348,
+        "category": "accessories"
+      },
+      "5d1f0be9690b3c3390fd36de8989c3fca2147047ce0268737d38f73b641dc080": {
+        "reviews": 390,
+        "average_rating": 4.438461538461539,
+        "category": "audio_devices"
+      },
+      "5e1dfd2e3480bc7dd736b0c0af674a9e06a082f48df029dc60727b7d8328c84b": {
+        "reviews": 103,
+        "average_rating": 4.087378640776699,
+        "category": "laptops"
+      },
+      "5f6900681d50ed098058fb493fb010c6e71a19f0c8999ef2ad03fa701787da0e": {
+        "reviews": 147,
+        "average_rating": 4.299319727891157,
+        "category": "laptops"
+      },
+      "61cf462a6f4816b41551937c23b482042d7da07fcdc0d6f036e5a2ff52c573ec": {
+        "reviews": 25,
+        "average_rating": 2.88,
+        "category": "audio_devices"
+      },
+      "62100ed7a4bd8cd05b3b7445c55cc282a221992fed0286e4580bf5e55bc5f588": {
+        "reviews": 1999,
+        "average_rating": 4.424212106053027,
+        "category": "accessories"
+      },
+      "6da505ff508e8510525e24adeb05d72446025b3c2efb220f5f3ed19f982c5b24": {
+        "reviews": 238,
+        "average_rating": 4.470588235294118,
+        "category": "chargers_power_banks"
+      },
+      "6ec245fc891f0eff395a4d965ca8439646d2573e5bcc0b898c5a4983526062da": {
+        "reviews": 200,
+        "average_rating": 4.185,
+        "category": "audio_devices"
+      },
+      "6fb1de97747f8a9596219cb2b5fa6794e7be5c8b3e4f6178c5d15607604e80d8": {
+        "reviews": 56,
+        "average_rating": 3.142857142857143,
+        "category": "wearables"
+      },
+      "75ccd1f6235d99e227246f7641fbbf85da3c81500d52c10053593a35f3d60725": {
+        "reviews": 100,
+        "average_rating": 4.38,
+        "category": "accessories"
+      },
+      "7622544e73a864eb122235acdb2358fff71aa5c64b3f9bf88b426be64830594e": {
+        "reviews": 317,
+        "average_rating": 3.8201892744479493,
+        "category": "accessories"
+      },
+      "7781160aa75c63a9ad1540b68aa2038278445729564e83e73aaad908c151d883": {
+        "reviews": 60,
+        "average_rating": 4.466666666666667,
+        "category": "audio_devices"
+      },
+      "77e6ad3a623411ebd8be15ff149c68b07092c05567336bbe454344d1702148b6": {
+        "reviews": 500,
+        "average_rating": 4.448,
+        "category": "audio_devices"
+      },
+      "7c33285456af817fa660fe23dd15fd17a9ea0a29a69223c9c43a3c4ce6b0465e": {
+        "reviews": 44,
+        "average_rating": 3.4545454545454546,
+        "category": "chargers_power_banks"
+      },
+      "7f070bf902c430adc5a015b9f932fcd1f3cb0533264377bd10614bf489849b32": {
+        "reviews": 100,
+        "average_rating": 4.3,
+        "category": "chargers_power_banks"
+      },
+      "80ac11a0446c3ad60bb369cc461f73726de9a7b42c0389662db5f034e6b954ae": {
+        "reviews": 1043,
+        "average_rating": 4.682646212847555,
+        "category": "tablets"
+      },
+      "85b79b7620c9c6ec7118d8b4719a47ad526e5786b071d1c4155cef2b04d31c78": {
+        "reviews": 92,
+        "average_rating": 4.032608695652174,
+        "category": "audio_devices"
+      },
+      "86c283df02763dcddc2df4b9254db7e204be6c4a6aa9bdf8db755a76fb6ab133": {
+        "reviews": 400,
+        "average_rating": 4.4625,
+        "category": "audio_devices"
+      },
+      "8d3db97459bf8de6bf5d8de5ff1c7d7a0261da215ad0b970659f87ce66b23409": {
+        "reviews": 64,
+        "average_rating": 4.4375,
+        "category": "chargers_power_banks"
+      },
+      "985f487a039ed0b3990b6019ee14f524f38495266b657e689eb626bff8309b23": {
+        "reviews": 148,
+        "average_rating": 4.405405405405405,
+        "category": "accessories"
+      },
+      "9a1cd60c4d8feec737ac887c5c32e91eaee052a38ea46983aa5c65c7893fe9b0": {
+        "reviews": 145,
+        "average_rating": 3.579310344827586,
+        "category": "networking_devices"
+      },
+      "9ac566e402d0697c0bf1327a28badccfe9ba537358b8a796830c4514aed107cc": {
+        "reviews": 140,
+        "average_rating": 4.1571428571428575,
+        "category": "laptops"
+      },
+      "9aff00e0adfd35dc4a131727438cd23935014bd063e9a72cb4d39c2eab5f4f33": {
+        "reviews": 418,
+        "average_rating": 4.294258373205742,
+        "category": "accessories"
+      },
+      "9d4960aa5310005f6f4f930676601c4f62fb67a773ba5f15373d4824311addab": {
+        "reviews": 100,
+        "average_rating": 4.05,
+        "category": "accessories"
+      },
+      "a1d651f555f3cc0208116063a3ef7fbdaea158090345811d2526396a8dd74064": {
+        "reviews": 600,
+        "average_rating": 4.446666666666666,
+        "category": "chargers_power_banks"
+      },
+      "ad2ec77c9a2e0282502da545d0222eb45097c291958219bb576fee5c1c1c724e": {
+        "reviews": 100,
+        "average_rating": 4.0,
+        "category": "audio_devices"
+      },
+      "b642ab3136864fb9d267851579bacf5305cf35724cd2ef63a72fa662dcfadb08": {
+        "reviews": 200,
+        "average_rating": 4.355,
+        "category": "accessories"
+      },
+      "b832c95bbae80b808d55b2116f8541d4dc59a8f3ded25efd159fb74a5805a2ff": {
+        "reviews": 63,
+        "average_rating": 3.5714285714285716,
+        "category": "audio_devices"
+      },
+      "bd34c9b826af8b6516223ef7fba26d47fced078594852e119db1f999b1ace95c": {
+        "reviews": 268,
+        "average_rating": 4.361940298507463,
+        "category": "laptops"
+      },
+      "c1d64416ac4491109b423b526e726bea75492fb849003728ff3236964585f0de": {
+        "reviews": 31,
+        "average_rating": 4.096774193548387,
+        "category": "laptops"
+      },
+      "c32b247cb4fe97b792705530397e248bf1a5429d6c57cb7066bad592978e1da4": {
+        "reviews": 126,
+        "average_rating": 3.8174603174603177,
+        "category": "accessories"
+      },
+      "c518aa7b88acdde2a4c8a659be979a845a46e15c5dce8987ad93515c1b6acbdd": {
+        "reviews": 3,
+        "average_rating": 3.6666666666666665,
+        "category": "audio_devices"
+      },
+      "c5564274958ad03275d82d4186ca0a24391ba92d175984171b55e845caab7010": {
+        "reviews": 1617,
+        "average_rating": 4.044526901669759,
+        "category": "wearables"
+      },
+      "c6cd18bfa9f5654dfc5be8db8046ce4d77b7da8b82651f3e209cc179d32dbb28": {
+        "reviews": 36,
+        "average_rating": 3.888888888888889,
+        "category": "networking_devices"
+      },
+      "c88a59fa2ab0451a9623693db5e30e612c4374397969bc1227a49adc20598fb1": {
+        "reviews": 66,
+        "average_rating": 4.651515151515151,
+        "category": "accessories"
+      },
+      "d0bf1770ec82c346e323da251bdeff09659b1e194b3f19c98c54005fd78cb3bc": {
+        "reviews": 300,
+        "average_rating": 4.13,
+        "category": "laptops"
+      },
+      "d3364a15ea4b0d27f2f7600f2e647be12d1a0a33019ec73d9bb5fce8f73f26ed": {
+        "reviews": 38,
+        "average_rating": 2.8947368421052633,
+        "category": "chargers_power_banks"
+      },
+      "d93734913f0e628f940db59ecc3df07e56d878ee9b1b53d35752e73383c4fff2": {
+        "reviews": 71,
+        "average_rating": 4.605633802816901,
+        "category": "laptops"
+      },
+      "da1c3dc3ae63c0e959ed88ba41ed1c4278847398067fdbe83d810cff26208cd9": {
+        "reviews": 51,
+        "average_rating": 4.1568627450980395,
+        "category": "laptops"
+      },
+      "da8bc933f6ddd45d76a23f5998195b94529c976a46b896efa1abbec6d72b6c38": {
+        "reviews": 200,
+        "average_rating": 4.11,
+        "category": "audio_devices"
+      },
+      "e019dd9f284d745298122c3e71d1774d6a9640568c829975e9e139cb94ed0fef": {
+        "reviews": 200,
+        "average_rating": 3.54,
+        "category": "chargers_power_banks"
+      },
+      "e28e24c25165c1401f89037af1eceb3e064081ed49fe0861dc790419429a7a66": {
+        "reviews": 278,
+        "average_rating": 3.8741007194244603,
+        "category": "audio_devices"
+      },
+      "e2bae51309c035bf0633d0f593a69482a99edafc77436b7c466407735ee146b5": {
+        "reviews": 256,
+        "average_rating": 4.42578125,
+        "category": "laptops"
+      },
+      "e50b984cb69460570f2812199564f5492fdf4ac237e0a09d05f6104517525370": {
+        "reviews": 637,
+        "average_rating": 4.409733124018838,
+        "category": "laptops"
+      },
+      "ec00803b42bc5b3dd5db57678a5a443e2044620e67cd550626df8beddd491144": {
+        "reviews": 318,
+        "average_rating": 3.7232704402515724,
+        "category": "chargers_power_banks"
+      },
+      "ee4d08f150c1cd49a718c302b8a18ee33ed37c5b100e98109b25e467b6c40920": {
+        "reviews": 164,
+        "average_rating": 4.103658536585366,
+        "category": "audio_devices"
+      },
+      "f079c31da45cb5d5086bd29515c86e2ca6cc336243a5627da6ec60a2e6529657": {
+        "reviews": 38,
+        "average_rating": 4.2631578947368425,
+        "category": "chargers_power_banks"
+      },
+      "f08ecf6eebc50b636e6d39f6cd0b63be62a5c73d01b2b7e62ca1bfb7bf560590": {
+        "reviews": 26,
+        "average_rating": 2.3461538461538463,
+        "category": "wearables"
+      },
+      "f348b85ec6ddd4454a12a6197a83030e83caf3ad7a417e4dae5a12413d2477b8": {
+        "reviews": 227,
+        "average_rating": 3.788546255506608,
+        "category": "audio_devices"
+      },
+      "f5f4ca78a8902027e00d4404baa14d439892cec167b44a5fae1164141de62ce0": {
+        "reviews": 530,
+        "average_rating": 3.569811320754717,
+        "category": "audio_devices"
+      },
+      "f8a77e3c6b0b769f5446e0c6f3f8741e266191b9eb9fe697833018df95dfe418": {
+        "reviews": 889,
+        "average_rating": 4.566929133858268,
+        "category": "audio_devices"
+      },
+      "f9bb99b9687da78c448081ca3ad95b0c98b72cc300a07ac5ba352599f00666d8": {
+        "reviews": 264,
+        "average_rating": 3.481060606060606,
+        "category": "audio_devices"
+      },
+      "fb3ea5acf8518088f1e381a611a1e4173ffea1f276c53af36a4f988cdb75979b": {
+        "reviews": 244,
+        "average_rating": 4.483606557377049,
+        "category": "laptops"
+      }
+    }
+  },
+  "bias": {
+    "exact_duplicates": {
+      "normalized_text_repeated_rows": 8684,
+      "normalized_text_cross_split_groups": 0,
+      "token_canonical_cross_split_groups": 13,
+      "token_canonical_cross_split_rows": 1766,
+      "canonical_note": "Secondary screen drops punctuation, emojis, one-character and numeric-only tokens. It may group unrelated short phrases; overlap is not proof of the same customer review."
+    },
+    "bounded_near_duplicates": {
+      "sample_reviews": 5673,
+      "sample_by_split": {
+        "test": 1409,
+        "train": 2500,
+        "validation": 1764
+      },
+      "cross_split_candidate_pairs_checked": 0,
+      "verified_high_similarity_cross_split_pairs": 0,
+      "seed": 42,
+      "jaccard_threshold": 0.9,
+      "method": "Seeded per-split bounded sample; Unicode-token character-five-gram MinHash LSH (candidate threshold .75), then exact Jaccard. Independent normalization differs from Phase 1.",
+      "limitation": "Sampling and LSH can miss overlaps; no semantic paraphrase or exhaustive all-pairs claim."
+    },
+    "product_group_cross_split_groups": 0,
+    "dominant_share_percent": {
+      "product_category": 32.9303,
+      "language": 53.3102,
+      "source_dataset": 100.0
+    },
+    "split_languages": {
+      "test": {
+        "english": 1859,
+        "unknown": 559,
+        "other": 42,
+        "hinglish": 3
+      },
+      "train": {
+        "unknown": 9657,
+        "english": 8515,
+        "other": 180,
+        "hinglish": 15
+      },
+      "validation": {
+        "english": 2059,
+        "unknown": 401,
+        "other": 27,
+        "hinglish": 5
+      }
+    },
+    "split_categories": {
+      "test": {
+        "audio_devices": 852,
+        "chargers_power_banks": 446,
+        "accessories": 418,
+        "laptops": 396,
+        "wearables": 206,
+        "networking_devices": 145
+      },
+      "train": {
+        "audio_devices": 5747,
+        "chargers_power_banks": 3834,
+        "accessories": 2882,
+        "laptops": 2356,
+        "wearables": 1617,
+        "tablets": 1043,
+        "networking_devices": 888
+      },
+      "validation": {
+        "audio_devices": 1081,
+        "chargers_power_banks": 550,
+        "laptops": 319,
+        "accessories": 317,
+        "networking_devices": 143,
+        "wearables": 82
+      }
+    },
+    "temporal_assessment": {
+      "available_dates": 0,
+      "drift_assessable": false,
+      "year_counts": {}
+    },
+    "geography": {
+      "market_values": {
+        "india_marketplace_customer_location_unknown": 23322
+      },
+      "verified_customer_country_count": 0,
+      "note": "India-marketplace provenance is retained; customer residence cannot be established."
+    },
+    "verified_issues": [
+      "Source count: 1; absent target categories: smartphones, tvs_monitors.",
+      "Entirely missing metadata fields: product_id, review_date, verified_purchase, helpful_votes.",
+      "Supplied language labels and rating-derived overall sentiment are not independently verified annotations."
+    ],
+    "potential_risks": [
+      "Similar product names/variants can leak across exact-name groups.",
+      "Short generic text and approximate similarity matching do not establish independent customers.",
+      "Whole-dataset EDA exposes holdout distributions: reserve a new independent final test set for future confirmatory evaluation."
+    ],
+    "unverified_assumptions": [
+      "Individual customer geography, independent reviewer identities and marketplace-original text cannot be verified."
+    ]
+  },
+  "validation": {
+    "passed": true,
+    "checks": {
+      "missing_or_blank_review_ids": 0,
+      "repeated_review_ids": 0,
+      "invalid_ratings": 0,
+      "invalid_categories": 0,
+      "invalid_language_labels": 0,
+      "unusable_original_text": 0,
+      "unusable_cleaned_text": 0,
+      "missing_product_groups": 0,
+      "missing_duplicate_groups": 0,
+      "review_id_cross_split_groups": 0,
+      "product_group_cross_split_groups": 0,
+      "duplicate_group_cross_split_groups": 0,
+      "product_groups_with_conflicting_categories": 0,
+      "known_product_ids_cross_split": 0,
+      "invalid_nonmissing_dates": 0
+    },
+    "catalog_product_identity_verified": false,
+    "product_identity_basis": "exact-name product_group proxy; no verified catalog identities",
+    "missingness": {
+      "review_id": {
+        "count": 0,
+        "percent": 0.0
+      },
+      "product_id": {
+        "count": 23322,
+        "percent": 100.0
+      },
+      "product_name": {
+        "count": 0,
+        "percent": 0.0
+      },
+      "product_category": {
+        "count": 0,
+        "percent": 0.0
+      },
+      "source_platform": {
+        "count": 0,
+        "percent": 0.0
+      },
+      "source_dataset": {
+        "count": 0,
+        "percent": 0.0
+      },
+      "review_text": {
+        "count": 0,
+        "percent": 0.0
+      },
+      "rating": {
+        "count": 0,
+        "percent": 0.0
+      },
+      "review_date": {
+        "count": 23322,
+        "percent": 100.0
+      },
+      "language": {
+        "count": 0,
+        "percent": 0.0
+      },
+      "verified_purchase": {
+        "count": 23322,
+        "percent": 100.0
+      },
+      "helpful_votes": {
+        "count": 23322,
+        "percent": 100.0
+      },
+      "market": {
+        "count": 0,
+        "percent": 0.0
+      },
+      "source_record_id": {
+        "count": 0,
+        "percent": 0.0
+      }
+    },
+    "split_reproduction": {
+      "verified": true,
+      "expected_rows": 23322,
+      "actual_rows": 23322,
+      "seed": 42,
+      "method": "Recompute original assignment and duplicate quarantine on existing Phase 1 candidates; compare all retained IDs and split labels"
+    },
+    "recorded_checksum_matches": true,
+    "scope": "Schema/value/source-ID/exact-name-group checks; passing does not prove semantic or catalog-identity leakage absence",
+    "similarity_warnings": {
+      "canonical_phrase_cross_split_groups": 13,
+      "canonical_phrase_cross_split_rows": 1766,
+      "bounded_near_duplicate_pairs": 0
+    }
+  },
+  "reproducibility": {
+    "config": {
+      "seed": 42,
+      "splits": {
+        "train": "data/splits/train.parquet",
+        "validation": "data/splits/validation.parquet",
+        "test": "data/splits/test.parquet"
+      },
+      "short_words_below": 3,
+      "long_words_above": 200,
+      "low_language_confidence_below": 0.95,
+      "insufficient_category_reviews_below": 1000,
+      "indic_language_reviews_below": 100,
+      "provisional_product_min_reviews": 20,
+      "top_terms": 20,
+      "min_term_document_frequency": 10,
+      "language_sample_per_group": 6,
+      "near_duplicate_sample_per_split": 2500,
+      "near_duplicate_min_characters": 40,
+      "near_duplicate_jaccard": 0.9,
+      "near_duplicate_permutations": 128
+    },
+    "input_sha256": {
+      "data/splits/train.parquet": "6091da21f6399493459fa843a2604410b627be25a10f115b71680791dc7b116e",
+      "data/splits/validation.parquet": "e46484e264212c6c633588b8b4d9e1b2c545bb5c6bf7636b3dda687a382394b6",
+      "data/splits/test.parquet": "9d5be4bf66cdfbe1aa4ade5b69f6a4aa3259cf4a8c29c28a19624248d147cb0f",
+      "data/processed/cleaned.parquet": "488fccd5bd7334b2789df782913ce93de96cb8895ac3de02a0006a9654a47e45",
+      "data/processed/training_ready.parquet": "ef071b173be42543d43006793a47f25760eff50709b23e26f8d8397029accc6e"
+    },
+    "phase1_base_commit": "26b7ea014f03542a4b5b3bfdd4dd8e52613bbdf4",
+    "analysis_code_sha256": {
+      "src/analysis/__init__.py": "88b0b78f3155f91e7205c7cd9ca0c98710c905fc056dab07c5fbf7e3edcc7859",
+      "src/analysis/bias_analysis.py": "61545b1b79a0971062aba17d88b101a6be153f82541e97515cb0469aaf5167f3",
+      "src/analysis/category_analysis.py": "b5f4f7cd5ed415bbc76e983551974efb3fab2db909500cd56f02a2809de88bed",
+      "src/analysis/dataset_analysis.py": "afacb15e3353b5a8dd97b3dfccda39d59d4678ea46afc7cf52d3f8e40b8662ee",
+      "src/analysis/language_analysis.py": "c4a57df8404788c6a3f4881bbff45ce13b1e8e702a499218f597a066952b9795",
+      "src/analysis/product_analysis.py": "2bf507d56f0237f503c9e04fb8a6c1d0a40a6ef4582ba7688aab7e2267bae016",
+      "src/analysis/rating_analysis.py": "910bbcffe8e08bef140c260d5e9565e1a44477f40102a517a70909cf7fed7327",
+      "src/analysis/report.py": "1d0d52001575550a7e075240defb9df772e6d1cd05b0bc40eff2c0dd31af469d",
+      "src/analysis/text_analysis.py": "2a5e42575477afce005c8f9759189a65dbf266c2b00de75074369d6503dc04ee",
+      "src/analysis/visualization.py": "17e1735b0f132f337fec7496a2077e401dc8e07fd5981d5943b8883527466428"
+    },
+    "software": {
+      "pandas": "3.1.0",
+      "pyarrow": "26.0.0",
+      "matplotlib": "3.11.2",
+      "datasketch": "2.0.0",
+      "nbformat": "5.11.1",
+      "nbclient": "0.11.0"
+    }
+  },
+  "figures": [
+    "dataset_overview.png",
+    "category_distribution.png",
+    "category_rating_comparison.png",
+    "category_language_distribution.png",
+    "language_by_category.png",
+    "rating_distribution.png",
+    "sentiment_distribution.png",
+    "rating_by_category.png",
+    "language_distribution.png",
+    "language_rating_comparison.png",
+    "review_length_distribution.png",
+    "review_length_by_category.png",
+    "common_review_terms.png",
+    "reviews_per_product.png",
+    "product_review_coverage.png"
+  ]
+}

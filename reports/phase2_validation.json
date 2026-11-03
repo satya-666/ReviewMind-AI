@@ -1,0 +1,94 @@
+{
+  "passed": true,
+  "checks": {
+    "missing_or_blank_review_ids": 0,
+    "repeated_review_ids": 0,
+    "invalid_ratings": 0,
+    "invalid_categories": 0,
+    "invalid_language_labels": 0,
+    "unusable_original_text": 0,
+    "unusable_cleaned_text": 0,
+    "missing_product_groups": 0,
+    "missing_duplicate_groups": 0,
+    "review_id_cross_split_groups": 0,
+    "product_group_cross_split_groups": 0,
+    "duplicate_group_cross_split_groups": 0,
+    "product_groups_with_conflicting_categories": 0,
+    "known_product_ids_cross_split": 0,
+    "invalid_nonmissing_dates": 0
+  },
+  "catalog_product_identity_verified": false,
+  "product_identity_basis": "exact-name product_group proxy; no verified catalog identities",
+  "missingness": {
+    "review_id": {
+      "count": 0,
+      "percent": 0.0
+    },
+    "product_id": {
+      "count": 23322,
+      "percent": 100.0
+    },
+    "product_name": {
+      "count": 0,
+      "percent": 0.0
+    },
+    "product_category": {
+      "count": 0,
+      "percent": 0.0
+    },
+    "source_platform": {
+      "count": 0,
+      "percent": 0.0
+    },
+    "source_dataset": {
+      "count": 0,
+      "percent": 0.0
+    },
+    "review_text": {
+      "count": 0,
+      "percent": 0.0
+    },
+    "rating": {
+      "count": 0,
+      "percent": 0.0
+    },
+    "review_date": {
+      "count": 23322,
+      "percent": 100.0
+    },
+    "language": {
+      "count": 0,
+      "percent": 0.0
+    },
+    "verified_purchase": {
+      "count": 23322,
+      "percent": 100.0
+    },
+    "helpful_votes": {
+      "count": 23322,
+      "percent": 100.0
+    },
+    "market": {
+      "count": 0,
+      "percent": 0.0
+    },
+    "source_record_id": {
+      "count": 0,
+      "percent": 0.0
+    }
+  },
+  "split_reproduction": {
+    "verified": true,
+    "expected_rows": 23322,
+    "actual_rows": 23322,
+    "seed": 42,
+    "method": "Recompute original assignment and duplicate quarantine on existing Phase 1 candidates; compare all retained IDs and split labels"
+  },
+  "recorded_checksum_matches": true,
+  "scope": "Schema/value/source-ID/exact-name-group checks; passing does not prove semantic or catalog-identity leakage absence",
+  "similarity_warnings": {
+    "canonical_phrase_cross_split_groups": 13,
+    "canonical_phrase_cross_split_rows": 1766,
+    "bounded_near_duplicate_pairs": 0
+  }
+}
