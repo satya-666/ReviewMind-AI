@@ -1,0 +1,46 @@
+{
+  "same_input_outputs_identical": true,
+  "output_sha256": {
+    "reports/phase2_metrics.json": "a8e6cafa479543f1909e13840eb4e5a12894ed7d46aa1b4144fd0d43c5bdcad0",
+    "reports/phase2_validation.json": "df3aa907ad4d0fe75db068bcb082f3374cde93195f554db12a50a884a978724f",
+    "reports/phase2_eda_report.md": "db3a8d4122095184df10ed4178a8f2b6c164b3711ad81b9955a45a7bdc3e22a4",
+    "reports/figures/category_distribution.png": "37cccd9b4f70a5ab213abf88a55e830e9274b40508053abcb03d0f7f30230967",
+    "reports/figures/category_language_distribution.png": "196a276231afc4a8d7792d15948c8dec4fefbf069c0ed6ba82a752b01cdd496b",
+    "reports/figures/category_rating_comparison.png": "97cc18207bc0fbc8de7037041174ba7a32232481869229ac5b630efb2de4e1c5",
+    "reports/figures/common_review_terms.png": "26b3210e5202cbdb7c55bb4f1c4203b359857c54323ab9032de42bf34d4ffc7a",
+    "reports/figures/dataset_overview.png": "2acc817f8720a05c395c7cb0558cdbbf57fcc8a94e026204e3f8d4bf34f1472c",
+    "reports/figures/language_by_category.png": "196a276231afc4a8d7792d15948c8dec4fefbf069c0ed6ba82a752b01cdd496b",
+    "reports/figures/language_distribution.png": "b92faa23a393606eb2435472ebfa3904fa3951c4d430b72211b8ffd37cf27b95",
+    "reports/figures/language_rating_comparison.png": "a81c4f1b64b0dd1d35095f417d7bcd5c18b94aff556e71287746261633f7fc23",
+    "reports/figures/product_review_coverage.png": "8bc8ec31c1d231a36c054ad80dd592195d309d090dd2118f0d140cec06009941",
+    "reports/figures/rating_by_category.png": "87179cf25b7bb85babb3b55d6677c357a58bc611acc7d16622ff97c5fcf2c833",
+    "reports/figures/rating_distribution.png": "0496d9b85ec71400dee8aeb076a9dc5da6fb0b43df98341ce32c6ae23b9cf86f",
+    "reports/figures/review_length_by_category.png": "dfff0bd26694fea67f00cfd7a7224dd8bdb7ff17305027445819913bcde85273",
+    "reports/figures/review_length_distribution.png": "fbfa8fc13c6ba3ec0052059b0f9c6fa0047dbc08e2f15f06450d8134cbe68fe4",
+    "reports/figures/reviews_per_product.png": "1edce57dfaf4ab2c6202e71948533c8f3e7c71de64e6590d1f28b21086c3b23f",
+    "reports/figures/sentiment_distribution.png": "5d41a89d32e699c80ac1ab5b8b680161ad5b4d9a0576fa0b2256542f7bbe5af8"
+  },
+  "verification_date": "2026-11-03",
+  "full_test_suite": {
+    "passed": 52,
+    "failed": 0,
+    "includes_phase1_regressions": true
+  },
+  "notebooks": {
+    "passed": 4,
+    "fresh_kernel_each": true,
+    "fresh_virtualenv_installed_from_requirements": true,
+    "pip_check": "No broken requirements found.",
+    "requirements_sha256": "551338241c2697ed8fd6f2955050da02109d9adb1dec8e79093b76f3f7a92e82"
+  },
+  "phase1_inputs_unchanged": true,
+  "split_reproduction_verified": true,
+  "figures_visually_inspected": 15,
+  "collection_or_model_training_performed": false,
+  "unavailable_analyses": [
+    "Review-time drift",
+    "Verified catalog identity",
+    "Customer geography",
+    "Human-verified language/sentiment accuracy"
+  ]
+}
