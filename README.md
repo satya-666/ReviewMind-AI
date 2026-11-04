@@ -1,6 +1,22 @@
 # ReviewMind AI
 
-ReviewMind AI prepares real technology-product reviews for review intelligence research in the Indian market. Phase 1 collects and prepares data; Phase 2 performs EDA; Phase 3 adds weakly supervised sentiment experiments and rule-based aspect analysis. No recommendation engine or frontend is included.
+ReviewMind AI prepares real technology-product reviews for review intelligence research in the Indian market. Phase 1 collects and prepares data; Phase 2 performs EDA; Phase 3 adds weakly supervised sentiment experiments and rule-based aspect analysis. Phase 3.5 connects the supplied frontend to real FastAPI inference and persistent feedback. Product recommendations remain unavailable.
+
+## Phase 3.5 web application
+
+From the project root, with the existing Phase 3 model available:
+
+```sh
+python3 -m venv .venv
+.venv/bin/python -m pip install -r backend/requirements.txt
+.venv/bin/python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --no-access-log --no-proxy-headers
+```
+
+Open http://127.0.0.1:8000. The selected checkpoint is `models/phase3/full/baseline/logistic_regression.joblib`; it is deliberately excluded from Git. A fresh clone needs that exact approved artifact, not just the training code. Startup without it reports unavailable rather than fabricating results.
+
+The beta supports real overall sentiment, lexical aspect analysis, guest preferences/themes, optional local history, and consented feedback. Hindi/Hinglish input is experimental, not validated multilingual accuracy. Recommendations, evidence, fake-review detection, comparisons, accounts and billing remain unavailable.
+
+See [Phase 3.5 setup, test results and deployment checklist](docs/PHASE_3_5.md). Render configuration is prepared only: no deployment or paid resources have been authorized or created.
 
 The workspace itself is the project root. The original starter ZIP contained scripts and notes, **no reviews**. It was extracted intact into `starter/reviewmind_starter/`; the replacement downloader fixes the obsolete Amazon review-Parquet assumption by using the licensed, versioned Flipkart source instead.
 
@@ -13,10 +29,11 @@ The roadmap distinguishes implemented research work from future milestones. Phas
 1. Dataset collection and preparation — implemented and validated; collection coverage remains partial.
 2. Exploratory Data Analysis (EDA) — implemented and executed on the available Phase 1 data; unavailable analyses documented below.
 3. Sentiment and aspect analysis — classical/compact-transformer training executed; overall phase partial without independent sentiment/ABSA annotations.
+   Phase 3.5 — supplied frontend integrated with real inference and persistent feedback; deployment prepared, public launch pending approval and rights review.
 4. Multilingual NLP evaluation and adaptation — proposed.
 5. Product intelligence and reliability analysis — proposed.
 6. Preference-based recommendations and evaluation — proposed.
-7. Application integration and deployment — proposed.
+7. Further application capabilities and production deployment — proposed; Phase 3.5 supplies an initial analysis-only integration.
 
 See [docs/PHASE_1.md](docs/PHASE_1.md) for the Phase 1 handoff. Repository source-code licensing has not been selected; dataset licenses do not license this project's code.
 

@@ -1,0 +1,33 @@
+{
+  "status": "passed",
+  "workflows_passed": 21,
+  "checks": [
+    "provided_frontend_loads_with_original_light_palette",
+    "real_english_inference_and_aspects",
+    "loading_and_disabled_send",
+    "hindi_input_with_accuracy_warning",
+    "hinglish_input_with_accuracy_warning",
+    "language_switching",
+    "real_feedback_submission_and_persistent_database_row",
+    "feedback_deletion_with_opaque_token",
+    "opt_in_guest_history_survives_refresh_without_saved_html",
+    "automatic_product_question_routing",
+    "unsupported_recommendations_render_without_fabricated_cards",
+    "model_unavailable_ui",
+    "invalid_response_ui",
+    "rate_limit_ui",
+    "network_error_ui_no_fake_fallback",
+    "empty_input_validation",
+    "user_review_html_is_escaped",
+    "dark_mode",
+    "mobile_layout_and_sidebar",
+    "billing_disabled_guest_only",
+    "clear_history_removes_persistent_review_text"
+  ],
+  "unhandled_browser_errors": [],
+  "error_fixtures": "Unavailable/invalid/rate-limited/offline responses intentionally intercepted to test UI error paths; model prediction workflows use the real backend.",
+  "screenshots": [
+    "reports/figures/phase3_5_desktop.png",
+    "reports/figures/phase3_5_mobile.png"
+  ]
+}

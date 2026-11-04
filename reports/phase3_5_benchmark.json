@@ -1,0 +1,17 @@
+{
+  "architecture": "Phase 3 validation-selected TF-IDF Logistic Regression, CPU, one copy",
+  "model_version": "phase3-full-logistic_regression-seed42",
+  "fresh_process_app_ready_seconds": 4.134974790998967,
+  "model_service_load_seconds": 1.9390150000108406,
+  "process_rss_mib_after_requests": 226.9375,
+  "model_ready_process_rss_mib": 257.265625,
+  "request_count": 30,
+  "median_api_ms": 17.083542006730568,
+  "p95_api_ms": 23.723209000308998,
+  "max_api_ms": 28.988167003262788,
+  "transformer_imported": false,
+  "protocol": "Fresh Python process, TestClient ASGI with real model and SQLite metadata write; warmed sequential single-review requests, no network. Not a Render/Linux/load benchmark.",
+  "host": "Apple M3 arm64 macOS",
+  "deployment_workers": 1,
+  "inference_concurrency": 1
+}

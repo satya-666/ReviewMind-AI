@@ -1,0 +1,11 @@
+{
+  "version": "phase3-full-logistic_regression-seed42",
+  "labels": [
+    "negative",
+    "neutral",
+    "positive"
+  ],
+  "max_length": 96,
+  "label_basis": "rating-derived weak supervision",
+  "model_type": "logistic_regression"
+}

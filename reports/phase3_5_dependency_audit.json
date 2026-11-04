@@ -1,0 +1,8 @@
+{
+  "scope": "backend runtime direct and resolved dependencies",
+  "status": "passed_no_known_vulnerabilities",
+  "packages_checked": 32,
+  "vulnerabilities": 0,
+  "database": "pip-audit public advisory data, queried 2026-11-04",
+  "caveat": "No known findings is not a guarantee of security; re-audit before deployment."
+}
