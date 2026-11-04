@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ReviewMind AI</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<div class="app">
+<header>
+  <button class="btn menu-btn" id="menuBtn" aria-label="Toggle sidebar" aria-expanded="false">☰</button>
+  <div class="logo" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19V9m6 10V5m6 14v-7m4 7H2"/></svg></div>
+  <div class="brand"><b>ReviewMind AI</b><span data-i="tag">Experimental review analysis · Guest beta</span></div>
+  <div class="spacer"></div>
+  <label class="sr" for="lang">Language</label>
+  <select id="lang" class="btn" aria-label="Language"><option value="en">English</option><option value="hi">हिन्दी</option><option value="hinglish">Hinglish</option></select>
+  <button class="btn" id="themeBtn" aria-label="Toggle dark mode">🌙</button>
+</header>
+
+<aside id="side" aria-label="Sidebar">
+  <div class="side-top"><strong>Menu</strong><button class="btn" id="closeSide" aria-label="Collapse sidebar" title="Collapse sidebar">«</button></div>
+  <button class="btn primary" id="newChat">+ <span data-i="new">New chat</span></button>
+  <nav aria-label="Chat history"><h3>History</h3><ul id="hist"></ul></nav>
+  <section aria-label="Saved products"><h3>Saved &amp; compared</h3><ul id="saved"></ul></section>
+  <div class="profile">
+    <div class="pmenu" id="pmenu" role="menu" hidden>
+      <button role="menuitem" data-open="personal">🎨 Personalization</button>
+      <button role="menuitem" data-open="plan">📊 Plan &amp; usage</button>
+      <button role="menuitem" data-open="upgrade" class="up">⚡ Plans · upcoming</button>
+      <button role="menuitem" data-open="settings">⚙️ Settings</button>
+      <button role="menuitem" data-open="help">💬 Help &amp; feedback</button>
+      <button role="menuitem" id="logout">👤 Guest mode</button>
+    </div>
+    <button class="pbtn" id="pbtn" aria-haspopup="menu" aria-expanded="false">
+      <span class="avatar" id="avatar" aria-hidden="true">G</span>
+      <span class="pinfo"><b id="pname">Guest</b><small id="pplan">Guest beta · no account</small></span><span aria-hidden="true">⋯</span>
+    </button>
+  </div>
+</aside>
+<div class="backdrop" id="backdrop"></div>
+
+<main>
+  <div id="scroll" tabindex="-1" aria-live="polite">
+    <div class="wrap" id="chat">
+      <section class="welcome" id="welcome">
+        <h1 data-i="hello">What are the reviews saying? 💬</h1>
+        <p data-i="sub">Paste a review for real sentiment inference. Product rankings, fake-review detection and verified multilingual accuracy are not available yet.</p>
+        <div class="examples" id="examples"></div>
+      </section>
+    </div>
+  </div>
+
+  <div class="composer">
+    <details class="prefs" id="prefs" open>
+      <summary>Preferences <span class="meta" id="prefSum" style="display:inline"></span></summary>
+      <div class="pgrid">
+        <div><label for="cat">Category</label>
+          <select id="cat"><option value="">Any</option><option>Smartphones</option><option>Laptops</option><option>Headphones</option><option>Smartwatches</option><option>Tablets</option><option>Audio devices</option><option>TVs and monitors</option><option>Computer accessories</option><option>Networking devices</option><option>Chargers and power banks</option><option>Other tech</option></select></div>
+        <div><label for="budget">Budget up to: <b id="budVal">₹20,000</b></label>
+          <input type="range" id="budget" min="3000" max="150000" step="1000" value="20000"></div>
+        <div><label for="task">Request type</label><select id="task"><option value="auto">Auto · review or product question</option><option value="analyze">Analyze review</option><option value="recommend">Product question · upcoming</option></select></div><fieldset><legend>Priorities</legend><div class="chips" id="chips"></div></fieldset>
+      </div>
+    </details>
+    <div class="cbox">
+      <label class="sr" for="q">Ask ReviewMind AI</label>
+      <textarea id="q" maxlength="5000" rows="1" placeholder="Paste a review… (Enter to analyze, Shift+Enter for new line)"></textarea>
+      <button class="btn primary" id="send" aria-label="Send">Send</button>
+    </div>
+    <div class="hint" id="hint" role="alert"></div>
+  </div>
+  <footer>Experimental weak-label predictions, not purchasing advice. Reviews are sent for inference but not saved on the server. Local chat history is opt-in.</footer>
+</main>
+</div>
+
+<dialog class="modal" id="modal" aria-labelledby="mtitle">
+  <div class="mhead"><strong id="mtitle">Your account</strong><button class="btn" id="mclose" aria-label="Close">✕</button></div>
+  <div class="mbody">
+    <div class="mtabs" role="tablist" aria-label="Account sections">
+      <button role="tab" data-tab="personal">🎨 Personalization</button>
+      <button role="tab" data-tab="plan">📊 Plan &amp; usage</button>
+      <button role="tab" data-tab="upgrade">⚡ Upgrade</button>
+      <button role="tab" data-tab="settings">⚙️ Settings</button>
+      <button role="tab" data-tab="help">💬 Help</button>
+    </div>
+    <div class="mpanels">
+      <section class="mpanel" id="tab-personal" role="tabpanel">
+        <h4>Make it yours</h4>
+        <label class="fld">Display name<input id="nameIn" type="text" maxlength="24" placeholder="What should we call you?"></label>
+        <label class="fld">How should I talk?<select id="styleIn" disabled title="Response-style generation is not available in this beta"><option value="friendly">Friendly &amp; Gen Z</option><option value="concise">Short and to the point</option><option value="detailed">Detailed analyst</option></select></label>
+        <p class="note">This is a local guest nickname, not an authenticated account. Response-style generation is not available; it does not change the trained classifier.</p>
+      </section>
+      <section class="mpanel" id="tab-plan" role="tabpanel">
+        <h4>Guest beta</h4>
+        <p>No account, billing or monthly usage quota is implemented.</p>
+        <div class="usage" role="img" aria-label="Subscription usage unavailable"><i style="width:0%"></i></div>
+        <ul class="pc"><li>Real review sentiment analysis</li><li>Category-aware aspect rules · experimental</li><li>Product ranking, comparisons and fake-review radar · upcoming</li></ul>
+        <p><button class="btn" data-open="upgrade">See planned features</button></p>
+      </section>
+      <section class="mpanel" id="tab-upgrade" role="tabpanel">
+        <h4>Plans · not available in beta</h4>
+        <div class="plans">
+          <div class="plan"><b>Free</b><span class="pr">Guest</span><ul><li>Rate-limited beta access</li><li>Comparison · upcoming</li></ul><button class="btn" disabled>Current plan</button></div>
+          <div class="plan hot"><b>Plus</b><span class="pr">Upcoming</span><ul><li>Not offered yet</li><li>Comparison · upcoming</li><li>Saved lists</li></ul><button class="btn" data-plan="plus" disabled>Unavailable</button></div>
+          <div class="plan"><b>Pro</b><span class="pr">Upcoming</span><ul><li>Not offered yet</li><li>Fake-review research · upcoming</li><li>No subscription billing</li></ul><button class="btn" data-plan="pro" disabled>Unavailable</button></div>
+        </div>
+        <p class="note">Upgrades are disabled. No prices, entitlement quotas or payment collection are offered.</p>
+      </section>
+      <section class="mpanel settings" id="tab-settings" role="tabpanel">
+        <h4>Settings</h4>
+        <label><input type="checkbox" id="setEv" disabled> Review evidence · unavailable</label>
+        <label><input type="checkbox" id="remember"> Remember chats on this device</label>
+        <p class="note">Opt-in history contains your review text in this browser. Do not enable on a shared device. Clear history removes it. Nicknames/settings are local; no sign-in exists.</p>
+        <label><input type="checkbox" id="setMotion" checked> Animate charts</label>
+        <p><button class="btn" id="clearHist">Clear chat history</button></p>
+      </section>
+      <section class="mpanel" id="tab-help" role="tabpanel">
+        <h4>Help &amp; feedback</h4>
+        <p>Select a real analysis reply, then submit a rating or correction. Original review text is not included; do not put personal information in feedback.</p>
+        <form id="feedbackForm">
+          <p class="note" id="feedbackTarget">Select an analysis reply first.</p>
+          <label class="fld">Rating<select id="feedbackRating" required><option value="">Choose 1–5</option><option value="1">1 — Not useful</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5 — Useful</option></select></label>
+          <label class="fld">Optional correction<select id="feedbackCorrection"><option value="">No correction</option><option value="negative">Negative</option><option value="neutral">Neutral</option><option value="positive">Positive</option></select></label>
+          <label class="fld">Optional feedback<textarea id="feedbackMessage" maxlength="1000" rows="3"></textarea></label>
+          <label><input id="feedbackConsent" type="checkbox" required> I consent to storing this feedback for 30 days. Do not include personal information.</label>
+          <p><button class="btn" id="sendFb" type="submit">Send feedback</button></p>
+          <p class="note" id="feedbackStatus" role="status"></p>
+          <button class="btn" id="deleteFeedback" type="button" hidden>Delete this feedback</button>
+        </form>
+      </section>
+    </div>
+  </div>
+</dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="assets/config.js"></script>
+<script src="assets/api-client.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

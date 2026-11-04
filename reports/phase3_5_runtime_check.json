@@ -1,0 +1,7 @@
+{
+  "lean_backend_environment_only": true,
+  "startup_and_real_analysis_passed": true,
+  "model_version": "phase3-full-logistic_regression-seed42",
+  "transformer_imported": false,
+  "weights_in_git": false
+}

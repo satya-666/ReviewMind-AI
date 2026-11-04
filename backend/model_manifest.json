@@ -1,0 +1,8 @@
+{
+  "model_version": "phase3-full-logistic_regression-seed42",
+  "architecture": "TF-IDF + Logistic Regression",
+  "checkpoint_sha256": "edb379f3f5ed60fb3f8321b12a90bed4c08b3a408e2812112bf12b988b3462d0",
+  "source_phase": "3",
+  "weak_labels": true,
+  "artifact_size_bytes": 3028276
+}

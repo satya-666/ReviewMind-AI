@@ -1,0 +1,25 @@
+{
+  "phase": "3.5",
+  "status": "local_integration_verified_deployment_pending",
+  "base_phase3_commit": "5eead1988d9465fb74efd6976642cd00942272d5",
+  "python_tests": {
+    "passed": 89,
+    "postgres_tls_enabled": true,
+    "report": "reports/phase3_5_test_results.txt"
+  },
+  "browser_report": "reports/phase3_5_browser.json",
+  "lean_runtime_report": "reports/phase3_5_runtime_check.json",
+  "benchmark_report": "reports/phase3_5_benchmark.json",
+  "dependency_audit_report": "reports/phase3_5_dependency_audit.json",
+  "existing_tracked_research_source_modified": false,
+  "public_deployment": false,
+  "paid_resources_created": false,
+  "container_build_verified": false,
+  "remaining_launch_checks": [
+    "Owner deployment approval",
+    "Public-use rights/license review",
+    "Private approved artifact provisioning",
+    "Docker/Linux build and hosted memory verification",
+    "Hosted HTTPS and real PostgreSQL acceptance tests"
+  ]
+}
