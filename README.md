@@ -18,9 +18,11 @@ cp backend/model_metadata.json models/phase3/full/baseline/logistic_regression.m
 
 Open http://127.0.0.1:8000. The selected checkpoint is `models/phase3/full/baseline/logistic_regression.joblib`; this specific 2.9 MiB checkpoint is included in the private deployment repository and bundled into Docker at `/app/runtime/model.joblib`. No external model storage or `MODEL_ARTIFACT_URL` is needed. Build and startup verify its pinned SHA-256 and metadata before inference.
 
-The beta supports real overall sentiment, lexical aspect analysis, guest preferences/themes, optional local history, and consented feedback. Hindi/Hinglish input is experimental, not validated multilingual accuracy. Recommendations, evidence, fake-review detection, comparisons, accounts and billing remain unavailable.
+The beta supports a focused review form with required product category, real overall sentiment, lexical aspect analysis, themes/language selection, optional local history, and consented feedback. Hindi/Hinglish input is experimental, not validated multilingual accuracy. Recommendations, evidence, fake-review detection, comparisons, accounts and billing remain unavailable.
 
-See [Phase 3.5 setup, test results and deployment checklist](docs/PHASE_3_5.md). Render configuration is prepared only: no deployment or paid resources have been authorized or created.
+The feedback dialog keeps Submit Feedback visible on small screens, validates rating/consent, and prevents duplicate submissions. Technical model details are expandable. Account/plan/upgrade placeholders and sample conversations are removed. Existing saved guest history remains compatible.
+
+See [Phase 3.5 setup, test results and deployment checklist](docs/PHASE_3_5.md). Render preparation does not create paid resources. Existing live frontend/API URLs are supplied by the owner; this UX update does not itself invoke deployment or change plans.
 
 The workspace itself is the project root. The original starter ZIP contained scripts and notes, **no reviews**. It was extracted intact into `starter/reviewmind_starter/`; the replacement downloader fixes the obsolete Amazon review-Parquet assumption by using the licensed, versioned Flipkart source instead.
 

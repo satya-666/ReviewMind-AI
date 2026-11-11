@@ -18,7 +18,7 @@ from backend.app.security import Guard
 
 LOG=logging.getLogger('reviewmind.api')
 CATEGORIES={
- 'smartphones':['Smartphones','smartphone'], 'laptops':['Laptops','laptop'],
+ 'smartphones':['Smartphones','smartphone','phone','phones','mobile phone','mobile phones'], 'laptops':['Laptops','laptop'],
  'audio_devices':['Audio devices','Headphones','earbuds','speakers'],
  'wearables':['Wearables','Smartwatches','smartwatch'], 'tvs_monitors':['TVs and monitors','TVs/monitors'],
  'accessories':['Computer accessories','Accessories'], 'tablets':['Tablets','tablet'],
@@ -97,10 +97,11 @@ def create_app(settings=None):
     def analyze(body:Analyze):
         model=app.state.model;db=app.state.database
         if model.predictor is None or db is None:return error(503,'model_unavailable','Analysis is unavailable while the model or storage is not ready.')
-        category=ALIASES.get((body.category or '').casefold())
+        category=ALIASES.get((body.category or '').strip().casefold())
         warnings=['Experimental beta: rating-derived weak supervision; scores are uncalibrated.']
         if body.language not in {'en','english'}:warnings.append('Hindi/Hinglish/other language accuracy is not established. Treat this prediction as experimental.')
         if body.category and category is None:warnings.append('Category not recognized; overall sentiment is returned without aspect rules.')
+        if not body.category:warnings.append('Choose a product category to enable category-specific aspect detection.')
         try:prediction=model.analyze(body.text,category)
         except BlockingIOError:return error(503,'inference_busy','Another analysis is running. Please retry shortly.')
         except Exception as problem:

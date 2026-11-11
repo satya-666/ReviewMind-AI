@@ -134,11 +134,38 @@ def test_inference_and_database_errors_are_safe(client,monkeypatch):
     client.app.state.database=None
     assert client.post('/api/feedback',json={'request_id':str(uuid.uuid4()),'rating':1,'consent':True}).status_code==503
 
-def test_frontend_uses_real_api_and_preserves_css():
+def test_frontend_is_analysis_focused_and_uses_real_api(client):
     html=(ROOT/'frontend/index.html').read_text();js=(ROOT/'frontend/assets/app.js').read_text()
     assert 'const MOCK' not in js+html and 'Sample Phone A' not in js+html
-    assert 'ReviewMindAPI.analyze' in js and 'ReviewMindAPI.recommend' in js
-    metadata=json.loads((ROOT/'reports/phase3_5_frontend_source.json').read_text())
-    import hashlib
-    css=(ROOT/'frontend/assets/styles.css').read_text().split('\n/* Integration controls')[0]
-    assert hashlib.sha256(css.encode()).hexdigest()==metadata['original_css_sha256']
+    assert 'ReviewMindAPI.analyze' in js
+    assert 'Submit Feedback' in html and 'Analyze Review' in html
+    for obsolete in ['data-plan=', 'id="budget"', 'id="pbtn"', 'id="examples"', 'const EXAMPLES']:
+        assert obsolete not in html+js
+    assert client.get('/assets/app.js').status_code==200
+
+@pytest.mark.parametrize('category',['Smartphones','phone',' mobile phones '])
+def test_reported_phone_review_aspects(client,category):
+    text='The phone has excellent battery life and a great display, but the camera quality is disappointing.'
+    data=client.post('/api/analyze',json={'text':text,'category':category}).json()
+    found={a['aspect']:a['sentiment'] for a in data['aspects']}
+    assert found=={'battery':'positive','display':'positive','camera':'negative'}
+    assert data['aspects_method']=='rule_based_not_supervised'
+    assert all(a['confidence'] is None for a in data['aspects'])
+
+def test_missing_category_explains_aspect_requirement(client):
+    data=client.post('/api/analyze',json={'text':'The battery life is excellent'}).json()
+    assert data['aspects']==[] and any('Choose a product category' in w for w in data['warnings'])
+
+@pytest.mark.parametrize('category,text,expected',[
+    ('Laptops','The performance is excellent but the keyboard is poor.',{'performance','keyboard'}),
+    ('Headphones','The sound is clear and bass is good.',{'sound_quality','bass'}),
+    ('Wearables','The heart rate tracking is good.',{'tracking_accuracy'}),
+    ('TVs and monitors','The picture is great but the speaker is poor.',{'display','sound_quality'}),
+    ('Computer accessories','The storage capacity is good.',{'storage'}),
+    ('Tablets','The screen is great and the battery is good.',{'display','battery'}),
+    ('Networking devices','The bandwidth and signal are good.',{'speed','range'}),
+    ('Chargers and power banks','The charging speed is good.',{'charging_speed'}),
+])
+def test_supported_category_aspect_mentions(client,category,text,expected):
+    data=client.post('/api/analyze',json={'text':text,'category':category}).json()
+    assert expected <= {a['aspect'] for a in data['aspects']}
