@@ -24,7 +24,7 @@ Set `GEMINI_API_KEY` only in backend secrets, never the static frontend. Keep `F
 
 The chat UI includes New Chat, local history, working device settings, Help, mobile themes, bounded loading/retry and prediction feedback with a visible submit footer. Enter sends; Shift+Enter creates a new line. Model details are expandable. History remains opt-in and compatible with existing saved messages.
 
-See [chat architecture, privacy, test evidence and exact Render release steps](docs/CHAT_INTEGRATION.md) and [Phase 3.5 deployment details](docs/PHASE_3_5.md). Both Render services must track `phase-3.5/web-integration`; the owner's earlier screenshot showed the frontend tracking phase-1. Gemini integration is implemented but **a successful live provider response remains unverified** until the replacement key is used by the deployed new backend. No account, billing or resource-plan changes are made by this code.
+See [chat architecture, privacy, test evidence and exact Render release steps](docs/CHAT_INTEGRATION.md) and [Phase 3.5 deployment details](docs/PHASE_3_5.md). Both Render services must track `phase-3.5/web-integration`; the owner's earlier screenshot showed the frontend tracking phase-1. The live backend now returned a genuine Gemini response in 1.3 seconds and real sentiment inference in 0.47 seconds (2026-11-12). **The static frontend still serves the old 15-second-timeout build and must be deployed from the current branch.** See `reports/phase3_5_chat_live_verification.json`. No account, billing or resource-plan changes are made by this code.
 
 ## Scope and development roadmap
 

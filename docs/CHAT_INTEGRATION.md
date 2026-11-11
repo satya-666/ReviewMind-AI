@@ -2,7 +2,7 @@
 
 ## Status
 
-The code integrates a separate Gemini conversational provider and keeps the existing `phase3-full-logistic_regression-seed42` TF-IDF classifier unchanged. The optional provider is implemented, but a **real Gemini call is not verified locally**: the replacement key was configured by the owner on Render, not supplied to this workspace. Provider fixtures verify request/response/error contracts only. Do not describe those fixtures as a successful live integration. No billing, plan changes or new hosting resources were enabled.
+The code integrates a separate Gemini conversational provider and keeps the existing `phase3-full-logistic_regression-seed42` TF-IDF classifier unchanged. The replacement key is configured by the owner on Render, not supplied to this workspace. **A real response from the deployed Gemini backend was verified on 2026-11-12**: Who are you completed in 1.3 seconds with `response_source: gemini`, `provider_status: ready`. A real review completed in 0.47 seconds with the expected battery/display/camera rule results. Local provider fixtures still test contracts only; the separate live evidence is `reports/phase3_5_chat_live_verification.json`. No billing, plan changes or new hosting resources were enabled.
 
 The owner's screenshot showed `reviewmind-web` tracking `phase-1/data-pipeline` at an older commit, while the maintained deployment branch is `phase-3.5/web-integration`. This explains why pushing UX fixes did not update that live service. Recheck both services' dashboard branch settings; pushing another branch does not deploy it. Do not merge or change the repository default branch to solve a hosting branch mismatch.
 
@@ -89,3 +89,7 @@ Evidence: `reports/phase3_5_chat_tests.txt`, `reports/phase3_5_chat_browser.json
 5. In the deployed UI, opt in to Gemini and send Hello/Who are you. Confirm an actual Gemini source badge and `provider_status: ready`, and that status subsequently reports a provider response since startup. If authentication/quota/model access fails, fix the backend secret/account access rather than interpreting a built-in fallback as success.
 6. Test a review with Smartphones selected, ask why it received its recorded label, start New Chat and verify old context is absent, then test feedback storage/deletion. Confirm recommendations still disclose missing verified data.
 7. Check hosted memory/latency, browser errors and cold-start behavior. Do not claim the updated deployment or live Gemini success until these hosted checks pass.
+
+## Live timeout diagnosis (2026-11-12)
+
+The live frontend still serves the old exact message `Analysis timed out. Please retry.`, a 15,000 ms timeout and direct `/api/analyze` routing. It does not yet contain the new warmup or chat client. Meanwhile `/api/chat/status` is present and the backend has now returned a genuine Gemini response successfully. This is a mismatched static-site deployment, not evidence that the current chat code times out. The remaining fix is to deploy the current branch on the existing static site. The owner must sign in to Render before that dashboard change can be completed. No new timeout patch or model reload is necessary; the current source already has bounded warmup and separate chat request deadlines.
