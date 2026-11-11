@@ -1,5 +1,7 @@
 # Phase 3.5 — web integration and deployment preparation
 
+**Current chat revision:** see [CHAT_INTEGRATION.md](CHAT_INTEGRATION.md) for the Gemini provider, intent routing, privacy and updated UI. The original analysis-only UI descriptions below record earlier Phase 3.5 work and are superseded by that handoff. Existing analysis/feedback API contracts remain valid.
+
 ## Status and scope
 
 Implemented locally on `phase-3.5/web-integration`, based on Phase 3 commit `5eead1988d9465fb74efd6976642cd00942272d5`. No Phase 4/5 work, public deployment, paid resource creation, main merge or pull request is included.

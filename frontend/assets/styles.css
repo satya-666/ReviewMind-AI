@@ -113,3 +113,15 @@ dialog[open]{animation:appear .12s ease-out}
 to{opacity:1;transform:none}
 }
 }
+
+/* Conversation layout keeps the input available while messages scroll. */
+main{height:calc(100dvh - 78px);display:flex;flex-direction:column;padding-top:24px;padding-bottom:10px;max-width:1000px}
+.intro{margin-bottom:14px}.intro h1{font-size:clamp(1.5rem,3vw,2rem);margin:6px 0}.intro p{font-size:.9rem}.eyebrow{font-size:.68rem}
+#results{flex:1;min-height:120px;overflow-y:auto;margin-top:0;padding:8px 4px 12px;overscroll-behavior:contain}
+.input-panel{flex-shrink:0;padding:16px;margin-top:10px}.input-panel .field{margin-bottom:10px}.input-panel summary{font-size:.84rem;margin-bottom:10px}.input-options{margin-top:10px}
+#q{min-height:72px;max-height:140px}.input-actions{gap:8px}.gemini-consent{margin-top:12px;font-size:.78rem;line-height:1.4}.gemini-consent .note{font-size:.74rem;display:block}
+.response-source{font-size:.76rem;color:var(--muted);margin-bottom:8px}.reply-text{white-space:pre-wrap;overflow-wrap:anywhere}.chat-answer{padding:18px;box-shadow:none}footer{font-size:.69rem;margin:10px 0 0}
+@media(max-width:600px){main{height:calc(100dvh - 112px);padding-top:16px}.intro p{display:none}.intro .eyebrow{display:none}.intro{margin-bottom:8px}.intro h1{font-size:1.4rem}.input-panel{padding:12px}.input-actions{flex-direction:row;align-items:center}.input-actions .btn{width:auto;flex-shrink:0}.input-actions .note{font-size:.7rem}#q{min-height:64px}.gemini-consent{font-size:.74rem}.gemini-consent .note{font-size:.68rem}header .btn{font-size:.75rem;padding:8px}.input-options{grid-template-columns:1fr 1fr;gap:8px}.mode-field label{font-size:.8rem}.mode-field select{font-size:.8rem}}
+
+#q{height:72px}.input-panel summary{font-weight:500}.gemini-consent{margin-top:8px}
+@media(max-width:600px){header #settingsBtn,header #helpBtn{display:none}header #themeBtn{font-size:0;min-width:40px}header #themeBtn::after{content:'◐';font-size:18px}header{flex-wrap:nowrap}.brand{font-size:.9rem}main{height:calc(100dvh - 70px)}.intro h1{font-size:1.25rem}.input-panel{margin-top:6px}#q{height:64px}.gemini-consent .note{line-height:1.35}footer{font-size:.65rem}}

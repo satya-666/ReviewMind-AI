@@ -1,12 +1,12 @@
-/* Review analysis only. Results always come from the configured API. */
+/* Chat routing is server-side; only actual classifier results get prediction feedback. */
 const $ = selector => document.querySelector(selector);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const LABELS = ['positive','negative','neutral','mixed','unknown'];
 const label = value => value === 'unknown' ? 'Not determined' : value.charAt(0).toUpperCase() + value.slice(1);
 const HISTORY_KEY = 'reviewmind_guest_history_v1';
 const I18N = {
-  en:{hello:'Understand Product Reviews with AI',sub:'Paste a review to understand its overall sentiment and the product features it mentions.',placeholder:'Paste the product review you want to analyze…'},
-  hi:{hello:'AI से प्रोडक्ट रिव्यू समझें',sub:'रिव्यू का समग्र भाव और प्रोडक्ट फीचर देखें। हिन्दी की सटीकता अभी प्रमाणित नहीं है।',placeholder:'विश्लेषण के लिए प्रोडक्ट रिव्यू यहाँ लिखें…'},
+  en:{hello:'Let’s understand your product reviews',sub:'Ask a question, paste a review, or follow up on an analysis.',placeholder:'Ask about a review, or paste one to analyze…'},
+  hi:{hello:'AI के साथ प्रोडक्ट रिव्यू समझें',sub:'रिव्यू का समग्र भाव और प्रोडक्ट फीचर देखें। हिन्दी की सटीकता अभी प्रमाणित नहीं है।',placeholder:'विश्लेषण के लिए प्रोडक्ट रिव्यू यहाँ लिखें…'},
   hinglish:{hello:'AI se product reviews samjhein',sub:'Review paste karein aur overall sentiment aur product features dekhein. Hinglish accuracy abhi verified nahi hai.',placeholder:'Product review yahan paste karein…'}
 };
 let chats = [], current = null, busy = false, feedbackTarget = null;
@@ -24,8 +24,12 @@ function addMessage(message) {
   const el = document.createElement('div'); el.className = 'msg ' + (message.role === 'user' ? 'user' : 'ai');
   if (message.role === 'user') el.innerHTML = `<div class="bubble">${esc(message.text)}</div>`;
   else if (message.result?.type === 'analysis') el.innerHTML = renderAnalysis(message.result);
+  else if (message.result?.type === 'chat') {
+    const r = message.result;
+    el.innerHTML = `<article class="card chat-answer"><p class="response-source">${r.response_source === 'gemini' ? 'Gemini · conversational answer' : 'Built-in guide · not a language-model answer'}</p><div class="reply-text">${esc(r.reply)}</div>${['timeout','unavailable','busy','rate_limited','invalid_response','blocked','ungrounded_response'].includes(r.provider_status) ? '<p class="note">The conversational provider did not return an answer. You can resend your message when it is available.</p>' : ''}</article>`;
+  }
   else if (message.result?.type === 'analysis_only') el.innerHTML = '<div class="card"><p>Product recommendations are not available. Paste a product review to analyze its sentiment instead.</p></div>';
-  else el.innerHTML = `<div class="card error-card"><p role="alert">${esc(message.text || 'Analysis is unavailable. Please try again.')}</p>${message.retry ? '<button class="btn retry">Retry analysis</button>' : ''}</div>`;
+  else el.innerHTML = `<div class="card error-card"><p role="alert">${esc(message.text || 'Analysis is unavailable. Please try again.')}</p>${message.retry ? '<button class="btn retry">Retry message</button>' : ''}</div>`;
   const meta = document.createElement('div'); meta.className = 'meta'; meta.textContent = message.time || '';
   if (message.role === 'ai') {
     const copy = document.createElement('button'); copy.className = 'copy'; copy.textContent = 'Copy result';
@@ -34,7 +38,7 @@ function addMessage(message) {
   }
   el.appendChild(meta); $('#chat').appendChild(el);
   const retry = el.querySelector('.retry');
-  if (retry) retry.onclick = () => { $('#q').value = message.retry.text; $('#cat').value = message.retry.category; $('#lang').value = message.retry.language; send(); };
+  if (retry) retry.onclick = () => { $('#q').value = message.retry.text; $('#cat').value = message.retry.category; $('#lang').value = message.retry.language; $('#mode').value = message.retry.mode || 'auto'; send(); };
 }
 function persist() {
   try {
@@ -44,39 +48,54 @@ function persist() {
   $('#historyNote').textContent = $('#remember').checked ? 'History is saved on this device. Clear it in Settings.' : 'History stays in this session unless you choose to save it on this device.';
 }
 function renderHistory() {
-  $('#hist').innerHTML = chats.length ? chats.map(c => `<li><button data-chat="${esc(c.id)}" ${c === current ? 'aria-current="true"' : ''}>${esc(c.title)}</button></li>`).join('') : '<li class="empty">No previous analyses.</li>';
+  $('#hist').innerHTML = chats.length ? chats.map(c => `<li><button data-chat="${esc(c.id)}" ${c === current ? 'aria-current="true"' : ''}>${esc(c.title)}</button></li>`).join('') : '<li class="empty">No local chats yet.</li>';
   $('#startNew').hidden = !current;
 }
 function showCurrent() {
   $('#chat').replaceChildren();
   if (current) current.messages.forEach(addMessage);
-  else $('#chat').innerHTML = '<p class="empty" id="welcome">No analyses yet. Paste your first product review to get started.</p>';
+  else $('#chat').innerHTML = '<p class="empty" id="welcome">No messages yet. Say hello or paste a product review to get started.</p>';
   renderHistory();
 }
 function newAnalysis() {
-  if (busy) return toast('Please wait for the current analysis.');
+  if (busy) return toast('Please wait for the current reply.');
   current = null; showCurrent(); persist(); closeHistory(); $('#q').value = ''; $('#q').focus();
+}
+function contextFor(messages) {
+  let total = 0; const history = [];
+  for (const m of [...messages].reverse()) {
+    let text = m.role === 'user' ? m.text : m.result?.type === 'chat' ? m.result.reply : m.result?.type === 'analysis' ?
+      `Review analysis: overall ${m.result.sentiment}. Rule-based aspects: ${m.result.aspects.map(a => a.name+': '+a.sentiment).join(', ')}. Scores are uncalibrated.` : null;
+    if (!text || history.length >= 8 || total >= 4000) continue;
+    text = text.slice(0,Math.min(1000,4000-total)); total += text.length;
+    history.unshift({role:m.role === 'user' ? 'user' : 'assistant',text});
+  }
+  return history;
 }
 async function send() {
   const text = $('#q').value.trim(); $('#hint').textContent = '';
   if (busy) return;
-  if (!text || text.length > 5000) { $('#hint').textContent = 'Enter a product review between 1 and 5,000 characters.'; $('#q').focus(); return; }
-  if (!$('#cat').value) { $('#hint').textContent = 'Choose a product category so we can find relevant features.'; $('#cat').focus(); return; }
-  const preferences = {category:$('#cat').value,language:$('#lang').value};
-  busy = true; $('#send').disabled = true; $('#send').textContent = 'Analyzing…'; $('#loading').hidden = false; $('#results').setAttribute('aria-busy','true');
-  $('#welcome')?.remove();
+  if (!text || text.length > 5000) { $('#hint').textContent = 'Enter a message between 1 and 5,000 characters.'; $('#q').focus(); return; }
+  const preferences = {category:$('#cat').value,language:$('#lang').value,mode:$('#mode').value};
+  const messages = current?.messages || [];
+  const previous = [...messages].reverse().find(m => m.result?.type === 'analysis');
+  const body = {text,...preferences,history:contextFor(messages),analysis_request_id:previous?.result.request_id || null,allow_gemini:$('#allowGemini').checked};
+  busy = true; $('#send').disabled = true; $('#send').textContent = 'Sending…'; $('#loading').hidden = false;
+  $('#loading').textContent = 'Connecting to the assistant… The service may take up to a minute to wake up.';
+  $('#results').setAttribute('aria-busy','true'); $('#welcome')?.remove();
   if (!current) { current = {id:crypto.randomUUID(),title:text.slice(0,100),messages:[]}; chats.unshift(current); chats = chats.slice(0,20); }
   current.messages.push({role:'user',text,time:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})});
-  showCurrent();
+  $('#q').value = ''; showCurrent(); $('#results').scrollTop = $('#results').scrollHeight;
   try {
-    const result = await ReviewMindAPI.analyze(text,preferences);
+    const result = await ReviewMindAPI.chat(body,() => { $('#loading').textContent = 'Preparing your reply… Review predictions and Gemini conversation use separate models.'; });
     current.messages.push({role:'ai',result,time:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})});
   } catch (error) {
     current.messages.push({role:'ai',text:error.message,retry:{text,...preferences}});
   } finally {
-    current.messages = current.messages.slice(-50); busy = false; $('#send').disabled = false; $('#send').textContent = 'Analyze Review'; $('#loading').hidden = true;
+    current.messages = current.messages.slice(-50); busy = false; $('#send').disabled = false; $('#send').textContent = 'Send'; $('#loading').hidden = true;
     $('#results').setAttribute('aria-busy','false'); showCurrent(); persist();
-    $('#results').scrollIntoView({block:'start'});
+    const latest = $('#chat .msg.ai:last-child'), area = $('#results');
+    if (latest) area.scrollTop += latest.getBoundingClientRect().top - area.getBoundingClientRect().top - 8;
   }
 }
 function closeHistory() { $('#side').hidden = true; $('#historyBtn').setAttribute('aria-expanded','false'); }
@@ -113,6 +132,7 @@ function validStoredMessage(m) {
   if (!m.result) return typeof m.text === 'string' && m.text.length <= 2000 && (!m.retry ||
     (typeof m.retry.text === 'string' && m.retry.text.length <= 5000 && typeof m.retry.category === 'string' && ['en','hi','hinglish'].includes(m.retry.language)));
   const r = m.result;
+  if (r.type === 'chat') return typeof r.reply === 'string' && r.reply.length <= 6000 && ['built_in','gemini'].includes(r.response_source) && typeof r.provider_status === 'string';
   if (r.type === 'analysis_only') return r.status === 'not_available';
   return r.type === 'analysis' && ['positive','neutral','negative'].includes(r.sentiment) && typeof r.request_id === 'string' && typeof r.model_version === 'string' &&
     (r.confidence === null || (Number.isFinite(r.confidence) && r.confidence >= 0 && r.confidence <= 1)) && Array.isArray(r.warnings) && r.warnings.every(w => typeof w === 'string') &&
@@ -132,12 +152,15 @@ function validStoredMessage(m) {
   } catch { chats = []; current = null; }
   showCurrent();
   $('#analysisForm').onsubmit = e => { e.preventDefault(); send(); };
-  $('#q').onkeydown = e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); send(); } };
+  $('#q').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); } };
   $('#lang').onchange = () => { const t = I18N[$('#lang').value]; $('[data-i="hello"]').textContent = t.hello; $('[data-i="sub"]').textContent = t.sub; $('#q').placeholder = t.placeholder; document.documentElement.lang = $('#lang').value === 'hi' ? 'hi' : 'en'; };
   $('#newChat').onclick = newAnalysis; $('#startNew').onclick = newAnalysis;
   $('#historyBtn').onclick = () => { $('#side').hidden = !$('#side').hidden; $('#historyBtn').setAttribute('aria-expanded',String(!$('#side').hidden)); if (!$('#side').hidden) $('#closeSide').focus(); };
   $('#closeSide').onclick = () => { closeHistory(); $('#historyBtn').focus(); };
   $('#settingsBtn').onclick = () => { closeHistory(); $('#settingsModal').showModal(); };
+  $('#sideSettings').onclick = $('#settingsBtn').onclick;
+  $('#helpBtn').onclick = () => { closeHistory(); $('#helpModal').showModal(); };
+  $('#sideHelp').onclick = $('#helpBtn').onclick; $('#closeHelp').onclick = () => $('#helpModal').close();
   $('#closeSettings').onclick = () => $('#settingsModal').close();
   $('#mclose').onclick = () => $('#modal').close(); $('#modal').addEventListener('close',rememberDraft);
   $('#feedbackForm').oninput = rememberDraft;

@@ -1,9 +1,10 @@
 /* One transport boundary. No mock or fabricated fallback responses. */
 (() => {
   const base = (window.REVIEWMIND_CONFIG?.apiBaseUrl || '').replace(/\/$/, '');
-  async function request(path, body, method = 'POST', headers = {}) {
+  let readyAt = 0, warming = null;
+  async function request(path, body, method = 'POST', headers = {}, timeoutMs = 45000) {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 45000);
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
     try {
       const response = await fetch(base + path, {method, signal: controller.signal,
         headers: {'Content-Type': 'application/json', ...headers},
@@ -13,6 +14,7 @@
       if (!response.ok) {
         const messages = {429:'Too many requests. Wait one minute, then retry.',503:'Analysis or feedback is temporarily unavailable. The service may be waking up. Please retry shortly.',404:'This analysis or feedback has expired or could not be found.',409:'Feedback has already been saved for this analysis.',422:'Check the required fields and input length, then try again.'};
         const error = new Error(messages[response.status] || 'The service could not complete this request. Please try again later.');
+        if (response.status === 404 && path.startsWith('/api/chat')) error.message = 'Chat is not available on this backend yet. Both Render services need the latest phase-3.5/web-integration code.';
         error.status = response.status; throw error;
       }
       if (!data || typeof data !== 'object') throw new Error('The API returned an invalid response.');
@@ -36,6 +38,27 @@
     return data;
   }
   window.ReviewMindAPI = {
+    chat: async (body, onReady) => {
+      // Warm a sleeping service with GET, never automatically retry a billable POST.
+      if (Date.now() - readyAt > 60000) {
+        if (!warming) warming = request('/api/chat/status', undefined, 'GET', {}, 60000).then(data => {
+          if (typeof data.configured !== 'boolean') throw new Error('The chat service returned an invalid status.');
+          readyAt = Date.now(); return data;
+        }).finally(() => { warming = null; });
+        await warming;
+      }
+      onReady?.();
+      const payload = {...body, history:[...body.history]};
+      while (payload.history.length && new TextEncoder().encode(JSON.stringify(payload)).length > 15000) payload.history.shift();
+      if (new TextEncoder().encode(JSON.stringify(payload)).length > 16000) throw new Error('This message is too large. Please shorten it and retry.');
+      const data = await request('/api/chat', payload, 'POST', {}, 30000);
+      if (data.type === 'analysis') return validateAnalysis(data);
+      if (data.type !== 'chat' || typeof data.reply !== 'string' || !data.reply.trim() || data.reply.length > 6000 ||
+          !['built_in','gemini'].includes(data.response_source) || typeof data.provider_status !== 'string') {
+        throw new Error('The chat service returned an unsupported response format.');
+      }
+      return data;
+    },
     analyze: async (text, preferences) => validateAnalysis(await request('/api/analyze', {
       text, category: preferences.category || null, language: preferences.language})),
     recommend: async (query, preferences) => {

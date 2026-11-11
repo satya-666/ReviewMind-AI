@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ReviewMind AI — Product Review Analysis</title>
+<title>ReviewMind AI — Review Assistant</title>
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="assets/styles.css">
 </head>
@@ -13,40 +13,46 @@
   <nav aria-label="Main navigation">
     <button class="btn" id="historyBtn" aria-controls="side" aria-expanded="false">History</button>
     <button class="btn" id="settingsBtn">Settings</button>
+    <button class="btn" id="helpBtn">Help</button>
     <button class="btn" id="themeBtn" aria-label="Switch to dark theme">Dark theme</button>
   </nav>
 </header>
 <div class="app">
-<aside id="side" aria-label="Analysis history" hidden>
+<aside id="side" aria-label="Chat history" hidden>
   <div class="section-heading"><h2>History</h2><button class="btn" id="closeSide" aria-label="Close history">Close</button></div>
-  <button class="btn primary" id="newChat">New analysis</button>
+  <button class="btn primary" id="newChat">New Chat</button>
   <p class="note" id="historyNote">History stays in this session unless you choose to save it on this device.</p>
   <ul id="hist"></ul>
+  <button class="btn" id="sideSettings">Settings</button><button class="btn" id="sideHelp">Help</button>
 </aside>
 <main id="main">
   <section class="intro">
-    <span class="eyebrow">PRODUCT REVIEW ANALYSIS</span>
-    <h1 data-i="hello">Understand Product Reviews with AI</h1>
-    <p data-i="sub">Paste a review to understand its overall sentiment and the product features it mentions.</p>
+    <span class="eyebrow">YOUR PRODUCT REVIEW ASSISTANT</span>
+    <h1 data-i="hello">Let’s understand your product reviews</h1>
+    <p data-i="sub">Ask a question, paste a review, or follow up on an analysis. We keep real sentiment predictions separate from conversation.</p>
   </section>
-  <section class="input-panel" aria-label="Analyze a review">
+  <section id="results" aria-label="Conversation" aria-busy="false">
+    <div class="section-heading"><h2>Conversation</h2><button class="btn" id="startNew" hidden>New Chat</button></div>
+    <div id="chat" aria-live="polite"><p class="empty" id="welcome">No messages yet. Say hello or paste a product review to get started.</p></div>
+    <p id="loading" class="loading" role="status" hidden>Connecting to the assistant… The service may take up to a minute to wake up.</p>
+  </section>
+  <section class="input-panel" aria-label="Message the assistant">
     <form id="analysisForm" novalidate>
+      <details id="chatOptions"><summary>Review settings (optional)</summary>
       <div class="input-options">
-        <div class="field"><label for="cat">Product category</label><select id="cat" required aria-describedby="categoryHelp"><option value="">Choose a category</option><option>Smartphones</option><option>Laptops</option><option>Audio devices</option><option>Wearables</option><option>TVs and monitors</option><option>Computer accessories</option><option>Tablets</option><option>Networking devices</option><option>Chargers and power banks</option><option value="Other tech">Other technology · overall sentiment only</option></select></div>
-        <div class="field"><label for="lang">Review language</label><select id="lang"><option value="en">English</option><option value="hi">हिन्दी</option><option value="hinglish">Hinglish</option></select></div>
+        <div class="field"><label for="cat">Product category</label><select id="cat" aria-describedby="categoryHelp"><option value="">Not selected</option><option>Smartphones</option><option>Laptops</option><option>Audio devices</option><option>Wearables</option><option>TVs and monitors</option><option>Computer accessories</option><option>Tablets</option><option>Networking devices</option><option>Chargers and power banks</option><option value="Other tech">Other technology · overall sentiment only</option></select></div>
+        <div class="field"><label for="lang">Language</label><select id="lang"><option value="en">English</option><option value="hi">हिन्दी</option><option value="hinglish">Hinglish</option></select></div>
       </div>
-      <p class="note" id="categoryHelp">Choose the product category so we can look for relevant features.</p>
-      <div class="field"><label for="q">Product review</label><textarea id="q" maxlength="5000" rows="5" required aria-describedby="inputHelp hint" placeholder="Paste the product review you want to analyze…"></textarea></div>
-      <div class="input-actions"><span class="note" id="inputHelp">Up to 5,000 characters · Ctrl/⌘ + Enter to analyze</span><button class="btn primary" id="send" type="submit">Analyze Review</button></div>
+      <p class="note" id="categoryHelp">Choose a category when analyzing a review to enable feature detection.</p>
+      <div class="field mode-field"><label for="mode">Message type</label><select id="mode"><option value="auto">Automatic · question or review</option><option value="review">Review analysis · use the trained classifier</option></select></div>
+      </details>
+      <div class="field"><label for="q">Your message</label><textarea id="q" maxlength="5000" rows="3" required aria-describedby="inputHelp hint" placeholder="Ask about a review, or paste one to analyze…"></textarea></div>
+      <div class="input-actions"><span class="note" id="inputHelp">Up to 5,000 characters · Enter to send · Shift+Enter for a new line</span><button class="btn primary" id="send" type="submit">Send</button></div>
       <p id="hint" class="error" role="alert"></p>
-      <p id="loading" class="loading" role="status" hidden>Analyzing your review… If the service is waking up, this may take a little longer.</p>
+      <label class="checkbox gemini-consent"><input type="checkbox" id="allowGemini"><span>Use Gemini for conversation <span class="note">Sends recent messages, including reviews, to Google. Free-tier content may improve its products. Avoid private information.</span></span></label>
     </form>
   </section>
-  <section id="results" aria-label="Analysis results" aria-busy="false">
-    <div class="section-heading"><h2>Analysis</h2><button class="btn" id="startNew" hidden>New analysis</button></div>
-    <div id="chat" aria-live="polite"><p class="empty" id="welcome">No analyses yet. Paste your first product review to get started.</p></div>
-  </section>
-  <footer>AI predictions can be wrong. Reviews are sent for analysis but are not saved on the server. Device history is optional. No account is required.</footer>
+  <footer>AI answers and predictions can be wrong. No verified product catalogue or live prices are connected. Chat transcripts are not saved on our server. Device history is optional.</footer>
 </main>
 </div>
 <dialog id="modal" class="modal" aria-labelledby="mtitle">
@@ -69,11 +75,15 @@
 <dialog id="settingsModal" class="modal" aria-labelledby="settingsTitle">
   <div class="dialog-heading"><h2 id="settingsTitle">Device settings</h2><button class="btn" id="closeSettings" aria-label="Close settings">Close</button></div>
   <div class="dialog-body">
-    <label class="checkbox"><input type="checkbox" id="remember"><span>Save analysis history on this device</span></label>
+    <label class="checkbox"><input type="checkbox" id="remember"><span>Save chat history on this device</span></label>
     <p class="note">Off by default. When enabled, your review text and results stay in this browser. Avoid saving on shared devices. This is not an account or cloud backup.</p>
-    <button class="btn danger" id="clearHist">Clear analysis history</button>
+    <button class="btn danger" id="clearHist">Clear chat history</button>
     <p class="note">Clears session and device history. Submitted feedback is separate; use its Delete button while this session is open, or it expires after 30 days.</p>
   </div>
+</dialog>
+<dialog id="helpModal" class="modal" aria-labelledby="helpTitle">
+  <div class="dialog-heading"><h2 id="helpTitle">How ReviewMind AI works</h2><button class="btn" id="closeHelp">Close</button></div>
+  <div class="dialog-body"><p>Ask a question or paste a product review. Automatic routing separates questions from review analysis. If it misunderstands, choose Review analysis mode for a review.</p><p>The trained TF-IDF classifier predicts overall sentiment. Product aspects use keyword rules. Scores are not reliability percentages.</p><p>Gemini handles conversation only when configured and you opt in. Built-in guides and fallback answers are always labeled. No live product data or verified recommendations are available.</p><p>New Chat starts without the previous chat’s context. History is session-only unless you enable device storage in Settings. Gemini receives up to eight recent messages and may process them under Google’s data-use terms. Feedback is only for actual sentiment predictions.</p></div>
 </dialog>
 <div id="toast" role="status" aria-live="polite"></div>
 <script src="assets/config.js"></script>

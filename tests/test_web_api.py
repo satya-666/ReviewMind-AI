@@ -137,8 +137,8 @@ def test_inference_and_database_errors_are_safe(client,monkeypatch):
 def test_frontend_is_analysis_focused_and_uses_real_api(client):
     html=(ROOT/'frontend/index.html').read_text();js=(ROOT/'frontend/assets/app.js').read_text()
     assert 'const MOCK' not in js+html and 'Sample Phone A' not in js+html
-    assert 'ReviewMindAPI.analyze' in js
-    assert 'Submit Feedback' in html and 'Analyze Review' in html
+    assert 'ReviewMindAPI.chat' in js
+    assert 'Submit Feedback' in html and '>Send</button>' in html
     for obsolete in ['data-plan=', 'id="budget"', 'id="pbtn"', 'id="examples"', 'const EXAMPLES']:
         assert obsolete not in html+js
     assert client.get('/assets/app.js').status_code==200

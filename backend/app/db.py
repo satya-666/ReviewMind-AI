@@ -59,6 +59,12 @@ class Database:
             session.add(Prediction(id=request_id,model_version=version,sentiment=label,created_at=datetime.now(timezone.utc)))
             session.commit()
 
+    def prediction_context(self,identifier):
+        cutoff=datetime.now(timezone.utc)-timedelta(days=self.retention_days)
+        with Session(self.engine) as session:
+            row=session.scalar(select(Prediction).where(Prediction.id==str(identifier),Prediction.created_at>=cutoff))
+            return {'sentiment':row.sentiment,'model_version':row.model_version} if row else None
+
     def feedback(self,request_id,rating,correction,message):
         with Session(self.engine) as session:
             self.cleanup(session)

@@ -20,6 +20,8 @@ class Settings:
     body_limit:int=16384
     retention_days:int=30
     auto_create_db:bool=True
+    gemini_api_key:str=field(default='',repr=False)
+    gemini_model:str='gemini-3.1-flash-lite'
 
     @classmethod
     def from_env(cls):
@@ -34,9 +36,13 @@ class Settings:
           api_base_url=os.getenv('FRONTEND_API_URL','').rstrip('/'),
           rate_per_minute=int(os.getenv('RATE_LIMIT_PER_MINUTE','20')),
           global_rate_per_minute=int(os.getenv('GLOBAL_RATE_LIMIT_PER_MINUTE','120')),
+          gemini_api_key=os.getenv('GEMINI_API_KEY','').strip(),
+          gemini_model=os.getenv('GEMINI_MODEL','gemini-3.1-flash-lite'),
           auto_create_db=os.getenv('AUTO_CREATE_DB','false' if production else 'true')=='true')
 
     def validate(self):
+        if self.gemini_model!='gemini-3.1-flash-lite':
+            raise ValueError('Only the reviewed free-tier Gemini model is enabled; review pricing before changing models')
         if not 1<=self.rate_per_minute<=1000 or not 1<=self.global_rate_per_minute<=10000:
             raise ValueError('Rate limits must be bounded positive values')
         if not self.hosts or '*' in self.hosts or '*' in self.origins:
