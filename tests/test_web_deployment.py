@@ -33,11 +33,31 @@ def test_blueprint_has_manual_deploy_and_private_postgres():
     assert not config['databases'][0]['storageAutoscalingEnabled']
     api=config['services'][0]
     assert api['healthCheckPath']=='/api/health'
-    assert any(var['key']=='MODEL_ARTIFACT_URL' and var['sync']==False for var in api['envVars'])
+    assert not any(var['key']=='MODEL_ARTIFACT_URL' for var in api['envVars'])
+    assert api['dockerContext']=='.' and api['dockerfilePath']=='./backend/Dockerfile'
+    assert any(var['key']=='MODEL_PATH' and var.get('value')=='/app/runtime/model.joblib' for var in api['envVars'])
 
-def test_fetch_does_not_use_unpinned_or_insecure_model(tmp_path,monkeypatch):
-    from scripts.fetch_serving_model import fetch
+def test_bundled_verification_fails_on_missing_or_corrupt_model(tmp_path,monkeypatch):
+    from scripts.verify_serving_model import verify
     monkeypatch.setenv('MODEL_PATH',str(tmp_path/'model.joblib'))
-    monkeypatch.setenv('MODEL_ARTIFACT_URL','http://insecure.example/model')
-    with pytest.raises(ValueError,match='HTTPS'):fetch()
+    with pytest.raises(ValueError,match='missing'):verify()
     assert not (tmp_path/'model.joblib').exists()
+    (tmp_path/'model.joblib').write_bytes(b'corrupt')
+    with pytest.raises(ValueError,match='checksum'):verify()
+
+def test_bundled_model_bootstrap_and_real_inference(tmp_path,monkeypatch):
+    import shutil
+    from scripts.verify_serving_model import verify
+    path=tmp_path/'model.joblib'
+    shutil.copyfile(ROOT/'models/phase3/full/baseline/logistic_regression.joblib',path)
+    shutil.copyfile(ROOT/'backend/model_metadata.json',path.with_suffix('.metadata.json'))
+    monkeypatch.setenv('MODEL_PATH',str(path))
+    monkeypatch.delenv('MODEL_ARTIFACT_URL',raising=False)
+    verify()
+    service=ModelService(Settings(model_path=path))
+    assert service.predictor is not None
+    result=service.analyze('The battery is excellent but the camera is poor.','smartphones')
+    assert result['model_version']=='phase3-full-logistic_regression-seed42'
+    assert result['sentiment'] in {'positive','neutral','negative'}
+    path.with_suffix('.metadata.json').write_text('{"version":"wrong"}')
+    with pytest.raises(ValueError,match='metadata version'):verify()

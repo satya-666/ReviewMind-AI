@@ -1,0 +1,31 @@
+{
+  "date": "2026-11-11",
+  "repository_visibility": "private (authenticated GitHub API checked before publication)",
+  "model_path": "models/phase3/full/baseline/logistic_regression.joblib",
+  "model_size_bytes": 3028276,
+  "model_sha256": "edb379f3f5ed60fb3f8321b12a90bed4c08b3a408e2812112bf12b988b3462d0",
+  "checksum_matches_approved": true,
+  "docker_build": {
+    "status": "not_verified",
+    "attempted": true,
+    "reason": "Docker CLI installed, daemon socket unavailable; no image built or inspected"
+  },
+  "python_tests": {
+    "passed": 89,
+    "skipped": 1,
+    "skip_reason": "Optional TLS PostgreSQL test requires a running isolated database and TEST_POSTGRES_URL"
+  },
+  "browser_workflows_passed": 21,
+  "unhandled_browser_errors": 0,
+  "sample_prediction": {
+    "status": "passed",
+    "model_version": "phase3-full-logistic_regression-seed42",
+    "overall_sentiment": "neutral"
+  },
+  "fresh_database_migration": "0001_feedback head, SQLite passed",
+  "render_blueprint": "Passed official https://render.com/schema/render.yaml.json validation",
+  "frontend_javascript_syntax": "passed",
+  "external_model_storage_required": false,
+  "render_resources_created": false,
+  "render_deployed": false
+}

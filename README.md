@@ -4,15 +4,19 @@ ReviewMind AI prepares real technology-product reviews for review intelligence r
 
 ## Phase 3.5 web application
 
+Deployment visibility check (2026-11-11): GitHub reports this repository as **private**. The bundled model is accessible to anyone with repository or image access; an image is not a confidentiality boundary. Do not make the repository or image public without an explicit rights and publication review.
+
 From the project root, with the existing Phase 3 model available:
 
 ```sh
 python3 -m venv .venv
 .venv/bin/python -m pip install -r backend/requirements.txt
+cp backend/model_metadata.json models/phase3/full/baseline/logistic_regression.metadata.json
+.venv/bin/python scripts/verify_serving_model.py
 .venv/bin/python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --no-access-log --no-proxy-headers
 ```
 
-Open http://127.0.0.1:8000. The selected checkpoint is `models/phase3/full/baseline/logistic_regression.joblib`; it is deliberately excluded from Git. A fresh clone needs that exact approved artifact, not just the training code. Startup without it reports unavailable rather than fabricating results.
+Open http://127.0.0.1:8000. The selected checkpoint is `models/phase3/full/baseline/logistic_regression.joblib`; this specific 2.9 MiB checkpoint is included in the private deployment repository and bundled into Docker at `/app/runtime/model.joblib`. No external model storage or `MODEL_ARTIFACT_URL` is needed. Build and startup verify its pinned SHA-256 and metadata before inference.
 
 The beta supports real overall sentiment, lexical aspect analysis, guest preferences/themes, optional local history, and consented feedback. Hindi/Hinglish input is experimental, not validated multilingual accuracy. Recommendations, evidence, fake-review detection, comparisons, accounts and billing remain unavailable.
 
@@ -165,7 +169,7 @@ Install the pinned requirements (including PyTorch, Transformers and local MLflo
 .venv/bin/python -m pytest -q
 ```
 
-`--mode baseline` runs full classical experiments; `--mode smoke` performs a small, explicitly separate pipeline check. Configuration is in `configs/phase3_config.yaml`; taxonomies and label IDs are in `configs/aspect_taxonomy.yaml` and `configs/label_mapping.json`. All full tests now require locally prepared Phase 1 data plus cached/trained Phase 3 artifacts; these are excluded from Git. The documented download/preparation/training commands produce them. Existing Phase 2 notebook execution still defaults to its original four notebooks.
+`--mode baseline` runs full classical experiments; `--mode smoke` performs a small, explicitly separate pipeline check. Configuration is in `configs/phase3_config.yaml`; taxonomies and label IDs are in `configs/aspect_taxonomy.yaml` and `configs/label_mapping.json`. All full tests now require locally prepared Phase 1 data plus cached/trained Phase 3 artifacts; these are excluded from Git except the explicitly approved small serving baseline. The documented download/preparation/training commands produce them. Existing Phase 2 notebook execution still defaults to its original four notebooks.
 
 Training derives views of **18,367 train / 2,489 validation / 2,451 test** records, quarantining 15 lower-priority evaluation rows that share Phase 2 canonical phrase keys. Original Parquet files are unchanged. Models receive text only; ratings provide weak overall labels, never aspect ground truth. Hyperparameters/checkpoints and the selected model are chosen by validation macro F1 before test predictions. Prior EDA makes this an exploratory development benchmark, not an untouched final holdout.
 
@@ -179,7 +183,7 @@ Training derives views of **18,367 train / 2,489 validation / 2,451 test** recor
 
 The nine-category aspect rule baseline found mentions in **1,094 of 2,451** held-out reviews. These are coverage counts, not extraction accuracy. No supervised aspect model or aspect F1 is claimed. There are no Hindi records and too few Hinglish examples to claim multilingual performance. A blank, private 180-review annotation queue and [annotation guide](docs/ANNOTATION_GUIDE.md) provide the next labeling workflow; no human labels were fabricated.
 
-Local artifacts are in `models/phase3/full/baseline/` and `models/phase3/full/sentiment/`; MLflow tracking is in `models/phase3/mlflow.db`. Models, tokenizer downloads, MLflow artifacts, raw annotation/error excerpts and credentials are ignored by Git.
+Local artifacts are in `models/phase3/full/baseline/` and `models/phase3/full/sentiment/`; MLflow tracking is in `models/phase3/mlflow.db`. All other models, tokenizer downloads, MLflow artifacts, raw annotation/error excerpts and credentials are ignored by Git. The approved Logistic Regression checkpoint is the sole deployment exception.
 
 ```sh
 .venv/bin/python scripts/predict_review.py \
