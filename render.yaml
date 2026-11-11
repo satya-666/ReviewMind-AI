@@ -17,6 +17,10 @@ services:
         value: 'false'
       - key: MODEL_PATH
         value: /app/runtime/model.joblib
+      - key: GEMINI_MODEL
+        value: gemini-3.1-flash-lite
+      - key: GEMINI_API_KEY
+        sync: false
       - key: ALLOWED_ORIGINS
         sync: false
       - key: RATE_LIMIT_PER_MINUTE

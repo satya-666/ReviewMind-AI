@@ -40,3 +40,19 @@ class FeedbackInput(Strict):
     correction:Label|None=None
     message:str|None=Field(default=None,max_length=1000)
     consent:Literal[True]
+
+class ChatMessage(Strict):
+    role:Literal['user','assistant']
+    text:str=Field(min_length=1,max_length=1000)
+
+class ChatInput(Analyze):
+    history:list[ChatMessage]=Field(default_factory=list,max_length=8)
+    analysis_request_id:UUID|None=None
+    mode:Literal['auto','review']='auto'
+    allow_gemini:bool=False
+
+    @field_validator('history')
+    @classmethod
+    def bounded_context(cls,value):
+        if sum(len(m.text) for m in value)>4000:raise ValueError('Conversation context too long')
+        return value

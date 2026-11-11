@@ -1,180 +1,199 @@
-/* Existing HTML/CSS design; only API-backed analysis is rendered as an AI result. */
-const $ = s => document.querySelector(s);
+/* Chat routing is server-side; only actual classifier results get prediction feedback. */
+const $ = selector => document.querySelector(selector);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const inr = value => '₹' + Number(value).toLocaleString('en-IN');
-const SENT = {positive:'var(--pos)', neutral:'var(--neu)', negative:'var(--neg)', mixed:'var(--neu)', unknown:'var(--muted)'};
-const PRIORITIES = ['Battery','Camera','Performance','Display','Build quality','Value for money'];
-const I18N = {
-  en:{tag:'Experimental review analysis · Guest beta',hello:'What are the reviews saying? 💬',new:'New chat',sub:'Paste a review for real sentiment inference. Product rankings, fake-review detection and verified multilingual accuracy are not available yet.',ph:'Paste a review… (Enter to analyze, Shift+Enter for new line)'},
-  hi:{tag:'प्रायोगिक रिव्यू विश्लेषण · गेस्ट बीटा',hello:'रिव्यू क्या कह रहे हैं? 💬',new:'नई चैट',sub:'रिव्यू का विश्लेषण करें। हिन्दी सटीकता प्रमाणित नहीं है। प्रोडक्ट सुझाव और नकली रिव्यू पहचान अभी उपलब्ध नहीं हैं।',ph:'रिव्यू यहाँ लिखें…'},
-  hinglish:{tag:'Experimental review analysis · Guest beta',hello:'Reviews kya keh rahe hain? 💬',new:'Nayi chat',sub:'Review paste karo. Hindi/Hinglish accuracy verified nahi hai. Product ranking aur fake-review detection abhi available nahi hain.',ph:'Apna review yahan paste karo…'}
-};
-const EXAMPLES = [
-  {text:'The sound is clear but the battery is poor.',mode:'analyze',category:'Audio devices'},
-  {text:'The keyboard is comfortable and performance is good.',mode:'analyze',category:'Laptops'},
-  {text:'Best smartphone under ₹20,000?',mode:'recommend',category:'Smartphones'},
-  {text:'Compare earbuds for battery and comfort',mode:'recommend',category:'Audio devices'}
-];
+const LABELS = ['positive','negative','neutral','mixed','unknown'];
+const label = value => value === 'unknown' ? 'Not determined' : value.charAt(0).toUpperCase() + value.slice(1);
 const HISTORY_KEY = 'reviewmind_guest_history_v1';
-let chats = [], current = null, busy = false, feedbackTarget = null, feedbackReceipt = null;
-const profile = {name:'Guest',style:'friendly'};
-const priorities = new Set();
-
-async function getAIResponse(query, preferences) {
-  const mode = $('#task').value;
-  // Request routing only: this is not a product-ranking or sentiment model.
-  const productQuestion = /^(?:(?:best|which)\b.*(?:\?|under\b|below\b|budget\b|buy\b)|(?:recommend|suggest|compare)\b|(?:kaunsa|konsa|kaunsi)\b|कौन|सुझाव|तुलना|बेस्ट)/i.test(query);
-  return mode === 'recommend' || (mode === 'auto' && productQuestion) ? ReviewMindAPI.recommend(query, preferences) : ReviewMindAPI.analyze(query, preferences);
-}
-function currentPrefs() {
-  return {category:$('#cat').value,budget:+$('#budget').value,priorities:[...priorities],language:$('#lang').value,style:profile.style,user_name:'Guest'};
-}
+const I18N = {
+  en:{hello:'Let’s understand your product reviews',sub:'Ask a question, paste a review, or follow up on an analysis.',placeholder:'Ask about a review, or paste one to analyze…'},
+  hi:{hello:'AI के साथ प्रोडक्ट रिव्यू समझें',sub:'रिव्यू का समग्र भाव और प्रोडक्ट फीचर देखें। हिन्दी की सटीकता अभी प्रमाणित नहीं है।',placeholder:'विश्लेषण के लिए प्रोडक्ट रिव्यू यहाँ लिखें…'},
+  hinglish:{hello:'AI se product reviews samjhein',sub:'Review paste karein aur overall sentiment aur product features dekhein. Hinglish accuracy abhi verified nahi hai.',placeholder:'Product review yahan paste karein…'}
+};
+let chats = [], current = null, busy = false, feedbackTarget = null;
+const feedbackStates = new Map();
 function renderAnalysis(data) {
-  const score = data.confidence === null ? '' : `<p class="note">Uncalibrated model score: ${Number(data.confidence).toFixed(3)} · not a reliability percentage.</p>`;
-  const mentions = data.aspects.length ? data.aspects.map(a => `<div class="bar-row"><span>${esc(a.name)}</span><span class="tag" style="color:${SENT[a.sentiment]}">${esc(a.sentiment)}</span><span></span></div>`).join('') : '<p class="note">No supported aspect mentions were found for this category and text.</p>';
-  return `<div class="ai-full"><div class="card"><span class="badge">Real model inference · beta</span><h4>Overall sentiment: ${esc(data.sentiment)}</h4>${score}<p class="note">Model: ${esc(data.model_version)}</p></div>
-    <div class="card"><h4>Aspect mentions · rule baseline</h4>${mentions}<p class="note">Local lexical rules, not supervised ABSA. No aspect percentages, product scores or aggregate review evidence are inferred.</p></div>
-    <div class="card analysis-warnings">${data.warnings.map(w => `<p>${esc(w)}</p>`).join('')}<button class="btn prediction-feedback" data-request="${esc(data.request_id)}">Give feedback on this prediction</button></div></div>`;
-}
-function unavailable(data) {
-  return `<div class="ai-full"><div class="card"><h4>Product intelligence · upcoming</h4><p>${esc(data.message)}</p></div>
-    <div class="grid2"><div class="card"><h4>Fake-review radar · unavailable</h4><p class="note">No validated detector or trust scores are available.</p></div><div class="card"><h4>Comparisons & review evidence · unavailable</h4><p class="note">No validated catalog ranking, pricing or redistributable evidence is connected.</p></div></div></div>`;
-}
-function skeleton() {
-  return '<div class="card" aria-label="Loading"><div class="typing" role="status"><i></i><i></i><i></i><span class="sr">Running real model analysis</span></div><div class="skel" style="width:70%"></div><div class="skel"></div><div class="skel" style="width:85%"></div></div>';
+  const mentions = data.aspects.length ? `<ul class="aspect-list">${data.aspects.map(a => `<li><span>${esc(a.name)}</span><span class="${esc(a.sentiment)}">${esc(label(a.sentiment))}</span></li>`).join('')}</ul>` : '<p class="note">No matching product features were found. Check the selected category. Some features may not be covered by our rules.</p>';
+  const score = data.confidence === null ? 'This model does not provide an analysis score.' : `Analysis score: <strong>${Number(data.confidence).toFixed(3)}</strong>`;
+  return `<div class="ai-full"><article class="card"><div class="result-top"><h3>Overall sentiment</h3><span class="sentiment ${esc(data.sentiment)}">${esc(label(data.sentiment))}</span></div>
+    <p class="analysis-score">${score}</p><p class="note">A model score, not a reliability percentage or product rating.</p>
+    <h3>Product aspects</h3>${mentions}<p class="note">Feature mentions and their sentiment use keyword rules, separate from the overall AI prediction.</p>
+    <details class="analysis-about"><summary>About this analysis</summary><p>Model: ${esc(data.model_version)}</p><p>The overall model learned from star ratings rather than independently annotated sentiment. Scores are uncalibrated. Aspect rules can miss context and are not a trained aspect sentiment model.</p><ul>${data.warnings.map(w => `<li>${esc(w)}</li>`).join('')}</ul></details>
+    <div class="analysis-actions"><button class="btn prediction-feedback" data-request="${esc(data.request_id)}">Give feedback on this analysis</button></div></article></div>`;
 }
 function addMessage(message) {
   const el = document.createElement('div'); el.className = 'msg ' + (message.role === 'user' ? 'user' : 'ai');
-  let html;
-  if (message.role === 'user') html = `<div class="bubble">${esc(message.text)}</div>`;
-  else if (message.result?.type === 'analysis') html = renderAnalysis(message.result);
-  else if (message.result?.type === 'analysis_only') html = unavailable(message.result);
-  else html = `<div class="bubble err" role="alert">${esc(message.text || 'Analysis unavailable.')}</div>`;
-  el.innerHTML = html + `<div class="meta"><time>${esc(message.time || '')}</time>${message.role === 'ai' ? '<button class="copy" aria-label="Copy reply">Copy</button>' : ''}</div>`;
-  $('#chat').appendChild(el); $('#scroll').scrollTop = $('#scroll').scrollHeight;
-  return el;
+  if (message.role === 'user') el.innerHTML = `<div class="bubble">${esc(message.text)}</div>`;
+  else if (message.result?.type === 'analysis') el.innerHTML = renderAnalysis(message.result);
+  else if (message.result?.type === 'chat') {
+    const r = message.result;
+    el.innerHTML = `<article class="card chat-answer"><p class="response-source">${r.response_source === 'gemini' ? 'Gemini · conversational answer' : 'Built-in guide · not a language-model answer'}</p><div class="reply-text">${esc(r.reply)}</div>${['timeout','unavailable','busy','rate_limited','invalid_response','blocked','ungrounded_response'].includes(r.provider_status) ? '<p class="note">The conversational provider did not return an answer. You can resend your message when it is available.</p>' : ''}</article>`;
+  }
+  else if (message.result?.type === 'analysis_only') el.innerHTML = '<div class="card"><p>Product recommendations are not available. Paste a product review to analyze its sentiment instead.</p></div>';
+  else el.innerHTML = `<div class="card error-card"><p role="alert">${esc(message.text || 'Analysis is unavailable. Please try again.')}</p>${message.retry ? '<button class="btn retry">Retry message</button>' : ''}</div>`;
+  const meta = document.createElement('div'); meta.className = 'meta'; meta.textContent = message.time || '';
+  if (message.role === 'ai') {
+    const copy = document.createElement('button'); copy.className = 'copy'; copy.textContent = 'Copy result';
+    copy.onclick = () => navigator.clipboard?.writeText(el.innerText).then(() => toast('Result copied.'),() => toast('Select the result and copy it manually.'));
+    meta.appendChild(copy);
+  }
+  el.appendChild(meta); $('#chat').appendChild(el);
+  const retry = el.querySelector('.retry');
+  if (retry) retry.onclick = () => { $('#q').value = message.retry.text; $('#cat').value = message.retry.category; $('#lang').value = message.retry.language; $('#mode').value = message.retry.mode || 'auto'; send(); };
 }
 function persist() {
   try {
-    if ($('#remember').checked) localStorage.setItem(HISTORY_KEY, JSON.stringify({chats:chats.slice(0,20),current:current?.id || null}));
+    if ($('#remember').checked) localStorage.setItem(HISTORY_KEY,JSON.stringify({chats:chats.slice(0,20),current:current?.id || null}));
     else localStorage.removeItem(HISTORY_KEY);
-  } catch { toast('Browser storage is unavailable; this chat stays in memory.'); }
+  } catch { toast('Device storage is unavailable. This history stays in the current session.'); }
+  $('#historyNote').textContent = $('#remember').checked ? 'History is saved on this device. Clear it in Settings.' : 'History stays in this session unless you choose to save it on this device.';
 }
 function renderHistory() {
-  $('#hist').innerHTML = chats.length ? chats.map(c => `<li><button data-chat="${esc(c.id)}" ${c === current ? 'aria-current="true"' : ''}>${esc(c.title)}</button></li>`).join('') : '<li class="empty">No chats yet</li>';
-  $('#saved').innerHTML = '<li class="empty">Product saves & comparisons · upcoming</li>';
-}
-function welcomeEl() {
-  const section = document.createElement('section'); section.className = 'welcome'; section.id = 'welcome';
-  const language = I18N[$('#lang').value]; section.innerHTML = `<h1>${esc(language.hello)}</h1><p>${esc(language.sub)}</p><div class="examples"></div>`;
-  EXAMPLES.forEach(example => { const button = document.createElement('button'); button.className = 'ex'; button.textContent = example.text;
-    button.onclick = () => { $('#task').value = example.mode; $('#cat').value = example.category; updatePrefSummary(); send(example.text); }; section.lastChild.appendChild(button); });
-  return section;
+  $('#hist').innerHTML = chats.length ? chats.map(c => `<li><button data-chat="${esc(c.id)}" ${c === current ? 'aria-current="true"' : ''}>${esc(c.title)}</button></li>`).join('') : '<li class="empty">No local chats yet.</li>';
+  $('#startNew').hidden = !current;
 }
 function showCurrent() {
   $('#chat').replaceChildren();
-  if (!current) $('#chat').appendChild(welcomeEl()); else current.messages.forEach(addMessage);
+  if (current) current.messages.forEach(addMessage);
+  else $('#chat').innerHTML = '<p class="empty" id="welcome">No messages yet. Say hello or paste a product review to get started.</p>';
   renderHistory();
 }
-function newChat() { if (busy) return toast('Please wait for the current analysis.'); current = null; showCurrent(); persist(); closeSide(); }
-async function send(text) {
-  text = (text ?? $('#q').value).trim(); $('#hint').textContent = '';
-  if (!text || text.length > 5000) { $('#hint').textContent = 'Enter a review or question between 1 and 5,000 characters.'; return; }
+function newAnalysis() {
+  if (busy) return toast('Please wait for the current reply.');
+  current = null; showCurrent(); persist(); closeHistory(); $('#q').value = ''; $('#q').focus();
+}
+function contextFor(messages) {
+  let total = 0; const history = [];
+  for (const m of [...messages].reverse()) {
+    let text = m.role === 'user' ? m.text : m.result?.type === 'chat' ? m.result.reply : m.result?.type === 'analysis' ?
+      `Review analysis: overall ${m.result.sentiment}. Rule-based aspects: ${m.result.aspects.map(a => a.name+': '+a.sentiment).join(', ')}. Scores are uncalibrated.` : null;
+    if (!text || history.length >= 8 || total >= 4000) continue;
+    text = text.slice(0,Math.min(1000,4000-total)); total += text.length;
+    history.unshift({role:m.role === 'user' ? 'user' : 'assistant',text});
+  }
+  return history;
+}
+async function send() {
+  const text = $('#q').value.trim(); $('#hint').textContent = '';
   if (busy) return;
-  busy = true; $('#send').disabled = true; $('#welcome')?.remove();
+  if (!text || text.length > 5000) { $('#hint').textContent = 'Enter a message between 1 and 5,000 characters.'; $('#q').focus(); return; }
+  const preferences = {category:$('#cat').value,language:$('#lang').value,mode:$('#mode').value};
+  const messages = current?.messages || [];
+  const previous = [...messages].reverse().find(m => m.result?.type === 'analysis');
+  const body = {text,...preferences,history:contextFor(messages),analysis_request_id:previous?.result.request_id || null,allow_gemini:$('#allowGemini').checked};
+  busy = true; $('#send').disabled = true; $('#send').textContent = 'Sending…'; $('#loading').hidden = false;
+  $('#loading').textContent = 'Connecting to the assistant… The service may take up to a minute to wake up.';
+  $('#results').setAttribute('aria-busy','true'); $('#welcome')?.remove();
   if (!current) { current = {id:crypto.randomUUID(),title:text.slice(0,100),messages:[]}; chats.unshift(current); chats = chats.slice(0,20); }
-  const message = {role:'user',text,time:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})};
-  current.messages.push(message); addMessage(message); renderHistory(); $('#q').value = ''; autosize();
-  const loader = document.createElement('div'); loader.className = 'msg ai'; loader.innerHTML = skeleton(); $('#chat').appendChild(loader);
+  current.messages.push({role:'user',text,time:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})});
+  $('#q').value = ''; showCurrent(); $('#results').scrollTop = $('#results').scrollHeight;
   try {
-    const result = await getAIResponse(text,currentPrefs()); loader.remove();
-    const reply = {role:'ai',result,time:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})};
-    current.messages.push(reply); addMessage(reply);
-    if (result.type === 'analysis') feedbackTarget = result.request_id;
+    const result = await ReviewMindAPI.chat(body,() => { $('#loading').textContent = 'Preparing your reply… Review predictions and Gemini conversation use separate models.'; });
+    current.messages.push({role:'ai',result,time:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})});
   } catch (error) {
-    loader.remove(); const reply = {role:'ai',text:error.message}; current.messages.push(reply); addMessage(reply);
+    current.messages.push({role:'ai',text:error.message,retry:{text,...preferences}});
   } finally {
-    current.messages = current.messages.slice(-50); busy = false; $('#send').disabled = false; $('#q').focus(); persist();
+    current.messages = current.messages.slice(-50); busy = false; $('#send').disabled = false; $('#send').textContent = 'Send'; $('#loading').hidden = true;
+    $('#results').setAttribute('aria-busy','false'); showCurrent(); persist();
+    const latest = $('#chat .msg.ai:last-child'), area = $('#results');
+    if (latest) area.scrollTop += latest.getBoundingClientRect().top - area.getBoundingClientRect().top - 8;
   }
 }
-const mobile = () => matchMedia('(max-width:820px)').matches;
-const sideOpen = () => mobile() ? $('#side').classList.contains('open') : !$('.app').classList.contains('collapsed');
-function setSide(open) { if (mobile()) { $('#side').classList.toggle('open',open); $('#backdrop').classList.toggle('show',open); } else $('.app').classList.toggle('collapsed',!open); $('#menuBtn').setAttribute('aria-expanded',String(open)); if (!open) $('#pmenu').hidden = true; }
-function closeSide() { if (mobile()) setSide(false); }
-function toast(message) { $('#toast').textContent = message; $('#toast').classList.add('show'); setTimeout(() => $('#toast').classList.remove('show'),3000); }
-function openModal(tab) {
-  document.querySelectorAll('.mtabs button').forEach(b => b.setAttribute('aria-selected',String(b.dataset.tab === tab)));
-  document.querySelectorAll('.mpanel').forEach(p => p.hidden = p.id !== 'tab-' + tab);
-  $('#pmenu').hidden = true; $('#pbtn').setAttribute('aria-expanded','false');
-  $('#feedbackTarget').textContent = feedbackTarget ? 'Feedback applies to the selected model prediction.' : 'Select a real analysis reply first.';
-  if (!$('#modal').open) $('#modal').showModal();
+function closeHistory() { $('#side').hidden = true; $('#historyBtn').setAttribute('aria-expanded','false'); }
+function toast(message) { $('#toast').textContent = message; $('#toast').classList.add('show'); setTimeout(() => $('#toast').classList.remove('show'),4000); }
+function feedbackState(id) {
+  if (!feedbackStates.has(id)) feedbackStates.set(id,{pending:false,receipt:null,exists:false,draft:{},status:''});
+  return feedbackStates.get(id);
 }
-function autosize() { $('#q').style.height = 'auto'; $('#q').style.height = Math.min($('#q').scrollHeight,140) + 'px'; }
-function updatePrefSummary() { const p = currentPrefs(); $('#budVal').textContent = inr(p.budget); $('#prefSum').textContent = '· ' + [p.category || 'Any category','≤ ' + inr(p.budget),...p.priorities].join(', '); }
-function applyLang() { const l = I18N[$('#lang').value]; document.querySelectorAll('[data-i]').forEach(n => { if (l[n.dataset.i]) n.textContent = l[n.dataset.i]; }); $('#q').placeholder = l.ph; document.documentElement.lang = $('#lang').value === 'hi' ? 'hi' : 'en'; }
-
+function updateFeedback() {
+  const state = feedbackState(feedbackTarget);
+  $('#sendFb').disabled = state.pending || !!state.receipt || state.exists;
+  $('#sendFb').textContent = state.pending ? 'Submitting…' : (state.receipt || state.exists) ? 'Feedback submitted' : 'Submit Feedback';
+  $('#deleteFeedback').hidden = !state.receipt;
+  $('#deleteFeedback').disabled = !!state.deleting;
+  $('#feedbackStatus').textContent = state.status;
+  $('#feedbackForm').setAttribute('aria-busy',String(state.pending));
+}
+function openFeedback(id) {
+  const prediction = chats.flatMap(c => c.messages).find(m => m.result?.request_id === id && m.result.type === 'analysis');
+  if (!prediction) return toast('This prediction is no longer available in this session.');
+  feedbackTarget = id; const state = feedbackState(id); $('#feedbackForm').reset();
+  $('#feedbackRating').value = state.draft.rating || ''; $('#feedbackCorrection').value = state.draft.correction || '';
+  $('#feedbackMessage').value = state.draft.message || ''; $('#feedbackConsent').checked = !!state.draft.consent;
+  $('#feedbackTarget').textContent = `Overall sentiment: ${label(prediction.result.sentiment)} · Analysis ${id.slice(0,8)}`;
+  updateFeedback(); $('#modal').showModal(); $('#modal .dialog-body').scrollTop = 0;
+}
+function rememberDraft() {
+  if (feedbackTarget) feedbackState(feedbackTarget).draft = {rating:$('#feedbackRating').value,correction:$('#feedbackCorrection').value,message:$('#feedbackMessage').value,consent:$('#feedbackConsent').checked};
+}
+function validStoredMessage(m) {
+  if (!m || typeof m !== 'object') return false;
+  if (m.role === 'user') return typeof m.text === 'string' && m.text.length <= 5000;
+  if (m.role !== 'ai') return false;
+  if (!m.result) return typeof m.text === 'string' && m.text.length <= 2000 && (!m.retry ||
+    (typeof m.retry.text === 'string' && m.retry.text.length <= 5000 && typeof m.retry.category === 'string' && ['en','hi','hinglish'].includes(m.retry.language)));
+  const r = m.result;
+  if (r.type === 'chat') return typeof r.reply === 'string' && r.reply.length <= 6000 && ['built_in','gemini'].includes(r.response_source) && typeof r.provider_status === 'string';
+  if (r.type === 'analysis_only') return r.status === 'not_available';
+  return r.type === 'analysis' && ['positive','neutral','negative'].includes(r.sentiment) && typeof r.request_id === 'string' && typeof r.model_version === 'string' &&
+    (r.confidence === null || (Number.isFinite(r.confidence) && r.confidence >= 0 && r.confidence <= 1)) && Array.isArray(r.warnings) && r.warnings.every(w => typeof w === 'string') &&
+    Array.isArray(r.aspects) && r.aspects.every(a => a && typeof a.name === 'string' && LABELS.includes(a.sentiment));
+}
 (function init() {
-  PRIORITIES.forEach(name => { const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = name; b.setAttribute('aria-pressed','false'); b.onclick = () => { priorities.has(name) ? priorities.delete(name) : priorities.add(name); b.setAttribute('aria-pressed',String(priorities.has(name))); updatePrefSummary(); }; $('#chips').appendChild(b); });
   try {
     const stored = localStorage.getItem(HISTORY_KEY);
     if (stored && stored.length < 2000000) {
-      const parsed = JSON.parse(stored); if (Array.isArray(parsed.chats)) {
-        chats = parsed.chats.filter(c => typeof c.id === 'string' && typeof c.title === 'string' && Array.isArray(c.messages)).slice(0,20);
-        chats.forEach(c => { c.title = c.title.slice(0,100); c.messages = c.messages.slice(-50).filter(m => {
-          if (m.role === 'user') return typeof m.text === 'string' && m.text.length <= 5000;
-          if (m.role !== 'ai') return false;
-          if (!m.result) return typeof m.text === 'string' && m.text.length <= 2000;
-          const r = m.result;
-          if (r.type === 'analysis_only') return r.status === 'not_available' && typeof r.message === 'string';
-          return r.type === 'analysis' && ['positive','neutral','negative'].includes(r.sentiment) && typeof r.model_version === 'string' &&
-            Array.isArray(r.warnings) && r.warnings.every(w => typeof w === 'string') && Array.isArray(r.aspects) &&
-            r.aspects.every(a => typeof a.name === 'string' && Object.hasOwn(SENT,a.sentiment));
-        }); });
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed.chats)) {
+        chats = parsed.chats.filter(c => c && typeof c.id === 'string' && typeof c.title === 'string' && Array.isArray(c.messages)).slice(0,20);
+        chats.forEach(c => { c.title = c.title.slice(0,100); c.messages = c.messages.slice(-50).filter(validStoredMessage); });
         current = chats.find(c => c.id === parsed.current) || null; $('#remember').checked = true;
       }
     }
   } catch { chats = []; current = null; }
-  showCurrent(); if (mobile()) $('#prefs').open = false;
-  $('#budget').oninput = updatePrefSummary; $('#cat').onchange = updatePrefSummary;
-  $('#lang').onchange = () => { applyLang(); if (!current) showCurrent(); };
-  $('#send').onclick = () => send(); $('#q').oninput = autosize;
-  $('#q').addEventListener('keydown',e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
-  $('#newChat').onclick = newChat; $('#menuBtn').onclick = () => setSide(!sideOpen()); $('#closeSide').onclick = () => setSide(false); $('#backdrop').onclick = () => setSide(false);
-  $('#menuBtn').setAttribute('aria-expanded',String(!mobile()));
-  $('#pbtn').onclick = () => { const hidden = $('#pmenu').hidden; $('#pmenu').hidden = !hidden; $('#pbtn').setAttribute('aria-expanded',String(hidden)); };
+  showCurrent();
+  $('#analysisForm').onsubmit = e => { e.preventDefault(); send(); };
+  $('#q').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); } };
+  $('#lang').onchange = () => { const t = I18N[$('#lang').value]; $('[data-i="hello"]').textContent = t.hello; $('[data-i="sub"]').textContent = t.sub; $('#q').placeholder = t.placeholder; document.documentElement.lang = $('#lang').value === 'hi' ? 'hi' : 'en'; };
+  $('#newChat').onclick = newAnalysis; $('#startNew').onclick = newAnalysis;
+  $('#historyBtn').onclick = () => { $('#side').hidden = !$('#side').hidden; $('#historyBtn').setAttribute('aria-expanded',String(!$('#side').hidden)); if (!$('#side').hidden) $('#closeSide').focus(); };
+  $('#closeSide').onclick = () => { closeHistory(); $('#historyBtn').focus(); };
+  $('#settingsBtn').onclick = () => { closeHistory(); $('#settingsModal').showModal(); };
+  $('#sideSettings').onclick = $('#settingsBtn').onclick;
+  $('#helpBtn').onclick = () => { closeHistory(); $('#helpModal').showModal(); };
+  $('#sideHelp').onclick = $('#helpBtn').onclick; $('#closeHelp').onclick = () => $('#helpModal').close();
+  $('#closeSettings').onclick = () => $('#settingsModal').close();
+  $('#mclose').onclick = () => $('#modal').close(); $('#modal').addEventListener('close',rememberDraft);
+  $('#feedbackForm').oninput = rememberDraft;
   document.addEventListener('click',e => {
-    if (!e.target.closest('.profile')) { $('#pmenu').hidden = true; $('#pbtn').setAttribute('aria-expanded','false'); }
-    const open = e.target.closest('[data-open]'); if (open) openModal(open.dataset.open);
-    const chat = e.target.closest('[data-chat]'); if (chat && !busy) { current = chats.find(c => c.id === chat.dataset.chat); showCurrent(); persist(); closeSide(); }
-    const feedback = e.target.closest('[data-request]'); if (feedback) { feedbackTarget = feedback.dataset.request; openModal('help'); }
-    if (e.target.classList.contains('copy')) navigator.clipboard?.writeText(e.target.closest('.msg').innerText).then(() => toast('Reply copied.'),() => toast('Select the reply and copy it manually.'));
+    const chat = e.target.closest('[data-chat]'); if (chat && !busy) { current = chats.find(c => c.id === chat.dataset.chat); showCurrent(); persist(); closeHistory(); }
+    const button = e.target.closest('[data-request]'); if (button) openFeedback(button.dataset.request);
   });
-  document.addEventListener('keydown',e => { if (e.key === 'Escape') { $('#pmenu').hidden = true; closeSide(); } });
-  document.querySelectorAll('.mtabs button').forEach(b => b.onclick = () => openModal(b.dataset.tab));
-  $('#mclose').onclick = () => $('#modal').close(); $('#modal').onclick = e => { if (e.target === $('#modal')) $('#modal').close(); };
-  $('#logout').onclick = () => toast('Guest mode: there is no authenticated account to log out of.');
-  $('#clearHist').onclick = () => { if (busy) return toast('Wait for the current analysis before clearing history.'); chats = []; current = null; feedbackTarget = null;
-    try { localStorage.removeItem(HISTORY_KEY); toast('Local chat history cleared. Server feedback has separate retention.'); }
-    catch { toast('Memory history cleared; browser storage access is blocked.'); } showCurrent(); };
+  document.addEventListener('keydown',e => { if (e.key === 'Escape' && !$('#side').hidden) { closeHistory(); $('#historyBtn').focus(); } });
   $('#remember').onchange = persist;
-  $('#nameIn').oninput = e => { profile.name = e.target.value.trim() || 'Guest'; $('#pname').textContent = profile.name; $('#avatar').textContent = profile.name[0].toUpperCase(); };
-  $('#themeBtn').onclick = () => { const dark = document.documentElement.dataset.theme === 'dark'; document.documentElement.dataset.theme = dark ? 'light' : 'dark'; $('#themeBtn').textContent = dark ? '🌙' : '☀️'; };
+  $('#clearHist').onclick = () => {
+    if (busy) return toast('Wait for the current analysis before clearing history.');
+    chats = []; current = null;
+    try { localStorage.removeItem(HISTORY_KEY); toast('Analysis history cleared. Submitted feedback is kept separately.'); }
+    catch { toast('Session cleared, but device storage could not be accessed.'); }
+    showCurrent();
+  };
+  $('#themeBtn').onclick = () => { const dark = document.documentElement.dataset.theme !== 'dark'; document.documentElement.dataset.theme = dark ? 'dark' : 'light'; $('#themeBtn').textContent = dark ? 'Light theme' : 'Dark theme'; $('#themeBtn').setAttribute('aria-label',dark ? 'Switch to light theme' : 'Switch to dark theme'); };
   $('#feedbackForm').onsubmit = async e => {
-    e.preventDefault(); $('#feedbackStatus').textContent = '';
-    if (!feedbackTarget) { $('#feedbackStatus').textContent = 'Select a real analysis reply first.'; return; }
-    $('#sendFb').disabled = true;
+    e.preventDefault(); if (!feedbackTarget || !$('#feedbackForm').reportValidity()) return;
+    const id = feedbackTarget, state = feedbackState(id);
+    if (state.pending || state.receipt || state.exists) return;
+    rememberDraft(); state.pending = true; state.status = 'Submitting your feedback…'; updateFeedback();
     try {
-      feedbackReceipt = await ReviewMindAPI.feedback({request_id:feedbackTarget,rating:Number($('#feedbackRating').value),
-        correction:$('#feedbackCorrection').value || null,message:$('#feedbackMessage').value.trim() || null,consent:$('#feedbackConsent').checked});
-      $('#feedbackStatus').textContent = 'Feedback stored successfully. The original review text was not submitted with it.';
-      $('#deleteFeedback').hidden = false;
-    } catch (error) { $('#feedbackStatus').textContent = error.message; }
-    finally { $('#sendFb').disabled = false; }
+      state.receipt = await ReviewMindAPI.feedback({request_id:id,rating:Number(state.draft.rating),correction:state.draft.correction || null,message:state.draft.message.trim() || null,consent:state.draft.consent});
+      state.status = 'Feedback saved. Thank you. You can delete it below while this session is open.';
+    } catch (error) { state.exists = error.status === 409; state.status = state.exists ? 'Feedback has already been saved for this analysis. Another submission will not be sent.' : error.message; }
+    finally { state.pending = false; if (feedbackTarget === id) updateFeedback(); }
   };
   $('#deleteFeedback').onclick = async () => {
-    if (!feedbackReceipt) return;
-    try { await ReviewMindAPI.deleteFeedback(feedbackReceipt.feedback_id,feedbackReceipt.delete_token); $('#feedbackStatus').textContent = 'Feedback deleted.'; $('#deleteFeedback').hidden = true; feedbackReceipt = null; }
-    catch (error) { $('#feedbackStatus').textContent = error.message; }
+    const id = feedbackTarget, state = feedbackState(id); if (!state.receipt || state.deleting) return;
+    state.deleting = true; updateFeedback();
+    try { await ReviewMindAPI.deleteFeedback(state.receipt.feedback_id,state.receipt.delete_token); state.receipt = null; state.exists = false; state.status = 'Feedback deleted.'; }
+    catch (error) { state.status = error.message; }
+    finally { state.deleting = false; if (feedbackTarget === id) updateFeedback(); }
   };
-  applyLang(); updatePrefSummary();
 })();

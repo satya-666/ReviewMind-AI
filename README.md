@@ -18,11 +18,13 @@ cp backend/model_metadata.json models/phase3/full/baseline/logistic_regression.m
 
 Open http://127.0.0.1:8000. The selected checkpoint is `models/phase3/full/baseline/logistic_regression.joblib`; this specific 2.9 MiB checkpoint is included in the private deployment repository and bundled into Docker at `/app/runtime/model.joblib`. No external model storage or `MODEL_ARTIFACT_URL` is needed. Build and startup verify its pinned SHA-256 and metadata before inference.
 
-The beta supports real overall sentiment, lexical aspect analysis, guest preferences/themes, optional local history, and consented feedback. Hindi/Hinglish input is experimental, not validated multilingual accuracy. Recommendations, evidence, fake-review detection, comparisons, accounts and billing remain unavailable.
+The application now offers chat with server-side intent routing. Reviews use the unchanged trained sentiment classifier; ordinary questions and follow-ups can use **Gemini 3.1 Flash-Lite** when the backend key is configured and the visitor opts in. Without Gemini, replies are explicitly labeled as built-in guidance. Product recommendations, current prices and verified comparisons remain unavailable.
 
-See [Phase 3.5 setup, test results and deployment checklist](docs/PHASE_3_5.md). Render configuration is prepared only: no deployment or paid resources have been authorized or created.
+Set `GEMINI_API_KEY` only in backend secrets, never the static frontend. Keep `FRONTEND_API_URL=https://reviewmind-api.onrender.com` on the frontend. No local LLM or new paid hosting resource is needed. A free-capable model does not control account billing—keep the Google project on its Free tier for free-only usage.
 
-The workspace itself is the project root. The original starter ZIP contained scripts and notes, **no reviews**. It was extracted intact into `starter/reviewmind_starter/`; the replacement downloader fixes the obsolete Amazon review-Parquet assumption by using the licensed, versioned Flipkart source instead.
+The chat UI includes New Chat, local history, working device settings, Help, mobile themes, bounded loading/retry and prediction feedback with a visible submit footer. Enter sends; Shift+Enter creates a new line. Model details are expandable. History remains opt-in and compatible with existing saved messages.
+
+See [chat architecture, privacy, test evidence and exact Render release steps](docs/CHAT_INTEGRATION.md) and [Phase 3.5 deployment details](docs/PHASE_3_5.md). Both Render services must track `phase-3.5/web-integration`; the owner's earlier screenshot showed the frontend tracking phase-1. Gemini integration is implemented but **a successful live provider response remains unverified** until the replacement key is used by the deployed new backend. No account, billing or resource-plan changes are made by this code.
 
 ## Scope and development roadmap
 

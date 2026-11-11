@@ -8,7 +8,7 @@ def load_taxonomy(path=None):
     return yaml.safe_load(path.read_text())
 
 POSITIVE=['excellent','great','good','amazing','love','clear','comfortable','fast','superb','accha','acha','achha','अच्छा','शानदार']
-NEGATIVE=['bad','poor','worst','terrible','broken','drains','drain','slow','disconnect','uncomfortable','bekar','kharab','खराब']
+NEGATIVE=['bad','poor','worst','terrible','broken','drains','drain','slow','disconnect','uncomfortable','disappointing','disappointed','bekar','kharab','खराब']
 
 def aspects(text,category,taxonomy=None):
     if not isinstance(text,str) or not text.strip():

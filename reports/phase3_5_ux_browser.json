@@ -1,0 +1,39 @@
+{
+  "status": "passed",
+  "workflows_passed": 25,
+  "checks": [
+    "clean_empty_state_and_no_fake_account_plans_or_examples",
+    "empty_input_and_missing_category_validation",
+    "real_model_and_reported_aspect_regression",
+    "keyboard_submission_loading_and_duplicate_analysis_guard",
+    "technical_details_collapsed",
+    "feedback_required_fields_and_draft_survives_reopen",
+    "feedback_error_does_not_claim_storage",
+    "feedback_real_backend_database_persistence",
+    "feedback_duplicate_guard_and_receipt_survives_reopen",
+    "sticky_submit_visible_desktop_tablet_and_320px_mobile",
+    "delete_only_own_test_feedback",
+    "feedback_targets_selected_prediction_not_latest_result",
+    "opt_in_legacy_compatible_history_survives_refresh",
+    "hindi_hinglish_input_real_inference_with_limitations",
+    "unavailable_backend_safe_error_and_working_retry",
+    "invalid_api_response_no_fabricated_fallback",
+    "rate_limit_message",
+    "network_error_message",
+    "timeout_and_waking_service_message",
+    "length_validation_and_review_html_escaping",
+    "unsupported_category_honest_no_aspects_state",
+    "clear_history_removes_only_device_and_session_history",
+    "feedback_escape_and_keyboard_focus",
+    "responsive_mobile_dark_theme",
+    "feedback_database_is_real_tls_postgresql"
+  ],
+  "unhandled_browser_errors": [],
+  "database": "TLS PostgreSQL",
+  "error_fixtures": "Error paths intercepted; all successful predictions and feedback use the actual backend.",
+  "screenshots": [
+    "reports/figures/phase3_5_ux_desktop.png",
+    "reports/figures/phase3_5_ux_feedback_mobile.png",
+    "reports/figures/phase3_5_ux_mobile.png"
+  ]
+}
