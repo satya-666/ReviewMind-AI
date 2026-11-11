@@ -6,6 +6,8 @@ The code integrates a separate Gemini conversational provider and keeps the exis
 
 The owner's screenshot showed `reviewmind-web` tracking `phase-1/data-pipeline` at an older commit, while the maintained deployment branch is `phase-3.5/web-integration`. This explains why pushing UX fixes did not update that live service. Recheck both services' dashboard branch settings; pushing another branch does not deploy it. Do not merge or change the repository default branch to solve a hosting branch mismatch.
 
+Static-site builds must set `SKIP_INSTALL_DEPS=true`. Render otherwise detects the repository-root research `requirements.txt` and installs Python/Torch/CUDA even though this frontend only runs the Node standard-library build script. The setting is scoped to the static service in `render.yaml`; backend Docker requirements and research dependencies are preserved. See [Render's dependency-installation documentation](https://render.com/docs/static-sites#dependency-installation).
+
 ## Root causes and changes
 
 - The previous form always called `/api/analyze`, which correctly classified arbitrary text but had no concept of message intent. `/api/chat` now performs explicit routing before any classification.
