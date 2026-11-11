@@ -39,3 +39,13 @@ hf_cache/
 reports/phase3_execution.log
 reports/phase3_smoke_*
 reports/figures/phase3_smoke_*
+# Explicit deployment exception: only the checksum-pinned small serving model.
+!/models/
+/models/*
+!/models/phase3/
+/models/phase3/*
+!/models/phase3/full/
+/models/phase3/full/*
+!/models/phase3/full/baseline/
+/models/phase3/full/baseline/*
+!/models/phase3/full/baseline/logistic_regression.joblib

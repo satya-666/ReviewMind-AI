@@ -46,10 +46,12 @@ Run from the repository root with Python 3.14 and the exact approved Phase 3 art
 ```sh
 python3 -m venv .venv
 .venv/bin/python -m pip install -r backend/requirements.txt
+cp backend/model_metadata.json models/phase3/full/baseline/logistic_regression.metadata.json
+.venv/bin/python scripts/verify_serving_model.py
 .venv/bin/python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --no-access-log --no-proxy-headers
 ```
 
-Open http://127.0.0.1:8000. Development creates SQLite tables automatically. `.env.example` documents configuration; environment files are not automatically loaded, so export selected variables in your shell or hosting dashboard. Never commit a real `.env` or database URL. A fresh clone does not include datasets/checkpoints: reproduce Phase 1–3 following their documentation or obtain the trusted existing artifact. Missing artifacts fail readiness.
+Open http://127.0.0.1:8000. Development creates SQLite tables automatically. `.env.example` documents configuration; environment files are not automatically loaded, so export selected variables in your shell or hosting dashboard. Never commit a real `.env` or database URL. A fresh clone includes only the approved small serving checkpoint, not datasets or other research checkpoints. Reproduce Phase 1–3 for the full research suite. Docker also bundles `backend/model_metadata.json` next to the checkpoint. Missing/corrupt artifacts fail verification.
 
 For PostgreSQL, provide a TLS-enabled database URL via `DATABASE_URL`, set `AUTO_CREATE_DB=false`, then run:
 
@@ -66,7 +68,6 @@ The adapter requires TLS (`sslmode=require`); it encrypts transport but does not
 | `APP_ENV` | `development` locally, `production` on Render. |
 | `MODEL_PATH` | Trusted checkpoint path; `/app/runtime/model.joblib` in Docker. |
 | `MODEL_MANIFEST_PATH` | Optional alternate manifest; defaults to bundled pinned manifest. |
-| `MODEL_ARTIFACT_URL` | Secret private/presigned HTTPS download, used only by deployment startup. |
 | `DATABASE_URL` | Local SQLite or secret PostgreSQL URL. |
 | `AUTO_CREATE_DB` | True only for development; false in production. |
 | `ALLOWED_ORIGINS` | Comma-separated exact frontend origins; HTTPS required in production. |
@@ -107,21 +108,29 @@ Fresh macOS Apple M3 process: app ready **4.13 s**, model load **1.94 s**, model
 
 `render.yaml` describes a static site, a single Docker API and private PostgreSQL in Singapore. Automatic deployments are off. **Importing/applying the Blueprint still creates paid resources: obtain owner approval before doing so.** Nothing was deployed or uploaded for hosting during Phase 3.5.
 
-The API uses `backend/Dockerfile` and `backend/start.sh`. Startup downloads only the trusted small baseline over private HTTPS, checks its pinned SHA, applies migrations, then runs one worker without access/proxy-header logging. `.dockerignore` excludes datasets, checkpoints, local environments and secrets. No model is baked into Git or the image. A missing/bad artifact prevents startup; ensure its private URL remains valid for future restarts, not just the first deployment. Do not put the URL in frontend settings/logs or a public repository.
+The API uses `backend/Dockerfile` and `backend/start.sh` with repository-root build context (`dockerContext: .`). The sole approved 2.9 MiB checkpoint is explicitly allowed by Git/Docker ignore rules and copied to `/app/runtime/model.joblib`, with bundled metadata at `/app/runtime/model.metadata.json`. `scripts/verify_serving_model.py` checks the pinned SHA-256 and metadata version during the image build and again at startup, before migrations and the single API worker. ModelService retains its independent checksum/version checks before deserialization. No network fetch, external model storage or `MODEL_ARTIFACT_URL` is required. All other checkpoints, datasets, caches and secrets remain excluded. The non-root user can read the model.
+
+GitHub authenticated API visibility check on 2026-11-11 reported this repository as **private**. Publishing the model here was explicitly authorized for this deployment. Anyone with repository or image access can extract it; Docker does not provide confidentiality. Do not make either public without explicit approval and rights review.
 
 After owner approval and rights review:
 
 1. Build/test the Docker image on a working Docker engine and rerun dependency audit. Validate Linux startup/memory under the chosen plan before inviting users.
-2. Place the exact approved checkpoint in private HTTPS artifact storage, retaining the SHA above. Configure its secret download URL securely; account for any separate storage/egress charges.
+2. Confirm the deployment branch contains the exact approved checkpoint and keep the repository private. No external model artifact provisioning is necessary.
 3. Review current Render prices/credit eligibility/expiration in the account, then import the Blueprint from this branch. Approve charges explicitly. Keep automatic deployments off.
-4. Set API `MODEL_ARTIFACT_URL`, exact static-site HTTPS `ALLOWED_ORIGINS`, and host configuration if using a custom domain. The Blueprint supplies internal `DATABASE_URL`; keep external database IP access disabled and automatic schema creation off.
+4. Keep API `MODEL_PATH=/app/runtime/model.joblib`; set exact static-site HTTPS `ALLOWED_ORIGINS`, and host configuration if using a custom domain. The Blueprint supplies internal `DATABASE_URL`; keep external database IP access disabled and automatic schema creation off.
 5. Set static-site `FRONTEND_API_URL` to the API HTTPS origin. Its Node-only build writes `frontend/assets/config.js`; no Python runtime or frontend framework is required.
-6. Manually deploy the API, checking download, migration and health readiness without exposing secret logs. Build/deploy the static site; use the final assigned frontend origin in API CORS.
+6. Manually deploy the API, checking bundled-model verification, migration and health readiness without exposing secret logs. Build/deploy the static site; use the final assigned frontend origin in API CORS.
 7. Repeat smoke tests over HTTPS: actual model identity/inference, unsupported recommendations, error/rate paths, real PostgreSQL feedback and deletion, responsive UI, history/privacy and security headers. Verify proxy-rate behavior and memory/CPU metrics.
 8. Invite a limited beta only after these checks, rights review and explicit public-launch approval. Monitor credits, billing, memory and latency; configure account budget alerts and stop paid resources when no longer needed.
 
 The initial recommendation is API `0.5c-512mb` (512 MiB, one worker) with PostgreSQL `0.1c-256mb` and 1 GB database storage. Local measurements suggest the baseline can fit, but do not guarantee Render peak memory; verify before launch and upgrade only if measured limits require it. Transformer checkpoints are not proposed for 512 MiB.
 
-At the official pricing checked during preparation, API about $7/month + PostgreSQL $6/month + 1 GB storage at $0.30/GB/month gives **about $13.30/month**, with the static site/workspace assumed within free allowances. $50 would cover roughly 3.7 months at that constant rate **only if those charges are credit-eligible**, excluding taxes, overages and private artifact hosting; expiry may shorten this. Confirm live account prices before purchase. References: [Render compute plans](https://render.com/docs/compute-plans), [Blueprint specification](https://render.com/docs/blueprint-spec), [pricing](https://render.com/pricing), [published example plan costs](https://render.com/articles/production-rails-hosting-guide), [storage pricing explanation](https://render.com/articles/how-much-does-cloud-application-hosting-cost-for-small-businesses).
+At the official pricing checked during preparation, API about $7/month + PostgreSQL $6/month + 1 GB storage at $0.30/GB/month gives **about $13.30/month**, with the static site/workspace assumed within free allowances. $50 would cover roughly 3.7 months at that constant rate **only if those charges are credit-eligible**, excluding taxes and overages; expiry may shorten this. Confirm live account prices before purchase. References: [Render compute plans](https://render.com/docs/compute-plans), [Blueprint specification](https://render.com/docs/blueprint-spec), [pricing](https://render.com/pricing), [published example plan costs](https://render.com/articles/production-rails-hosting-guide), [storage pricing explanation](https://render.com/articles/how-much-does-cloud-application-hosting-cost-for-small-businesses).
 
-Public beta assessment: **local integration verified, hosting preparation complete; not yet publicly deployed or cleared for public release**. Deployment approval, rights review, private artifact provisioning, a real container build and hosted acceptance checks remain explicit launch gates.
+Public beta assessment: **local integration verified, hosting preparation complete; not yet publicly deployed or cleared for public release**. Deployment approval, rights review, a real container build and hosted acceptance checks remain explicit launch gates.
+
+## Bundled-model deployment validation (2026-11-11)
+
+The external-fetch script is replaced by a local verification script. See `reports/bundled_model_validation.json` for this change’s executed checks and limits. Historical Phase 3.5 reports describe the original implementation; the bundled-model report supersedes their external-storage strategy. No Render resources were created or deployed by this change.
+
+Required production API variables: `APP_ENV=production`, `AUTO_CREATE_DB=false`, `MODEL_PATH=/app/runtime/model.joblib`, secret `DATABASE_URL` (Blueprint internal PostgreSQL), exact HTTPS `ALLOWED_ORIGINS`, and exact `ALLOWED_HOSTS` or the automatically supplied `RENDER_EXTERNAL_HOSTNAME`. Keep rate limits at 20/client/minute and 120/global/minute unless deliberately reviewed. The static site requires `FRONTEND_API_URL=https://<your-api-host>` and builds with `node scripts/build_frontend.mjs`, publishing `frontend`. Backend is `reviewmind-api`, Docker runtime, branch `phase-3.5/web-integration`, Dockerfile `backend/Dockerfile`, root/context repository root, health `/api/health`. Startup remains `sh backend/start.sh`; migrations and all existing API/frontend contracts are preserved. Remove any stale `MODEL_ARTIFACT_URL` from manually configured Render settings.

@@ -16,3 +16,13 @@ starter
 *.pem
 *.key
 kaggle.json
+# Allow only the approved baseline into the root build context.
+!models
+models/*
+!models/phase3
+models/phase3/*
+!models/phase3/full
+models/phase3/full/*
+!models/phase3/full/baseline
+models/phase3/full/baseline/*
+!models/phase3/full/baseline/logistic_regression.joblib
