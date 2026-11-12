@@ -38,7 +38,7 @@ function addMessage(message) {
   }
   el.appendChild(meta); $('#chat').appendChild(el);
   const retry = el.querySelector('.retry');
-  if (retry) retry.onclick = () => { $('#q').value = message.retry.text; $('#cat').value = message.retry.category; $('#lang').value = message.retry.language; $('#mode').value = message.retry.mode || 'auto'; send(); };
+  if (retry) retry.onclick = () => send(message);
 }
 function persist() {
   try {
@@ -61,36 +61,49 @@ function newAnalysis() {
   if (busy) return toast('Please wait for the current reply.');
   current = null; showCurrent(); persist(); closeHistory(); $('#q').value = ''; $('#q').focus();
 }
-function contextFor(messages) {
-  let total = 0; const history = [];
+function rememberPreferences(chat,text) {
+  chat.preferences ||= {};
+  const patterns = {budget:/₹|\b(?:budget|rupees|rs)\b|\b(?:under|below)\s+\d/i,
+    brand:/\b(?:prefer|brand)\b/i,priorities:/\b(?:priorit\w*|matters most|important|care about)\b/i};
+  for (const [key,pattern] of Object.entries(patterns)) if (pattern.test(text)) chat.preferences[key] = text.slice(0,200);
+}
+function contextFor(messages,preferences = {}) {
+  const notes = Object.entries(preferences).filter(([k,v]) => ['budget','brand','priorities'].includes(k) && typeof v === 'string').map(([k,v]) => `${k}: ${v.slice(0,200)}`).join('\n');
+  const anchor = notes ? 'Previously stated preferences (user-provided, not verified product data):\n'+notes : '';
+  let total = anchor.length; const history = [];
   for (const m of [...messages].reverse()) {
-    let text = m.role === 'user' ? m.text : m.result?.type === 'chat' ? m.result.reply : m.result?.type === 'analysis' ?
+    let text = m.role === 'user' ? m.text : m.result?.type === 'chat' && m.result.response_source === 'gemini' ? m.result.reply : m.result?.type === 'analysis' ?
       `Review analysis: overall ${m.result.sentiment}. Rule-based aspects: ${m.result.aspects.map(a => a.name+': '+a.sentiment).join(', ')}. Scores are uncalibrated.` : null;
-    if (!text || history.length >= 8 || total >= 4000) continue;
+    if (!text || history.length >= (anchor ? 7 : 8) || total >= 4000) continue;
     text = text.slice(0,Math.min(1000,4000-total)); total += text.length;
     history.unshift({role:m.role === 'user' ? 'user' : 'assistant',text});
   }
-  return history;
+  return anchor ? [{role:'user',text:anchor},...history] : history;
 }
-async function send() {
-  const text = $('#q').value.trim(); $('#hint').textContent = '';
+async function send(failedMessage = null) {
+  const retry = failedMessage?.retry;
+  const text = (retry?.text ?? $('#q').value).trim(); $('#hint').textContent = '';
   if (busy) return;
   if (!text || text.length > 5000) { $('#hint').textContent = 'Enter a message between 1 and 5,000 characters.'; $('#q').focus(); return; }
-  const preferences = {category:$('#cat').value,language:$('#lang').value,mode:$('#mode').value};
-  const messages = current?.messages || [];
+  const preferences = {category:retry?.category ?? $('#cat').value,language:retry?.language ?? $('#lang').value,mode:retry?.mode || $('#mode').value};
+  if (!current) { current = {id:crypto.randomUUID(),title:text.slice(0,100),messages:[],preferences:{}}; chats.unshift(current); chats = chats.slice(0,20); }
+  if (!retry) rememberPreferences(current,text);
+  const messages = retry ? current.messages.slice(0,current.messages.indexOf(failedMessage)-1) : current.messages;
   const previous = [...messages].reverse().find(m => m.result?.type === 'analysis');
-  const body = {text,...preferences,history:contextFor(messages),analysis_request_id:previous?.result.request_id || null,allow_gemini:$('#allowGemini').checked};
+  const body = {text,...preferences,history:retry?.history || contextFor(messages,current.preferences),analysis_request_id:retry?.analysis_request_id || previous?.result.request_id || null,allow_gemini:retry?.allow_gemini ?? $('#allowGemini').checked};
   busy = true; $('#send').disabled = true; $('#send').textContent = 'Sending…'; $('#loading').hidden = false;
   $('#loading').textContent = 'Connecting to the assistant… The service may take up to a minute to wake up.';
   $('#results').setAttribute('aria-busy','true'); $('#welcome')?.remove();
-  if (!current) { current = {id:crypto.randomUUID(),title:text.slice(0,100),messages:[]}; chats.unshift(current); chats = chats.slice(0,20); }
-  current.messages.push({role:'user',text,time:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})});
-  $('#q').value = ''; showCurrent(); $('#results').scrollTop = $('#results').scrollHeight;
+  if (retry) current.messages.splice(current.messages.indexOf(failedMessage),1);
+  else current.messages.push({role:'user',text,time:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})});
+  if (!retry || $('#q').value.trim() === text) $('#q').value = '';
+  showCurrent(); $('#results').scrollTop = $('#results').scrollHeight;
   try {
     const result = await ReviewMindAPI.chat(body,() => { $('#loading').textContent = 'Preparing your reply… Review predictions and Gemini conversation use separate models.'; });
     current.messages.push({role:'ai',result,time:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})});
   } catch (error) {
-    current.messages.push({role:'ai',text:error.message,retry:{text,...preferences}});
+    current.messages.push({role:'ai',text:error.message,retry:body});
+    if (!$('#q').value) $('#q').value = text;
   } finally {
     current.messages = current.messages.slice(-50); busy = false; $('#send').disabled = false; $('#send').textContent = 'Send'; $('#loading').hidden = true;
     $('#results').setAttribute('aria-busy','false'); showCurrent(); persist();
@@ -130,7 +143,8 @@ function validStoredMessage(m) {
   if (m.role === 'user') return typeof m.text === 'string' && m.text.length <= 5000;
   if (m.role !== 'ai') return false;
   if (!m.result) return typeof m.text === 'string' && m.text.length <= 2000 && (!m.retry ||
-    (typeof m.retry.text === 'string' && m.retry.text.length <= 5000 && typeof m.retry.category === 'string' && ['en','hi','hinglish'].includes(m.retry.language)));
+    (typeof m.retry.text === 'string' && m.retry.text.length <= 5000 && typeof m.retry.category === 'string' && ['en','hi','hinglish'].includes(m.retry.language) &&
+      (!m.retry.history || (Array.isArray(m.retry.history) && m.retry.history.length <= 8 && m.retry.history.every(h => h && ['user','assistant'].includes(h.role) && typeof h.text === 'string' && h.text.length <= 1000)))));
   const r = m.result;
   if (r.type === 'chat') return typeof r.reply === 'string' && r.reply.length <= 6000 && ['built_in','gemini'].includes(r.response_source) && typeof r.provider_status === 'string';
   if (r.type === 'analysis_only') return r.status === 'not_available';
@@ -145,7 +159,11 @@ function validStoredMessage(m) {
       const parsed = JSON.parse(stored);
       if (Array.isArray(parsed.chats)) {
         chats = parsed.chats.filter(c => c && typeof c.id === 'string' && typeof c.title === 'string' && Array.isArray(c.messages)).slice(0,20);
-        chats.forEach(c => { c.title = c.title.slice(0,100); c.messages = c.messages.slice(-50).filter(validStoredMessage); });
+        chats.forEach(c => {
+          c.title = c.title.slice(0,100); c.messages = c.messages.slice(-50).filter(validStoredMessage);
+          c.preferences = Object.fromEntries(Object.entries(c.preferences || {}).filter(([k,v]) => ['budget','brand','priorities'].includes(k) && typeof v === 'string').map(([k,v]) => [k,v.slice(0,200)]));
+          if (!Object.keys(c.preferences).length) c.messages.filter(m => m.role === 'user').forEach(m => rememberPreferences(c,m.text));
+        });
         current = chats.find(c => c.id === parsed.current) || null; $('#remember').checked = true;
       }
     }

@@ -1,5 +1,7 @@
 # ReviewMind AI chat integration
 
+**Current revision:** [AGENT_INTEGRATION.md](AGENT_INTEGRATION.md) supersedes the original canned unclear/product routes and generic provider fallback described below. Normal conversation now uses Gemini, product availability is tool context, and failures are explicit errors with Retry. The frontend branch/timeout deployment issue described historically below has been resolved.
+
 ## Status
 
 The code integrates a separate Gemini conversational provider and keeps the existing `phase3-full-logistic_regression-seed42` TF-IDF classifier unchanged. The replacement key is configured by the owner on Render, not supplied to this workspace. **A real response from the deployed Gemini backend was verified on 2026-11-12**: Who are you completed in 1.3 seconds with `response_source: gemini`, `provider_status: ready`. A real review completed in 0.47 seconds with the expected battery/display/camera rule results. Local provider fixtures still test contracts only; the separate live evidence is `reports/phase3_5_chat_live_verification.json`. No billing, plan changes or new hosting resources were enabled.

@@ -14,6 +14,7 @@ from backend.app.settings import Settings,ROOT
 from backend.app.db import Database,Base
 from backend.app.schemas import Analyze,Recommend,FeedbackInput,ChatInput
 from backend.app.chat import intent_for,ProductData,GeminiConversation,ProviderError
+from backend.app.agent import ReviewMindAgent
 from backend.app.model_service import ModelService
 from backend.app.security import Guard
 
@@ -34,6 +35,7 @@ def create_app(settings=None):
     async def lifespan(app):
         app.state.model=ModelService(settings);app.state.database=None
         app.state.conversation=GeminiConversation(settings);app.state.products=ProductData()
+        app.state.agent=ReviewMindAgent(app.state.conversation,app.state.products)
         try:
             db=Database(settings.database_url,settings.retention_days)
             if settings.auto_create_db:Base.metadata.create_all(db.engine)
@@ -120,48 +122,33 @@ def create_app(settings=None):
 
     @app.get('/api/chat/status')
     def chat_status():
-        return {'provider':'Gemini','model':settings.gemini_model,'configured':app.state.conversation.configured,
+        return {'provider':'Gemini','model':settings.gemini_model,'agent_version':2,'configured':app.state.conversation.configured,
           'provider_responded_since_start':app.state.conversation.responded,'requires_consent':True,'verified_product_data':False,
           'context_policy':'Up to 8 recent messages, 4000 history characters; no server chat transcript storage.'}
 
     @app.post('/api/chat')
     def chat(body:ChatInput):
-        intent=intent_for(body.text,body.mode)
-        if intent=='review':
-            result=analyze(Analyze(text=body.text,category=body.category,language=body.language))
-            if isinstance(result,dict):
-                result.update(intent='review',response_source='sentiment_model',
-                  reply='The trained review classifier predicts '+result['sentiment']+'. Different product features may have different sentiments. This is an experimental prediction, not a product rating.')
-            return result
-        def answer(reply,source='built_in',provider_status='not_used',**extra):
-            return dict(type='chat',intent=intent,reply=reply,response_source=source,provider_status=provider_status,**extra)
-        if intent in {'recommendation','comparison','product_info'}:
-            product=app.state.products.lookup(intent,[m.text for m in body.history if m.role=='user']+[body.text])
-            return answer(product['message'],product_data_available=product['available'],sources=product['sources'])
-        if intent=='unsupported':return answer('I cannot disclose credentials or internal instructions. I can help explain product reviews and their analysis.')
-        if intent=='unclear':return answer('Would you like to analyze a product review, understand a feature, or discuss buying preferences? Paste a review or ask a specific question. You can also choose Review analysis mode.')
-        context=None
-        if body.analysis_request_id and app.state.database:
-            try:context=app.state.database.prediction_context(body.analysis_request_id)
-            except SQLAlchemyError:return error(503,'storage_unavailable','The previous prediction could not be checked. Please retry shortly.')
-        if intent=='explanation' and context is None:
-            return answer('There is no available previous analysis in this chat. Paste a review first, then ask about its result. Older prediction references may expire after 30 days.')
-        fallback=(('The recorded overall prediction is '+context['sentiment']+'. The TF-IDF classifier uses learned word/character patterns; a label alone does not tell us which exact features caused it. Aspect labels come from separate lexical rules and may disagree with the overall label. Scores are uncalibrated and training labels came from star ratings, so this prediction can be wrong.') if intent=='explanation' else
-          ("I'm ReviewMind AI, an assistant for understanding product reviews. I can analyze review sentiment with our trained classifier and discuss results. I don't have verified product rankings, current prices or availability. Tell me what you would like to understand."))
-        if not body.allow_gemini:
-            return answer(fallback+' This is the built-in guide, not a language-model response. Enable Gemini conversation below the message box to use the conversational model.',provider_status='consent_required')
         try:
-            reply=app.state.conversation.generate(body.text,body.history,context,body.language)
-            return answer(reply,'gemini','ready',conversation_model=settings.gemini_model)
+            return app.state.agent.respond(body,analyze,app.state.database)
+        except SQLAlchemyError:
+            return error(503,'storage_unavailable','The previous prediction could not be checked. Please retry shortly.')
         except ProviderError as problem:
-            LOG.warning('Conversation provider unavailable (%s)',problem.code)
-            reasons={'not_configured':'Gemini is not configured on this backend.',
-              'authentication_failed':'Gemini rejected the backend credentials or access. The owner needs to check the API key and model permissions.',
-              'rate_limited':'Gemini conversation has reached a request or quota limit. Wait before retrying.',
-              'busy':'Gemini conversation is busy. Please retry shortly.',
-              'timeout':'Gemini took too long to respond. Please retry shortly.',
-              'blocked':'Gemini could not answer this message. Try rephrasing it.'}
-            return answer(reasons.get(problem.code,'Gemini could not provide a usable answer. Please retry shortly.')+' '+fallback+' This is a built-in fallback, not a Gemini answer.',provider_status=problem.code)
+            LOG.warning('Chat provider failed (code=%s http=%s intent=%s)',problem.code,problem.status,intent_for(body.text,body.mode))
+            messages={
+              'not_configured':'Gemini is not configured on the backend. The owner needs to set its API key.',
+              'authentication_failed':'Gemini rejected the backend key or access. The owner needs to check the key and model permissions.',
+              'rate_limited':'The assistant reached its local request limit. Wait one minute, then retry.',
+              'provider_rate_limited':'Google reported a Gemini quota or rate limit. Retry later or check the free-tier quota.',
+              'busy':'The assistant is handling other messages. Retry shortly.',
+              'timeout':'Gemini took too long to respond. Your message is preserved; you can retry.',
+              'network_error':'The backend could not reach Gemini. Your message is preserved; retry shortly.',
+              'blocked':'Gemini could not answer this message. Rephrase it and try again.',
+              'request_rejected':'Gemini rejected this request. The owner should check model access and configuration.',
+              'ungrounded_response':'The response included unsupported information and was not shown. Try rephrasing your question.',
+              'invalid_response':'Gemini returned an unusable response. Your message is preserved; retry shortly.',
+              'unavailable':'Gemini is temporarily unavailable. Your message is preserved; retry shortly.'}
+            status=429 if problem.code in {'rate_limited','provider_rate_limited'} else 503
+            return error(status,problem.code,messages.get(problem.code,messages['unavailable']))
 
     @app.post('/api/recommend')
     def recommend(body:Recommend):

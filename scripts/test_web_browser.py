@@ -49,17 +49,28 @@ async def run():
         assert (await (await pending.value).json())['intent']=='conversation'
         await page.locator('#q').fill('Suggest a smartphone under ₹20,000')
         async with page.expect_response('**/api/chat') as pending:await page.locator('#send').click()
-        recommendation=await (await pending.value).json();assert not recommendation['product_data_available'] and recommendation['sources']==[]
-        await expect(page.locator('.chat-answer').last).to_contain_text('verified product catalogue')
+        recommendation=await (await pending.value).json();assert recommendation['provider_status']=='consent_required'
+        await expect(page.locator('.chat-answer').last).to_contain_text('Gemini conversation is turned off')
         await page.locator('#startNew').click();await expect(page.locator('#welcome')).to_be_visible()
         await page.locator('#allowGemini').check();await page.locator('#q').fill('Hello')
         async with page.expect_response('**/api/chat') as pending:await page.locator('#send').click()
-        missing=await (await pending.value).json();assert missing['provider_status']=='not_configured'
+        missing=await (await pending.value).json();assert missing['error']['code']=='not_configured'
         sent=(await pending.value).request.post_data_json
         assert sent['history']==[] and sent['analysis_request_id'] is None
-        await expect(page.locator('.chat-answer')).to_contain_text('not a Gemini answer')
+        await expect(page.locator('.error-card')).to_contain_text('Gemini is not configured')
+        await expect(page.locator('.retry')).to_be_visible()
+        await expect(page.locator('#q')).to_have_value('Hello')
         await page.locator('#allowGemini').uncheck();await page.locator('#startNew').click()
         checks.extend(['empty_message_validation','greeting_identity_and_recommendation_intents','provider_not_configured_is_explicit','new_chat_resets_conversation'])
+        for message in ['Can you help me choose a phone?','My budget is ₹20,000.','I prefer Samsung.','Battery life matters most.','yes','okay','continue','tell me more','what next?']:
+            await page.locator('#q').fill(message)
+            async with page.expect_response('**/api/chat') as pending:await page.locator('#send').click()
+            await expect(page.locator('#send')).to_be_enabled()
+        sent=(await pending.value).request.post_data_json
+        assert len(sent['history'])<=8 and sum(len(m['text']) for m in sent['history'])<=4000
+        assert all(s in sent['history'][0]['text'] for s in ['₹20,000','Samsung','Battery life'])
+        checks.append('user_preferences_survive_recent_context_window_without_canned_history')
+        await page.locator('#startNew').click()
         await page.locator('#chatOptions summary').click();await page.locator('#q').fill(REVIEW)
         await page.locator('#cat').select_option('Smartphones')
         async def delayed(route):await asyncio.sleep(.5);await route.continue_()
@@ -79,7 +90,7 @@ async def run():
         await page.locator('#q').fill('Why did you classify that review as positive?')
         async with page.expect_response('**/api/chat') as pending:await page.locator('#send').click()
         explanation=await (await pending.value).json()
-        assert explanation['intent']=='explanation' and 'recorded overall prediction is '+data['sentiment'] in explanation['reply']
+        assert explanation['intent']=='explanation' and explanation['provider_status']=='consent_required'
         assert (await pending.value).request.post_data_json['analysis_request_id']==first_id
         checks.append('grounded_followup_uses_current_chat_prediction')
         await page.locator('.prediction-feedback').click();await expect(page.locator('#sendFb')).to_be_in_viewport()
@@ -143,8 +154,11 @@ async def run():
         await page.locator('#send').click();await expect(page.locator('.retry')).to_be_visible()
         await expect(page.locator('.error-card')).to_contain_text('temporarily unavailable')
         assert 'sensitive' not in await page.locator('#chat').inner_text()
+        await expect(page.locator('#q')).to_have_value('The screen is good.')
+        users_before=await page.locator('.msg.user').count()
         await page.unroute('**/api/chat',fail)
         async with page.expect_response('**/api/chat'):await page.locator('.retry').click()
+        assert await page.locator('.msg.user').count()==users_before
         await expect(page.locator('#send')).to_be_enabled()
         checks.append('unavailable_backend_safe_error_and_working_retry')
         async def invalid(route):await route.fulfill(status=200,json={'type':'analysis','sentiment':'invented'})
@@ -160,6 +174,12 @@ async def run():
         await expect(page.locator('.error-card').last).to_contain_text('Cannot reach the service')
         await page.unroute('**/api/chat',offline)
         checks.extend(['invalid_api_response_no_fabricated_fallback','rate_limit_message','network_error_message'])
+        async def quota(route):await route.fulfill(status=429,json={'error':{'code':'provider_rate_limited','message':'private provider body'}})
+        await page.route('**/api/chat',quota);await page.locator('#q').fill('The battery is good.');await page.locator('#send').click()
+        await expect(page.locator('.error-card').last).to_contain_text('Google reported a Gemini quota or rate limit')
+        await expect(page.locator('#q')).to_have_value('The battery is good.')
+        await page.unroute('**/api/chat',quota)
+        checks.append('specific_provider_quota_error_preserves_message_and_retry')
         async def waiting(route):
             await asyncio.sleep(1)
             try:await route.abort()
@@ -193,15 +213,15 @@ async def run():
         await page.locator('#chatOptions summary').click()
         await page.evaluate('scrollTo(0,0)')
         figures=ROOT/'reports/figures';figures.mkdir(exist_ok=True)
-        await page.screenshot(path=str(figures/'phase3_5_chat_desktop.png'),full_page=True,animations='disabled')
+        await page.screenshot(path=str(figures/'phase3_5_agent_desktop.png'),full_page=True,animations='disabled')
         await page.locator('.prediction-feedback').click();await page.set_viewport_size({'width':390,'height':720})
         await expect(page.locator('#sendFb')).to_be_in_viewport()
-        await page.screenshot(path=str(figures/'phase3_5_chat_feedback_mobile.png'),animations='disabled')
+        await page.screenshot(path=str(figures/'phase3_5_agent_feedback_mobile.png'),animations='disabled')
         await page.keyboard.press('Escape');await expect(page.locator('#modal')).to_be_hidden()
         await expect(page.locator('.prediction-feedback')).to_be_focused()
         await page.locator('#themeBtn').click();assert await page.locator('html').get_attribute('data-theme')=='dark'
         await page.evaluate('scrollTo(0,0)');assert await page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')
-        await page.screenshot(path=str(figures/'phase3_5_chat_mobile.png'),full_page=True,animations='disabled')
+        await page.screenshot(path=str(figures/'phase3_5_agent_mobile.png'),full_page=True,animations='disabled')
         checks.extend(['feedback_escape_and_keyboard_focus','responsive_mobile_dark_theme'])
         assert not errors,errors
         await browser.close()
@@ -212,8 +232,8 @@ async def run():
     report={'status':'passed','workflows_passed':len(checks),'checks':checks,'unhandled_browser_errors':errors,
       'database':'TLS PostgreSQL' if database_url.startswith('postgresql') else 'SQLite',
       'error_fixtures':'Error paths intercepted; all successful predictions and feedback use the actual backend.',
-      'screenshots':['reports/figures/phase3_5_chat_desktop.png','reports/figures/phase3_5_chat_feedback_mobile.png','reports/figures/phase3_5_chat_mobile.png']}
-    (ROOT/'reports/phase3_5_chat_browser.json').write_text(json.dumps(report,indent=2)+'\n')
+      'screenshots':['reports/figures/phase3_5_agent_desktop.png','reports/figures/phase3_5_agent_feedback_mobile.png','reports/figures/phase3_5_agent_mobile.png']}
+    (ROOT/'reports/phase3_5_agent_browser.json').write_text(json.dumps(report,indent=2)+'\n')
     print('Browser workflows passed:',len(checks))
 
 if __name__=='__main__':asyncio.run(run())
