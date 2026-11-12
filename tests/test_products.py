@@ -92,3 +92,18 @@ def test_tool_cannot_classify_greeting_or_bypass_product_consent(tmp_path,monkey
             return 'Hello fixture.'
         monkeypatch.setattr(client.app.state.conversation,'generate',generate)
         assert client.post('/api/chat',json={'text':'Hello','allow_gemini':True}).status_code==200
+
+
+def test_tool_analysis_does_not_expose_invented_classifier_reasoning(tmp_path,monkeypatch):
+    from fastapi.testclient import TestClient
+    from backend.app.main import create_app
+    text='The battery is excellent but the camera is terrible.'
+    with TestClient(create_app(Settings(database_url='sqlite:///'+str(tmp_path/'reason.db')))) as client:
+        def generate(message,history,context,language,tools,execute):
+            execute('sentiment_analysis',{'text':text,'category':'Smartphones'})
+            return 'The classifier averages conflicting sentiments. This is intentionally unsupported fixture text.'
+        monkeypatch.setattr(client.app.state.conversation,'generate',generate)
+        result=client.post('/api/chat',json={'text':'Can you explain this review: '+text,'allow_gemini':True}).json()
+        assert result['type']=='analysis' and result['model_version']=='phase3-full-logistic_regression-seed42'
+        assert 'averages' not in result['reply'] and 'Exact causal feature importance is unavailable' in result['reply']
+        assert result['tools_used']==['sentiment','aspect_rules','gemini']

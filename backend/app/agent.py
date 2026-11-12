@@ -70,7 +70,7 @@ class ReviewMindAgent:
         if tools:reply=self.conversation.generate(body.text,body.history,context,body.language,tools,execute)
         else:reply=self.conversation.generate(body.text,body.history,context,body.language)
         if isinstance(analysis_result,dict):
-            return dict(analysis_result,reply=reply,response_source='sentiment_model',tools_used=used+['gemini'])
+            return dict(analysis_result,reply='The trained classifier predicts '+analysis_result['sentiment']+'. Exact causal feature importance is unavailable. Aspect results use separate lexical rules.',response_source='sentiment_model',tools_used=used+['gemini'])
         product=context['product_data']
         return {'type':'chat','intent':intent,'reply':reply,'response_source':'gemini','provider_status':'ready',
           'conversation_model':self.conversation.model,'product_data_available':product['available'],'sources':product['sources'],

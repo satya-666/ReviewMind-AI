@@ -122,7 +122,7 @@ def create_app(settings=None):
 
     @app.get('/api/chat/status')
     def chat_status():
-        return {'provider':'Gemini','model':settings.gemini_model,'agent_version':3,'configured':app.state.conversation.configured,
+        return {'provider':'Gemini','model':settings.gemini_model,'agent_version':4,'configured':app.state.conversation.configured,
           'provider_responded_since_start':app.state.conversation.responded,'requires_consent':True,'verified_product_data':False,'product_provider':'SerpApi','product_provider_configured':app.state.products.configured,
           'context_policy':'Up to 8 recent messages, 4000 history characters; no server chat transcript storage.'}
 

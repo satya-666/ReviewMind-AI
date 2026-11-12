@@ -12,5 +12,8 @@
   "frontend_production_build": "passed",
   "live_product_retrieval": "not tested: owner credential not configured locally",
   "provider": "SerpApi India Google Shopping optional free account",
-  "mock_notice": "Product listings and tool roundtrip tests use explicit fixtures, not live retrieval evidence. Browser successful classifier and feedback checks use the real local backend and isolated SQLite."
+  "mock_notice": "Product listings and tool roundtrip tests use explicit fixtures, not live retrieval evidence. Browser successful classifier and feedback checks use the real local backend and isolated SQLite.",
+  "live_gemini_after_deploy": "Four real conversational turns passed; live Gemini-selected sentiment/aspect tool invoked the preserved trained model.",
+  "live_discovered_fix": "Discard unsupported generated causal prose on tool-triggered analysis; actual label and attribution limitation are returned.",
+  "additional_regression": "Tool-triggered analysis cannot expose invented classifier averaging reasoning."
 }
