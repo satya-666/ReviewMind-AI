@@ -25,7 +25,7 @@ async def run():
         page=await context.new_page();page.on('pageerror',lambda error:errors.append(str(error)))
         page.on('dialog',lambda dialog:dialogs.append(dialog.message))
         await page.goto(base,wait_until='networkidle')
-        await expect(page.locator('h1')).to_have_text('Let’s understand your product reviews')
+        await expect(page.locator('h1')).to_have_text('What are you researching today?')
         await expect(page.locator('#welcome')).to_contain_text('No messages yet')
         assert await page.locator('.msg').count()==0
         assert await page.locator('[data-plan],#pbtn,#budget,#examples').count()==0
@@ -36,8 +36,11 @@ async def run():
         async def cold_start(route):await asyncio.sleep(.7);await route.continue_()
         await page.route('**/api/chat/status',cold_start)
         await page.locator('#q').fill('Hello')
+        await page.locator('#q').press('Enter')
+        await expect(page.locator('#consentModal')).to_be_visible()
+        assert await page.locator('.msg').count()==0
         async with page.expect_response('**/api/chat') as pending:
-            await page.locator('#q').press('Enter')
+            await page.locator('#declineProcessing').click()
             await expect(page.locator('#loading')).to_contain_text('wake up')
             await expect(page.locator('#send')).to_be_disabled()
         greeting=await (await pending.value).json();assert greeting['type']=='chat' and greeting['response_source']=='built_in'
@@ -52,7 +55,11 @@ async def run():
         recommendation=await (await pending.value).json();assert recommendation['provider_status']=='consent_required'
         await expect(page.locator('.chat-answer').last).to_contain_text('Gemini conversation is turned off')
         await page.locator('#startNew').click();await expect(page.locator('#welcome')).to_be_visible()
-        await page.locator('#allowGemini').check();await page.locator('#q').fill('Hello')
+        assert await page.locator('#allowGemini').count()==0
+        await page.locator('#settingsBtn').click()
+        await page.locator('#processingConsent').select_option('accepted')
+        await page.locator('#acceptProcessing').click()
+        await page.locator('#closeSettings').click();await page.locator('#q').fill('Hello')
         async with page.expect_response('**/api/chat') as pending:await page.locator('#send').click()
         missing=await (await pending.value).json();assert missing['error']['code']=='not_configured'
         sent=(await pending.value).request.post_data_json
@@ -60,7 +67,8 @@ async def run():
         await expect(page.locator('.error-card')).to_contain_text('Gemini is not configured')
         await expect(page.locator('.retry')).to_be_visible()
         await expect(page.locator('#q')).to_have_value('Hello')
-        await page.locator('#allowGemini').uncheck();await page.locator('#startNew').click()
+        await page.locator('#settingsBtn').click();await page.locator('#processingConsent').select_option('declined');await page.locator('#closeSettings').click()
+        await page.reload();await expect(page.locator('#processingConsent')).to_have_value('declined')
         checks.extend(['empty_message_validation','greeting_identity_and_recommendation_intents','provider_not_configured_is_explicit','new_chat_resets_conversation'])
         for message in ['Can you help me choose a phone?','My budget is ₹20,000.','I prefer Samsung.','Battery life matters most.','yes','okay','continue','tell me more','what next?']:
             await page.locator('#q').fill(message)
@@ -187,7 +195,7 @@ async def run():
         await page.clock.install()
         await page.route('**/api/chat',waiting);await page.locator('#q').fill('The phone works well.');await page.locator('#send').click()
         await expect(page.locator('#loading')).to_be_visible()
-        await page.clock.fast_forward(46000)
+        await page.clock.fast_forward(61000)
         await expect(page.locator('.error-card').last).to_contain_text('took too long')
         await page.unroute('**/api/chat',waiting);await page.clock.resume()
         checks.append('timeout_and_waking_service_message')

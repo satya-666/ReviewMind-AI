@@ -34,7 +34,7 @@ def create_app(settings=None):
     @asynccontextmanager
     async def lifespan(app):
         app.state.model=ModelService(settings);app.state.database=None
-        app.state.conversation=GeminiConversation(settings);app.state.products=ProductData()
+        app.state.conversation=GeminiConversation(settings);app.state.products=ProductData(settings.serpapi_api_key)
         app.state.agent=ReviewMindAgent(app.state.conversation,app.state.products)
         try:
             db=Database(settings.database_url,settings.retention_days)
@@ -122,8 +122,8 @@ def create_app(settings=None):
 
     @app.get('/api/chat/status')
     def chat_status():
-        return {'provider':'Gemini','model':settings.gemini_model,'agent_version':2,'configured':app.state.conversation.configured,
-          'provider_responded_since_start':app.state.conversation.responded,'requires_consent':True,'verified_product_data':False,
+        return {'provider':'Gemini','model':settings.gemini_model,'agent_version':3,'configured':app.state.conversation.configured,
+          'provider_responded_since_start':app.state.conversation.responded,'requires_consent':True,'verified_product_data':False,'product_provider':'SerpApi','product_provider_configured':app.state.products.configured,
           'context_policy':'Up to 8 recent messages, 4000 history characters; no server chat transcript storage.'}
 
     @app.post('/api/chat')

@@ -28,8 +28,8 @@
 <main id="main">
   <section class="intro">
     <span class="eyebrow">YOUR PRODUCT REVIEW ASSISTANT</span>
-    <h1 data-i="hello">Let’s understand your product reviews</h1>
-    <p data-i="sub">Ask a question, paste a review, or follow up on an analysis. We keep real sentiment predictions separate from conversation.</p>
+    <h1 data-i="hello">What are you researching today?</h1>
+    <p data-i="sub">Research a product, compare sourced listings, or paste a review to analyze.</p>
   </section>
   <section id="results" aria-label="Conversation" aria-busy="false">
     <div class="section-heading"><h2>Conversation</h2><button class="btn" id="startNew" hidden>New Chat</button></div>
@@ -49,12 +49,17 @@
       <div class="field"><label for="q">Your message</label><textarea id="q" maxlength="5000" rows="3" required aria-describedby="inputHelp hint" placeholder="Ask about a review, or paste one to analyze…"></textarea></div>
       <div class="input-actions"><span class="note" id="inputHelp">Up to 5,000 characters · Enter to send · Shift+Enter for a new line</span><button class="btn primary" id="send" type="submit">Send</button></div>
       <p id="hint" class="error" role="alert"></p>
-      <label class="checkbox gemini-consent"><input type="checkbox" id="allowGemini"><span>Use Gemini for conversation <span class="note">Sends recent messages, including reviews, to Google. Free-tier content may improve its products. Avoid private information.</span></span></label>
+
     </form>
   </section>
-  <footer>AI answers and predictions can be wrong. No verified product catalogue or live prices are connected. Chat transcripts are not saved on our server. Device history is optional.</footer>
+  <footer>AI answers and predictions can be wrong. Product listings require a configured provider; prices and availability can change. Chat transcripts are not saved on our server. Device history is optional.</footer>
 </main>
 </div>
+<dialog id="consentModal" class="modal" aria-labelledby="consentTitle">
+  <div class="dialog-heading"><h2 id="consentTitle">Before you chat</h2></div>
+  <div class="dialog-body"><p>ReviewMind uses Google Gemini for conversation. Your message, recent chat history (including reviews) and preference notes are sent to Google. Free-tier content may be used to improve its products. Avoid private information.</p><p>For product research, relevant shopping queries may also be sent to SerpApi when configured. Prices and availability can change. Review analysis uses our existing classifier and works without this permission.</p><p>We remember your choice on this device, separately from optional chat history. Change it in Settings.</p><p><a href="https://ai.google.dev/gemini-api/terms" target="_blank" rel="noopener noreferrer">Google data terms</a> · <a href="https://serpapi.com/privacy" target="_blank" rel="noopener noreferrer">SerpApi privacy</a></p></div>
+  <div class="dialog-footer"><button class="btn" id="declineProcessing">Use review analysis only</button><button class="btn primary" id="acceptProcessing">Allow and send</button></div>
+</dialog>
 <dialog id="modal" class="modal" aria-labelledby="mtitle">
   <div class="dialog-heading"><h2 id="mtitle">Feedback on this analysis</h2><button class="btn" id="mclose" aria-label="Close feedback">Close</button></div>
   <form id="feedbackForm">
@@ -75,6 +80,8 @@
 <dialog id="settingsModal" class="modal" aria-labelledby="settingsTitle">
   <div class="dialog-heading"><h2 id="settingsTitle">Device settings</h2><button class="btn" id="closeSettings" aria-label="Close settings">Close</button></div>
   <div class="dialog-body">
+    <div class="field"><label for="processingConsent">Third-party AI and product search</label><select id="processingConsent"><option value="unknown">Ask before sending</option><option value="accepted">Allowed</option><option value="declined">Off — local review analysis only</option></select></div>
+    <p class="note">Conversation sends recent messages and preference notes to Google. Product searches send relevant shopping queries to SerpApi when configured. You can withdraw consent here at any time.</p>
     <label class="checkbox"><input type="checkbox" id="remember"><span>Save chat history on this device</span></label>
     <p class="note">Off by default. When enabled, your messages, preference notes and results stay in this browser. Avoid saving on shared devices. This is not an account or cloud backup.</p>
     <button class="btn danger" id="clearHist">Clear chat history</button>
@@ -83,7 +90,7 @@
 </dialog>
 <dialog id="helpModal" class="modal" aria-labelledby="helpTitle">
   <div class="dialog-heading"><h2 id="helpTitle">How ReviewMind AI works</h2><button class="btn" id="closeHelp">Close</button></div>
-  <div class="dialog-body"><p>Ask a question or paste a product review. Automatic routing separates questions from review analysis. If it misunderstands, choose Review analysis mode for a review.</p><p>The trained TF-IDF classifier predicts overall sentiment. Product aspects use keyword rules. Scores are not reliability percentages.</p><p>Gemini handles conversation only when configured and you opt in. If Gemini fails, a specific error and Retry are shown instead of a simulated answer. No live product data or verified recommendations are available.</p><p>New Chat starts without the previous chat’s context. History is session-only unless you enable device storage in Settings. Gemini receives bounded recent messages and your user-stated preference notes from this chat, under Google’s data-use terms. Feedback is only for actual sentiment predictions.</p></div>
+  <div class="dialog-body"><p>Ask a question or paste a product review. Automatic routing separates questions from review analysis. If it misunderstands, choose Review analysis mode for a review.</p><p>The trained TF-IDF classifier predicts overall sentiment. Product aspects use keyword rules. Scores are not reliability percentages.</p><p>Gemini handles conversation only when configured and you opt in. If Gemini fails, a specific error and Retry are shown instead of a simulated answer. When SerpApi is configured and permitted, product tools retrieve Indian shopping listings. Cards show the exact retrieved evidence; missing specifications and availability stay unknown.</p><p>New Chat starts without the previous chat’s context. History is session-only unless you enable device storage in Settings. Gemini receives bounded recent messages and your user-stated preference notes from this chat, under Google’s data-use terms. Feedback is only for actual sentiment predictions.</p></div>
 </dialog>
 <div id="toast" role="status" aria-live="polite"></div>
 <script src="assets/config.js"></script>

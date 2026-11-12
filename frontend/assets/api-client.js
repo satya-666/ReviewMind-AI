@@ -69,12 +69,18 @@
         payload.history.splice(index,1);
       }
       if (new TextEncoder().encode(JSON.stringify(payload)).length > 16000) throw new Error('This message is too large. Please shorten it and retry.');
-      const data = await request('/api/chat', payload, 'POST', {}, 30000);
+      const data = await request('/api/chat', payload, 'POST', {}, 60000);
       if (data.type === 'analysis') return validateAnalysis(data);
       if (data.type !== 'chat' || typeof data.reply !== 'string' || !data.reply.trim() || data.reply.length > 6000 ||
           !['built_in','gemini'].includes(data.response_source) || typeof data.provider_status !== 'string') {
         throw new Error('The chat service returned an unsupported response format.');
       }
+      if (data.products !== undefined && (!Array.isArray(data.products) || data.products.length > 4 || data.products.some(p => {
+        if (!p || typeof p.title !== 'string' || p.title.length > 300 || typeof p.retrieved_at !== 'string' ||
+            !Array.isArray(p.specifications) || p.specifications.some(s => typeof s !== 'string') ||
+            (p.price_inr !== null && (!Number.isFinite(p.price_inr) || p.price_inr <= 0))) return true;
+        try { const u = new URL(p.source_url); return u.protocol !== 'https:' || !!u.username || !!u.password; } catch { return true; }
+      }))) throw new Error('The product provider returned an unsupported listing format.');
       return data;
     },
     analyze: async (text, preferences) => validateAnalysis(await request('/api/analyze', {

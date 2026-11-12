@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-13",
+  "pytest": {
+    "passed": 164,
+    "skipped": 1,
+    "skipped_reason": "Separate TLS PostgreSQL test was not configured this run."
+  },
+  "browser_workflows": 31,
+  "product_consent_browser_fixture_checks": 8,
+  "node_transport_regression": "passed",
+  "serving_model_integrity": "passed unchanged",
+  "frontend_production_build": "passed",
+  "live_product_retrieval": "not tested: owner credential not configured locally",
+  "provider": "SerpApi India Google Shopping optional free account",
+  "mock_notice": "Product listings and tool roundtrip tests use explicit fixtures, not live retrieval evidence. Browser successful classifier and feedback checks use the real local backend and isolated SQLite."
+}

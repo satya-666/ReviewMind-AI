@@ -198,3 +198,7 @@ This is a synthetic inference illustration, not benchmark evidence. Single/batch
 Read [docs/PHASE_3.md](docs/PHASE_3.md), [the model report](reports/phase3_model_report.md), `reports/phase3_results.json`, and `reports/phase3_verification.json` for methods and executed checks. GPU bitwise repeatability is not guaranteed: PyTorch reports a nondeterministic MPS embedding-backward operation. Checkpoint-reloaded predictions and seeded classical fitting are verified separately. Human-annotated benchmarks, licensed supervised ABSA, reliable catalog identities, a fresh final holdout and multilingual annotation remain prerequisites for stronger Phase 4 readiness claims.
 
 Validation completed: **61 tests passed**, all three Phase 3 notebooks executed, and CPU reloads of all three checkpoints reproduced their original test confusion matrices. A Phase 2 rerun retained byte-identical outputs; original Phase 1 artifact hashes still match. Eleven full-run research figures were generated and visually inspected. Full training/evaluation took about 192 measured seconds, excluding final plotting/report overhead; timings are machine-dependent.
+
+### Product research and default conversation
+
+Conversation now uses Gemini automatically after one-time permission, with persistent opt-out in Settings. Optional SerpApi India Shopping tools provide sourced product cards only when a backend key is configured and live retrieval succeeds. See [provider research, free-plan setup and limitations](docs/PRODUCT_RETRIEVAL.md). No trained model or paid infrastructure was changed.

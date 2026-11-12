@@ -39,7 +39,7 @@ def test_actual_review_and_grounded_followup(client,monkeypatch):
     assert data['type']=='analysis' and data['response_source']=='sentiment_model'
     assert {a['aspect']:a['sentiment'] for a in data['aspects']}=={'battery':'positive','display':'positive','camera':'negative'}
     seen=[]
-    def generate(message,history,context,language):
+    def generate(message,history,context,language,*tool_args):
         seen.append(context)
         return 'Fixture explanation; no exact causal feature importance is available.'
     monkeypatch.setattr(client.app.state.conversation,'generate',generate)
@@ -60,12 +60,12 @@ def test_missing_category_is_honest_and_explicit_review_mode(client):
 
 def test_product_tool_context_constrains_llm_instead_of_canned_reply(client,monkeypatch):
     seen=[]
-    def generate(message,history,context,language):
+    def generate(message,history,context,language,*tool_args):
         seen.append(context)
         return 'What features matter most? This is a provider-contract fixture.'
     monkeypatch.setattr(client.app.state.conversation,'generate',generate)
     data=client.post('/api/chat',json={'text':'Suggest a smartphone under ₹20,000','allow_gemini':True}).json()
-    assert data['response_source']=='gemini' and data['tools_used']==['product_data','gemini']
+    assert data['response_source']=='gemini' and data['tools_used']==['gemini']
     assert not data['product_data_available'] and data['sources']==[]
     assert seen[0]['product_data']['products']==[] and seen[0]['prediction'] is None
 
@@ -78,7 +78,7 @@ def test_provider_disabled_and_no_secret_exposure(client):
 
 def test_consent_and_bounded_current_chat_context(client,monkeypatch):
     seen=[]
-    def generate(message,history,context,language):
+    def generate(message,history,context,language,*tool_args):
         seen.append((message,[m.model_dump() for m in history],context,language))
         return 'Provider-contract fixture, not a live answer.'
     monkeypatch.setattr(client.app.state.conversation,'generate',generate)
@@ -151,7 +151,7 @@ def test_user_budget_echo_is_not_misclassified_as_invented_market_price(monkeypa
 @pytest.mark.parametrize('message',['hellow','yes','How are you?','Can you help me buy a smartphone?','My budget is ₹20,000.','I prefer Samsung.','Battery life matters most.'])
 def test_normal_turns_reach_conversational_model_with_history(client,monkeypatch,message):
     seen=[]
-    def generate(text,history,context,language):
+    def generate(text,history,context,language,*tool_args):
         seen.append((text,[m.text for m in history],context))
         return 'Context-aware provider-contract fixture, not live integration evidence.'
     monkeypatch.setattr(client.app.state.conversation,'generate',generate)

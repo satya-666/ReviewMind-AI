@@ -1,6 +1,6 @@
 {
   "status": "passed",
-  "workflows_passed": 32,
+  "workflows_passed": 31,
   "checks": [
     "clean_empty_state_and_no_fake_account_plans_or_examples",
     "bounded_cold_start_get_before_single_post",
@@ -32,11 +32,10 @@
     "unsupported_category_honest_no_aspects_state",
     "clear_history_removes_only_device_and_session_history",
     "feedback_escape_and_keyboard_focus",
-    "responsive_mobile_dark_theme",
-    "feedback_database_is_real_tls_postgresql"
+    "responsive_mobile_dark_theme"
   ],
   "unhandled_browser_errors": [],
-  "database": "TLS PostgreSQL",
+  "database": "SQLite",
   "error_fixtures": "Error paths intercepted; all successful predictions and feedback use the actual backend.",
   "screenshots": [
     "reports/figures/phase3_5_agent_desktop.png",

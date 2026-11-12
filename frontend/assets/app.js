@@ -3,9 +3,16 @@ const $ = selector => document.querySelector(selector);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const LABELS = ['positive','negative','neutral','mixed','unknown'];
 const label = value => value === 'unknown' ? 'Not determined' : value.charAt(0).toUpperCase() + value.slice(1);
+const CONSENT_KEY = 'reviewmind_processing_consent_v1';
+let processingConsent = 'unknown', pendingConsent = null;
+function setProcessingConsent(value) {
+  processingConsent = ['accepted','declined'].includes(value) ? value : 'unknown';
+  $('#processingConsent').value = processingConsent;
+  try { localStorage.setItem(CONSENT_KEY,processingConsent); } catch { toast('Your processing choice stays in this tab because device storage is unavailable.'); }
+}
 const HISTORY_KEY = 'reviewmind_guest_history_v1';
 const I18N = {
-  en:{hello:'Let’s understand your product reviews',sub:'Ask a question, paste a review, or follow up on an analysis.',placeholder:'Ask about a review, or paste one to analyze…'},
+  en:{hello:'What are you researching today?',sub:'Ask a question, paste a review, or follow up on an analysis.',placeholder:'Ask about a review, or paste one to analyze…'},
   hi:{hello:'AI के साथ प्रोडक्ट रिव्यू समझें',sub:'रिव्यू का समग्र भाव और प्रोडक्ट फीचर देखें। हिन्दी की सटीकता अभी प्रमाणित नहीं है।',placeholder:'विश्लेषण के लिए प्रोडक्ट रिव्यू यहाँ लिखें…'},
   hinglish:{hello:'AI se product reviews samjhein',sub:'Review paste karein aur overall sentiment aur product features dekhein. Hinglish accuracy abhi verified nahi hai.',placeholder:'Product review yahan paste karein…'}
 };
@@ -20,13 +27,19 @@ function renderAnalysis(data) {
     <details class="analysis-about"><summary>About this analysis</summary><p>Model: ${esc(data.model_version)}</p><p>The overall model learned from star ratings rather than independently annotated sentiment. Scores are uncalibrated. Aspect rules can miss context and are not a trained aspect sentiment model.</p><ul>${data.warnings.map(w => `<li>${esc(w)}</li>`).join('')}</ul></details>
     <div class="analysis-actions"><button class="btn prediction-feedback" data-request="${esc(data.request_id)}">Give feedback on this analysis</button></div></article></div>`;
 }
+function productCards(products = []) {
+  return products.slice(0,4).filter(p => p && typeof p.title === 'string' && safeSource(p.source_url)).map(p => `<article class="card product-card"><h3>${esc(p.title)}</h3><p>${Number.isFinite(p.price_inr) ? '₹'+Number(p.price_inr).toLocaleString('en-IN') : 'Price unavailable'}</p><ul>${(Array.isArray(p.specifications) ? p.specifications : []).filter(s => typeof s === 'string').slice(0,8).map(s => `<li>${esc(s)}</li>`).join('')}</ul><p class="note">${p.rating != null ? `Listing rating: ${esc(p.rating)}/5${p.review_count != null ? ' · '+esc(p.review_count)+' reviews' : ''}. ` : ''}Availability unconfirmed. Check the source before buying.</p><a href="${esc(p.source_url)}" target="_blank" rel="noopener noreferrer">${esc(p.source || 'View source')}</a><p class="note">Retrieved: ${esc(p.retrieved_at)}</p></article>`).join('');
+}
+function safeSource(value) {
+  try { const u = new URL(value); return u.protocol === 'https:' && !u.username && !u.password && (!u.port || u.port === '443') && u.hostname.includes('.') && !/^(?:localhost|127\.|10\.|192\.168\.|169\.254\.)/.test(u.hostname); } catch { return false; }
+}
 function addMessage(message) {
   const el = document.createElement('div'); el.className = 'msg ' + (message.role === 'user' ? 'user' : 'ai');
   if (message.role === 'user') el.innerHTML = `<div class="bubble">${esc(message.text)}</div>`;
   else if (message.result?.type === 'analysis') el.innerHTML = renderAnalysis(message.result);
   else if (message.result?.type === 'chat') {
     const r = message.result;
-    el.innerHTML = `<article class="card chat-answer"><p class="response-source">${r.response_source === 'gemini' ? 'Gemini · conversational answer' : 'Built-in guide · not a language-model answer'}</p><div class="reply-text">${esc(r.reply)}</div>${['timeout','unavailable','busy','rate_limited','invalid_response','blocked','ungrounded_response'].includes(r.provider_status) ? '<p class="note">The conversational provider did not return an answer. You can resend your message when it is available.</p>' : ''}</article>`;
+    el.innerHTML = `<article class="card chat-answer"><p class="response-source">${r.response_source === 'gemini' ? 'Gemini · conversational answer' : 'Built-in guide · not a language-model answer'}</p><div class="reply-text">${esc(r.reply)}</div>${productCards(r.products)}${['quota_exhausted','authentication_failed','unavailable','provider_error','rate_limited'].includes(r.product_status) ? '<p class="note">Product search could not complete ('+esc(r.product_status.replaceAll('_',' '))+'). No current listings were verified. Try again later.</p>' : ''}${['timeout','unavailable','busy','rate_limited','invalid_response','blocked','ungrounded_response'].includes(r.provider_status) ? '<p class="note">The conversational provider did not return an answer. You can resend your message when it is available.</p>' : ''}</article>`;
   }
   else if (message.result?.type === 'analysis_only') el.innerHTML = '<div class="card"><p>Product recommendations are not available. Paste a product review to analyze its sentiment instead.</p></div>';
   else el.innerHTML = `<div class="card error-card"><p role="alert">${esc(message.text || 'Analysis is unavailable. Please try again.')}</p>${message.retry ? '<button class="btn retry">Retry message</button>' : ''}</div>`;
@@ -64,7 +77,7 @@ function newAnalysis() {
 function rememberPreferences(chat,text) {
   chat.preferences ||= {};
   const patterns = {budget:/₹|\b(?:budget|rupees|rs)\b|\b(?:under|below)\s+\d/i,
-    brand:/\b(?:prefer|brand)\b/i,priorities:/\b(?:priorit\w*|matters most|important|care about)\b/i};
+    brand:/\b(?:prefer|brand|only)\b/i,priorities:/\b(?:priorit\w*|matters most|important|care about)\b/i};
   for (const [key,pattern] of Object.entries(patterns)) if (pattern.test(text)) chat.preferences[key] = text.slice(0,200);
 }
 function contextFor(messages,preferences = {}) {
@@ -85,12 +98,15 @@ async function send(failedMessage = null) {
   const text = (retry?.text ?? $('#q').value).trim(); $('#hint').textContent = '';
   if (busy) return;
   if (!text || text.length > 5000) { $('#hint').textContent = 'Enter a message between 1 and 5,000 characters.'; $('#q').focus(); return; }
+  if (processingConsent === 'unknown' && (retry?.mode || $('#mode').value) !== 'review') {
+    pendingConsent = failedMessage; $('#consentModal').showModal(); return;
+  }
   const preferences = {category:retry?.category ?? $('#cat').value,language:retry?.language ?? $('#lang').value,mode:retry?.mode || $('#mode').value};
   if (!current) { current = {id:crypto.randomUUID(),title:text.slice(0,100),messages:[],preferences:{}}; chats.unshift(current); chats = chats.slice(0,20); }
   if (!retry) rememberPreferences(current,text);
   const messages = retry ? current.messages.slice(0,current.messages.indexOf(failedMessage)-1) : current.messages;
   const previous = [...messages].reverse().find(m => m.result?.type === 'analysis');
-  const body = {text,...preferences,history:retry?.history || contextFor(messages,current.preferences),analysis_request_id:retry?.analysis_request_id || previous?.result.request_id || null,allow_gemini:retry?.allow_gemini ?? $('#allowGemini').checked};
+  const body = {text,...preferences,history:retry?.history || contextFor(messages,current.preferences),analysis_request_id:retry?.analysis_request_id || previous?.result.request_id || null,allow_gemini:processingConsent === 'accepted',allow_product_search:processingConsent === 'accepted'};
   busy = true; $('#send').disabled = true; $('#send').textContent = 'Sending…'; $('#loading').hidden = false;
   $('#loading').textContent = 'Connecting to the assistant… The service may take up to a minute to wake up.';
   $('#results').setAttribute('aria-busy','true'); $('#welcome')?.remove();
@@ -154,6 +170,8 @@ function validStoredMessage(m) {
 }
 (function init() {
   try {
+    const savedConsent = localStorage.getItem(CONSENT_KEY);
+    if (['accepted','declined'].includes(savedConsent)) processingConsent = savedConsent;
     const stored = localStorage.getItem(HISTORY_KEY);
     if (stored && stored.length < 2000000) {
       const parsed = JSON.parse(stored);
@@ -168,6 +186,16 @@ function validStoredMessage(m) {
       }
     }
   } catch { chats = []; current = null; }
+  $('#processingConsent').value = processingConsent;
+  $('#processingConsent').onchange = () => {
+    if ($('#processingConsent').value === 'accepted' && processingConsent !== 'accepted') {
+      $('#processingConsent').value = processingConsent; pendingConsent = undefined; $('#consentModal').showModal();
+    } else setProcessingConsent($('#processingConsent').value);
+  };
+  for (const [id,choice] of [['acceptProcessing','accepted'],['declineProcessing','declined']]) $("#"+id).onclick = () => {
+    const pending = pendingConsent; setProcessingConsent(choice); $('#consentModal').close();
+    if (pending !== undefined) send(pending);
+  };
   showCurrent();
   $('#analysisForm').onsubmit = e => { e.preventDefault(); send(); };
   $('#q').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); } };
