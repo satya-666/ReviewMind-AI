@@ -1,0 +1,11 @@
+import mongoose from 'mongoose';
+const {Schema,model}=mongoose;
+const ref=(name)=>({type:Schema.Types.ObjectId,ref:name,required:true,index:true});
+export const owners=['assistant','client','none','review'];
+export const User=model('User',new Schema({name:String,email:{type:String,unique:true},passwordHash:String,role:{type:String,enum:['assistant','client']},clientId:{type:Schema.Types.ObjectId,ref:'Client'}}));
+export const Client=model('Client',new Schema({name:String,email:String,assistantId:ref('User')}));
+export const EmailAccount=model('EmailAccount',new Schema({clientId:ref('Client'),provider:{type:String,enum:['gmail','outlook']},address:String,status:{type:String,enum:['connected','syncing','error']},lastSyncedAt:Date,simulated:{type:Boolean,default:true}}));
+export const Thread=model('Thread',new Schema({accountId:ref('EmailAccount'),clientId:ref('Client'),subject:String,participants:[String],lastMessageAt:Date,unread:Boolean,important:Boolean,archived:Boolean,done:Boolean,waiting:Boolean,isMeeting:Boolean,classification:{owner:{type:String,enum:owners},confidence:Number,reason:String,source:{type:String,enum:['ai','manual']},updatedAt:Date},summary:String,extractedDates:[{label:String,date:String}],messageCount:Number}));
+export const Message=model('Message',new Schema({threadId:ref('Thread'),from:String,to:String,body:String,sentAt:Date,direction:{type:String,enum:['inbound','outbound']}}));
+export const Draft=model('Draft',new Schema({threadId:ref('Thread'),body:String,status:{type:String,enum:['draft','approved','sent']},generatedByAI:Boolean}));
+export const ActivityLog=model('ActivityLog',new Schema({threadId:ref('Thread'),actor:{type:String,enum:['assistant','client','ai']},action:String,at:{type:Date,default:Date.now}}));

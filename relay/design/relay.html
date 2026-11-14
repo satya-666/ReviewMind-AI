@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Relay – inbox for assistants</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fbfbfc;--sf:#fff;--ink:#14161a;--mu:#6b7280;--ln:#e8eaee;--hv:#f4f5f7;--ac:#14161a;--acf:#fff;
+--a:#2563eb;--ab:#e8f0fe;--c:#b45309;--cb:#fdf1de;--n:#6b7280;--nb:#eff0f2;--r:#6d28d9;--rb:#efe9fd;--ok:#15803d;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0e0f11;--sf:#16181b;--ink:#eceef1;--mu:#9097a3;--ln:#25282d;--hv:#1d2024;--ac:#eceef1;--acf:#14161a;--a:#7aa2ff;--ab:#1a2540;--c:#f0b25e;--cb:#33260f;--n:#9097a3;--nb:#22252a;--r:#b79cff;--rb:#2a2142;--ok:#5fd08a}}
+:root[data-theme=dark]{--bg:#0e0f11;--sf:#16181b;--ink:#eceef1;--mu:#9097a3;--ln:#25282d;--hv:#1d2024;--ac:#eceef1;--acf:#14161a;--a:#7aa2ff;--ab:#1a2540;--c:#f0b25e;--cb:#33260f;--n:#9097a3;--nb:#22252a;--r:#b79cff;--rb:#2a2142;--ok:#5fd08a}
+*{box-sizing:border-box;margin:0}html,body{height:100%}
+body{font:14px/1.5 'Instrument Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+button,input,textarea{font:inherit;color:inherit}button{cursor:pointer;background:none;border:0}
+:focus-visible{outline:2px solid var(--a);outline-offset:2px}
+.btn{padding:8px 14px;border-radius:9px;border:1px solid var(--ln);background:var(--sf);font-weight:500}.btn:hover{background:var(--hv)}
+.btn.p{background:var(--ac);color:var(--acf);border-color:var(--ac)}.btn.p:hover{opacity:.88}
+.mu{color:var(--mu)}.hide{display:none!important}
+/* onboarding */
+#ob{min-height:100%;display:grid;place-items:center;padding:24px}
+.obc{width:100%;max-width:420px}
+.logo{display:flex;align-items:center;gap:9px;font-weight:600;font-size:16px}.logo i{width:22px;height:22px;border-radius:7px;background:var(--ink);display:block;position:relative}.logo i:after{content:"";position:absolute;inset:6px;border-radius:50%;background:var(--bg)}
+.obc h1{font-size:30px;line-height:1.15;letter-spacing:-.025em;font-weight:600;margin:36px 0 10px}
+.obc p{color:var(--mu);margin-bottom:26px}
+.prov{display:flex;align-items:center;gap:14px;width:100%;padding:14px 16px;border:1px solid var(--ln);background:var(--sf);border-radius:12px;margin-bottom:10px;text-align:left;font-weight:500}
+.prov:hover{border-color:var(--ink)}.prov b{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:var(--hv);font-size:15px}
+.prov span{flex:1}.prov small{color:var(--mu);font-weight:400;display:block}
+.bar{height:4px;background:var(--ln);border-radius:4px;overflow:hidden;margin:20px 0 10px}.bar div{height:100%;width:0;background:var(--ink);transition:width .35s}
+.steps{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}.steps div{display:flex;gap:10px;color:var(--mu)}.steps .d{color:var(--ink)}.steps .d:before{content:"✓";color:var(--ok)}.steps div:not(.d):before{content:"○"}
+/* app */
+#app{height:100%;display:grid;grid-template-columns:232px minmax(0,1fr)}
+aside{border-right:1px solid var(--ln);padding:18px 12px;display:flex;flex-direction:column;gap:4px;overflow:auto}
+aside .logo{padding:0 8px 16px}
+.nav{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px;color:var(--mu);width:100%;text-align:left}
+.nav:hover{background:var(--hv)}.nav.on{background:var(--hv);color:var(--ink);font-weight:500}
+.nav em{margin-left:auto;font-style:normal;font-size:12px}.dot{width:8px;height:8px;border-radius:50%;flex:none}
+.sep{height:1px;background:var(--ln);margin:10px 8px}
+.acct{margin-top:auto;display:flex;gap:10px;align-items:center;padding:10px;border:1px solid var(--ln);border-radius:10px;font-size:12.5px;background:var(--sf)}
+.acct .dot{background:var(--ok);box-shadow:0 0 0 3px color-mix(in srgb,var(--ok) 20%,transparent)}
+main{display:flex;flex-direction:column;min-width:0;height:100%;overflow:hidden}
+.top{display:flex;gap:10px;align-items:center;padding:14px 24px;border-bottom:1px solid var(--ln)}
+.seg{display:flex;background:var(--hv);border-radius:9px;padding:3px}.seg button{padding:5px 12px;border-radius:7px;font-weight:500;color:var(--mu)}.seg .on{background:var(--sf);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.search{flex:1;max-width:420px;padding:8px 12px;border:1px solid var(--ln);border-radius:9px;background:var(--sf)}
+.body{flex:1;display:grid;grid-template-columns:minmax(0,1fr);min-height:0}
+.body.split{grid-template-columns:minmax(300px,420px) minmax(0,1fr)}
+.col{overflow:auto;min-height:0}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:20px 24px 6px}
+.st{padding:12px 14px;border:1px solid var(--ln);border-radius:12px;background:var(--sf);text-align:left}
+.st:hover{border-color:var(--ink)}.st b{display:block;font-size:24px;font-weight:600;letter-spacing:-.02em}.st span{color:var(--mu);font-size:12.5px}
+.ask{margin:14px 24px 4px;padding:10px 12px;border:1px solid var(--ln);border-radius:12px;background:var(--sf)}
+.ask input{width:100%;border:0;background:none;outline:0}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.chip{padding:3px 10px;border-radius:99px;background:var(--hv);font-size:12.5px;color:var(--mu)}.chip:hover{color:var(--ink)}
+.ans{margin-top:10px;padding-top:10px;border-top:1px solid var(--ln)}
+.h{padding:16px 24px 6px;font-weight:600;font-size:15px;display:flex;justify-content:space-between;align-items:baseline}
+.row{display:grid;grid-template-columns:3px 1fr auto;gap:12px;padding:12px 24px 12px 21px;border-bottom:1px solid var(--ln);cursor:pointer;width:100%;text-align:left}
+.row:hover,.row.sel{background:var(--hv)}.row i{border-radius:3px;display:block}
+.row .l1{display:flex;gap:8px;align-items:baseline}.row .fr{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.row.un .fr,.row.un .sj{font-weight:600}
+.row .sj{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.row .pv{color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.row>div{min-width:0}.row .rt{text-align:right;font-size:12px;color:var(--mu);display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.tag{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:500;white-space:nowrap}
+.tag:before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.t-assistant{background:var(--ab);color:var(--a)}.t-client{background:var(--cb);color:var(--c)}.t-none{background:var(--nb);color:var(--n)}.t-review{background:var(--rb);color:var(--r)}
+.empty{padding:60px 24px;text-align:center;color:var(--mu)}.empty b{display:block;color:var(--ink);font-size:16px;margin-bottom:4px}
+/* detail */
+.det{padding:24px 28px 40px;max-width:760px}
+.back{display:none;margin-bottom:14px;color:var(--mu)}
+.det h2{font-size:22px;letter-spacing:-.02em;font-weight:600;margin:6px 0}
+.acts{display:flex;gap:6px;margin:14px 0 18px;flex-wrap:wrap}
+.own{display:flex;gap:4px;padding:3px;background:var(--hv);border-radius:10px;width:fit-content;flex-wrap:wrap}
+.own button{padding:4px 11px;border-radius:7px;color:var(--mu);font-weight:500;font-size:13px}.own .on{background:var(--sf);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.ai{border:1px solid var(--ln);border-radius:12px;padding:14px 16px;background:var(--sf);margin:16px 0}
+.ai h4{font-size:13px;font-weight:600;display:flex;gap:6px;align-items:center;margin-bottom:6px}
+.ai p+p{margin-top:8px}.conf{display:inline-block;width:60px;height:4px;border-radius:4px;background:var(--ln);vertical-align:middle;overflow:hidden;margin:0 6px}.conf i{display:block;height:100%;background:var(--ink)}
+.msg{padding:14px 0;border-top:1px solid var(--ln)}.msg .mh{display:flex;justify-content:space-between;margin-bottom:6px}.msg b{font-weight:600}
+.reply{margin-top:18px;border:1px solid var(--ln);border-radius:12px;background:var(--sf);overflow:hidden}
+.reply textarea{width:100%;min-height:120px;border:0;padding:14px 16px;resize:vertical;background:none;outline:0;line-height:1.55}
+.reply .rb{display:flex;justify-content:space-between;gap:8px;padding:10px 12px;border-top:1px solid var(--ln);background:var(--hv);align-items:center;flex-wrap:wrap}
+/* client */
+#cl{height:100%;overflow:auto}.cw{max-width:620px;margin:0 auto;padding:36px 20px 60px}
+.cw h1{font-size:28px;letter-spacing:-.025em;font-weight:600;margin-bottom:4px}
+.cc{border:1px solid var(--ln);background:var(--sf);border-radius:14px;padding:18px 20px;margin-top:14px}
+.cc .m{display:flex;justify-content:space-between;color:var(--mu);font-size:12.5px}.cc h3{font-size:17px;margin:4px 0 8px;font-weight:600}
+.why{margin-top:10px;padding:10px 12px;background:var(--cb);color:var(--ink);border-radius:9px;font-size:13px}
+.cc .ac{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}.thr{margin-top:12px;padding-top:12px;border-top:1px solid var(--ln);color:var(--mu);white-space:pre-line}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;opacity:0;transition:.25s;pointer-events:none;z-index:9}#toast.on{opacity:1;transform:translate(-50%,0)}
+.sk{height:64px;margin:10px 24px;border-radius:10px;background:linear-gradient(90deg,var(--hv),var(--ln),var(--hv));background-size:200% 100%;animation:sh 1.2s infinite}@keyframes sh{to{background-position:-200% 0}}
+@media(prefers-reduced-motion:reduce){.sk{animation:none}*{transition:none!important}}
+.mnav{display:none}
+@media(max-width:820px){
+#app{grid-template-columns:1fr}aside{display:none}
+.mnav{display:flex;gap:6px;overflow-x:auto;padding:10px 16px;border-bottom:1px solid var(--ln)}.mnav .chip{white-space:nowrap;padding:5px 12px}.mnav .chip.on{background:var(--ink);color:var(--bg)}
+.top{padding:12px 16px;flex-wrap:wrap}.search{order:3;max-width:none;flex-basis:100%}
+.stats{grid-template-columns:repeat(2,1fr);padding:14px 16px 4px}.ask{margin:12px 16px 4px}.h{padding:14px 16px 6px}.row{padding:12px 16px 12px 13px}
+.body.split{grid-template-columns:1fr}.body.split.open .lst{display:none}.body.split:not(.open) .dt{display:none}
+.back{display:block}.det{padding:16px}}
+</style></head><body>
+<div id="ob"><div class="obc" id="obc"></div></div>
+<div id="app" class="hide">
+<aside><div class="logo"><i></i>Relay</div><div id="nav"></div>
+<div class="acct"><span class="dot"></span><div><b id="acn">Gmail</b><div class="mu" id="acs">Synced just now</div></div></div></aside>
+<main>
+<div class="top"><div class="seg" id="mode"><button class="on" data-m="a">Assistant</button><button data-m="c">Client view</button></div>
+<input class="search" id="q" placeholder="Search conversations" aria-label="Search"><button class="btn" id="th" aria-label="Toggle theme">◐</button></div>
+<div class="mnav" id="mnav"></div>
+<div id="av" class="body"></div><div id="cl" class="hide"></div>
+</main></div><div id="toast" role="status"></div>
+<script>
+const $=s=>document.querySelector(s);
+const E=[
+{id:1,f:'Priya Nair',e:'priya@northwind.co',s:'Series B term sheet: your sign-off needed',t:'9:12 AM',u:1,c:'client',cf:96,im:1,sum:'Northwind’s counsel sent the final term sheet and wants a signed approval by Friday.',why:'Needs a personal approval on financial terms. Only the client can authorise this.',dt:'Deadline: Fri, Nov 20',th:[['Priya Nair','9:12 AM','Hi Maya, attached is the final term sheet. Please confirm you’re comfortable with the 18% allocation and sign off by Friday so we can close.']],dr:'Hi Priya,\n\nThanks for sending this over. I’ve reviewed the term sheet and will confirm the allocation by Thursday.\n\nBest,\nMaya'},
+{id:2,f:'Daniel Ortiz',e:'daniel@lumen.studio',s:'Can we move Thursday’s call?',t:'8:40 AM',u:1,c:'assistant',cf:94,m:1,sum:'Daniel asks to move Thursday’s 2:00 PM design review to Friday morning.',why:'Routine rescheduling. Maya’s calendar is open Friday 10:00–11:30 AM.',dt:'Proposed: Fri, Nov 20, 10:30 AM',th:[['Daniel Ortiz','8:40 AM','Something came up on our side. Could we do Friday morning instead? Any time before noon works.']],dr:'Hi Daniel,\n\nNo problem. Friday at 10:30 AM works well. I’ll send an updated invite shortly.\n\nBest,\nAlex (for Maya)'},
+{id:3,f:'Sofia Lindqvist',e:'sofia@gravity.vc',s:'Intro to Marcus at Helix?',t:'Yesterday',u:1,c:'review',cf:48,im:1,sum:'Sofia offers an intro to Marcus Hale at Helix and asks if Maya wants it.',why:'Could be a personal networking decision or a simple yes. Confidence is low, so it needs your review.',th:[['Sofia Lindqvist','Yesterday','Marcus is raising a round and keeps asking about you. Want me to connect you two?']],dr:'Hi Sofia,\n\nThank you, an intro would be great. Please go ahead.\n\nBest,\nAlex (for Maya)'},
+{id:4,f:'Stripe',e:'receipts@stripe.com',s:'Your October invoice is ready',t:'Yesterday',c:'none',cf:99,sum:'Automated invoice for $412.00. Already paid.',why:'Automated notification. No response expected.',th:[['Stripe','Yesterday','Your invoice for October is available.']]},
+{id:5,f:'Hannah Cole',e:'hannah@brightpath.org',s:'Speaker details for the March summit',t:'Mon',c:'assistant',cf:88,w:1,sum:'Hannah needs a headshot, bio and A/V requirements. Alex already sent a bio; headshot is outstanding.',why:'Administrative follow-up the assistant started. Waiting on the client’s headshot.',dt:'Due: Dec 1',th:[['Hannah Cole','Mon','Could you send the headshot and A/V needs?'],['Alex (you)','Mon','Bio attached. Headshot coming this week.']],dr:'Hi Hannah,\n\nAttached is Maya’s headshot. A/V needs: one lavalier mic and a clicker.\n\nBest,\nAlex'},
+{id:6,f:'Marco Bianchi',e:'marco@vetta.it',s:'Re: Contract renewal terms',t:'Mon',c:'client',cf:91,im:1,sum:'Marco counters the renewal price and asks Maya to speak directly about a 12% increase.',why:'Sensitive commercial negotiation that explicitly asks for Maya.',th:[['Marco Bianchi','Mon','Maya, I’d prefer to settle the price between us. Can we talk this week?']],dr:'Hi Marco,\n\nHappy to talk. I’m free Wednesday afternoon.\n\nBest,\nMaya'},
+{id:7,f:'Morning Brew',e:'news@morningbrew.com',s:'Markets rally as rates hold',t:'Sun',c:'none',cf:99,sum:'Daily newsletter.',why:'Newsletter. No reply needed.',th:[['Morning Brew','Sun','Today’s top stories.']]},
+{id:8,f:'Leah Park',e:'leah@oakandco.com',s:'Dinner on the 24th, confirmed',t:'Sun',c:'none',cf:90,m:1,sum:'Leah confirmed dinner on Nov 24 at 7:30 PM at Oak & Co.',why:'Already resolved. Added to the calendar.',dt:'Tue, Nov 24, 7:30 PM',th:[['Leah Park','Sun','Booked. See you at 7:30!']]},
+{id:9,f:'Tom Reyes',e:'tom@acme.io',s:'Invoice #2041 still unpaid',t:'Fri',c:'assistant',cf:85,w:1,sum:'Second reminder. Invoice of $2,800 is 12 days overdue.',why:'Routine finance follow-up the assistant can handle.',th:[['Tom Reyes','Fri','Following up on invoice 2041.']],dr:'Hi Tom,\n\nApologies for the delay. Payment will go out Monday.\n\nBest,\nAlex'}];
+const L={assistant:'Assistant to reply',client:'Client to reply',none:'No reply needed',review:'Needs review'};
+const col={assistant:'--a',client:'--c',none:'--n',review:'--r'};
+const SEG=[['all','All mail'],['review','Needs review','review'],['assistant','Assistant to reply','assistant'],['client','Client to reply','client'],['none','No reply needed','none'],['wait','Waiting for response'],['meet','Meetings'],['imp','Important'],['arch','Archived']];
+let seg='all',sel=null,q='',mode='a',ans=null;
+const flt={all:e=>1,wait:e=>e.w,meet:e=>e.m,imp:e=>e.im,arch:e=>0};
+const live=()=>E.filter(e=>!e.ar&&!e.dn);
+function inSeg(e,s){if(s==='arch')return e.ar;if(e.ar)return 0;if(s==='all')return !e.dn;if(['review','assistant','client','none'].includes(s))return e.c===s&&!e.dn;return !e.dn&&flt[s](e)}
+function toast(t){const x=$('#toast');x.textContent=t;x.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>x.classList.remove('on'),2200)}
+const tag=c=>`<span class="tag t-${c}">${L[c]}</span>`;
+/* onboarding */
+function ob(n,p){const o=$('#obc');
+if(n===0)o.innerHTML=`<div class="logo"><i></i>Relay</div><h1>Every inbox, with a clear owner for each reply.</h1><p>Connect your client’s email. Relay reads each conversation and tells you who should answer it.</p><button class="btn p" style="width:100%;padding:12px" onclick="ob(1)">Get started</button><p style="margin:14px 0 0;font-size:13px;text-align:center">Prototype: sample data, simulated connection and AI.</p>`;
+if(n===1)o.innerHTML=`<div class="logo"><i></i>Relay</div><h1>Connect an email account</h1><p>You can add more accounts later in Settings.</p><button class="prov" onclick="ob(2,'Gmail')"><b>G</b><span>Gmail<small>Google Workspace or personal</small></span>›</button><button class="prov" onclick="ob(2,'Outlook')"><b>O</b><span>Outlook<small>Microsoft 365 or Outlook.com</small></span>›</button>`;
+if(n===2){o.innerHTML=`<div class="logo"><i></i>Relay</div><h1>Connecting ${p}</h1><p>Relay requests read and draft access only. Nothing is sent without your approval.</p><div class="bar"><div id="pb"></div></div><div class="steps" id="stp"><div>Authorising ${p}</div><div>Syncing 1,284 conversations</div><div>Classifying who should reply</div></div><button class="btn p hide" id="go" style="width:100%;padding:12px">Open inbox</button>`;
+$('#acn').textContent=p+' · maya@northwind.co';
+[1,2,3].forEach((k,i)=>setTimeout(()=>{$('#pb').style.width=k*33.4+'%';$('#stp').children[i].classList.add('d');if(k===3){$('#go').classList.remove('hide');$('#go').onclick=start}},900*(i+1)))}}
+function start(){$('#ob').classList.add('hide');$('#app').classList.remove('hide');
+$('#av').innerHTML='<div class="sk"></div><div class="sk"></div><div class="sk"></div>';setTimeout(render,700)}
+/* render */
+function navs(){const h=SEG.map(([k,l,c])=>`<button class="nav ${seg===k?'on':''}" onclick="go('${k}')">${c?`<span class="dot" style="background:var(${col[c]})"></span>`:'<span class="dot" style="background:var(--ln)"></span>'}${l}<em>${E.filter(e=>inSeg(e,k)).length||''}</em></button>${k==='none'?'<div class="sep"></div>':''}`).join('');
+$('#nav').innerHTML=h;$('#mnav').innerHTML=SEG.map(([k,l])=>`<button class="chip ${seg===k?'on':''}" onclick="go('${k}')">${l}</button>`).join('')}
+function go(k){seg=k;sel=null;render()}
+function list(){let r=E.filter(e=>inSeg(e,seg));if(q)r=r.filter(e=>(e.f+e.s+e.sum).toLowerCase().includes(q));if(ans)r=ans.ids?r.filter(e=>ans.ids.includes(e.id)):r;return r}
+function rowH(e){return `<button class="row ${e.u?'un':''} ${sel===e.id?'sel':''}" onclick="open_(${e.id})"><i style="background:var(${col[e.c]})"></i><div><div class="l1"><span class="fr">${e.f}</span></div><div class="sj">${e.s}</div><div class="pv">${e.sum}</div></div><div class="rt"><span>${e.t}</span>${tag(e.c)}</div></button>`}
+function render(){navs();if(mode==='c')return client();$('#cl').classList.add('hide');const a=$('#av');a.classList.remove('hide');
+const n=k=>E.filter(e=>inSeg(e,k)).length,un=live().filter(e=>e.u).length,r=list();
+const dash=seg==='all'&&!sel&&!q&&!ans;
+a.className='body'+(sel?' split open':'');
+const lst=`${dash?`<div class="stats">${[['Unread',un,'all'],['Assistant to reply',n('assistant'),'assistant'],['Client to reply',n('client'),'client'],['Needs review',n('review'),'review']].map(([l,v,k])=>`<button class="st" onclick="go('${k}')"><b>${v}</b><span>${l}</span></button>`).join('')}</div>`:''}
+${sel?'':`<div class="ask"><input id="ai" placeholder="Ask about your inbox…" aria-label="Ask AI" onkeydown="if(event.key==='Enter')ask(this.value)"><div class="chips">${['What needs the client’s attention?','What am I waiting on?','Which emails need review?'].map(x=>`<button class="chip" onclick="ask('${x}')">${x}</button>`).join('')}</div>${ans?`<div class="ans">${ans.t}</div>`:''}</div>`}
+<div class="h"><span>${SEG.find(s=>s[0]===seg)[1]}</span><span class="mu" style="font-weight:400">${r.length}</span></div>
+${r.length?r.map(rowH).join(''):`<div class="empty"><b>${seg==='all'?'Nothing matches':'You’re all clear here'}</b>${q?'Try a different search.':'New conversations land here after sync.'}</div>`}`;
+a.innerHTML=sel?`<div class="col lst">${lst}</div><div class="col dt">${detail(E.find(e=>e.id===sel))}</div>`:`<div class="col">${lst}</div>`;}
+function open_(id){sel=id;const e=E.find(x=>x.id===id);e.u=0;render()}
+function detail(e){return `<div class="det"><button class="back" onclick="sel=null;render()">‹ Back</button>
+<div class="mu">${e.f} · ${e.e}</div><h2>${e.s}</h2>
+<div class="own" role="group" aria-label="Reply owner">${Object.keys(L).map(k=>`<button class="${e.c===k?'on':''}" onclick="setC(${e.id},'${k}')">${L[k]}</button>`).join('')}</div>
+<div class="acts"><button class="btn" onclick="tg(${e.id},'im')">${e.im?'★ Important':'☆ Mark important'}</button><button class="btn" onclick="tg(${e.id},'u')">Mark unread</button><button class="btn" onclick="tg(${e.id},'ar')">Archive</button><button class="btn" onclick="tg(${e.id},'dn')">Mark done</button></div>
+<div class="ai"><h4>✦ AI summary<span class="conf" title="Confidence ${e.cf}%"><i style="width:${e.cf}%"></i></span><span class="mu" style="font-weight:400">${e.cf}% sure</span></h4><p>${e.sum}</p><p class="mu"><b style="color:var(--ink);font-weight:500">Why ${L[e.c].toLowerCase()}:</b> ${e.why}</p>${e.dt?`<p class="mu">${e.dt}</p>`:''}</div>
+${e.th.map(m=>`<div class="msg"><div class="mh"><b>${m[0]}</b><span class="mu">${m[1]}</span></div>${m[2]}</div>`).join('')}
+${e.dr?`<div class="reply"><textarea id="rt" placeholder="Write a reply…" aria-label="Reply">${e.sent?'':(e.show?e.dr:'')}</textarea><div class="rb"><button class="btn" onclick="draft(${e.id})">✦ Draft with AI</button><span class="mu" style="font-size:12.5px">You review before anything is sent</span><button class="btn p" onclick="send(${e.id})">Approve &amp; send</button></div></div>`:''}</div>`}
+function setC(id,c){const e=E.find(x=>x.id===id);e.c=c;e.cf=100;e.why='Set manually by you.';toast('Moved to '+L[c]);render()}
+function tg(id,k){const e=E.find(x=>x.id===id);e[k]=!e[k];if(k==='ar'||k==='dn'){sel=null;toast(k==='ar'?'Archived':'Marked done')}render()}
+function draft(id){const e=E.find(x=>x.id===id),t=$('#rt');t.value='';let i=0;e.show=1;const iv=setInterval(()=>{t.value=e.dr.slice(0,i+=4);if(i>e.dr.length){clearInterval(iv);toast('Draft ready to review')}},14)}
+function send(id){const t=$('#rt');if(!t.value.trim()){toast('Write or draft a reply first');return}const e=E.find(x=>x.id===id);e.th.push(['You',' now',t.value.replace(/\n/g,'<br>')]);e.dr=null;if(e.c!=='none')e.c='none';e.w=1;toast('Reply sent');render()}
+function ask(v){const ql=v.toLowerCase();let ids,t;
+if(/client|attention|my/.test(ql)){ids=E.filter(e=>e.c==='client'&&!e.dn&&!e.ar).map(e=>e.id);t='2 conversations need Maya personally: the Series B approval (due Friday) and Marco’s contract talk.'}
+else if(/wait/.test(ql)){ids=E.filter(e=>e.w&&!e.dn).map(e=>e.id);t='You’re waiting on Hannah (headshot) and Tom Reyes (overdue invoice).'}
+else if(/review|unsure/.test(ql)){ids=E.filter(e=>e.c==='review').map(e=>e.id);t='1 conversation is low confidence: Sofia’s intro offer.'}
+else{ids=null;t='I’m a simulated assistant in this prototype. Try one of the suggestions above.'}
+ans={ids,t};seg='all';render()}
+/* client */
+function client(){$('#av').classList.add('hide');const c=$('#cl');c.classList.remove('hide');
+const r=E.filter(e=>e.c==='client'&&!e.dn&&!e.ar);
+c.innerHTML=`<div class="cw"><div class="logo" style="margin-bottom:28px"><i></i>Relay</div><h1>Good morning, Maya</h1><p class="mu">${r.length?`${r.length} ${r.length>1?'messages need':'message needs'} you. Alex has handled the rest.`:'Nothing needs you right now.'}</p>
+${r.map(e=>`<div class="cc"><div class="m"><span>${e.f}</span><span>${e.t}</span></div><h3>${e.s}</h3><div>${e.sum}</div><div class="why"><b>Why you:</b> ${e.why}</div>
+<div class="ac"><button class="btn p" onclick="ch(${e.id},'dn')">Mark handled</button><button class="btn" onclick="ch(${e.id},'as')">Let Alex take over</button><button class="btn" onclick="this.closest('.cc').querySelector('.thr').classList.toggle('hide')">View thread</button></div><div class="thr hide">${e.th.map(m=>m[0]+': '+m[2]).join('\n\n')}</div></div>`).join('')||`<div class="empty"><b>You’re all caught up</b>We’ll let you know when something needs you.</div>`}</div>`}
+function ch(id,a){const e=E.find(x=>x.id===id);if(a==='dn'){e.dn=1;toast('Marked handled. Alex can see this.')}else{e.c='assistant';e.why='Client asked the assistant to take over.';toast('Alex will take it from here')}client();navs()}
+/* events */
+$('#mode').onclick=e=>{const m=e.target.dataset.m;if(!m)return;mode=m;[...$('#mode').children].forEach(b=>b.classList.toggle('on',b.dataset.m===m));$('.mnav').style.display=m==='c'?'none':'';render()};
+$('#q').oninput=e=>{q=e.target.value.toLowerCase();if(mode==='a')render();$('#q').focus()};
+$('#th').onclick=()=>{const d=document.documentElement,dk=getComputedStyle(d).getPropertyValue('--bg').trim()==='#0e0f11';d.dataset.theme=dk?'light':'dark'};
+ob(0);
+</script></body></html>
