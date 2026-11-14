@@ -1,5 +1,98 @@
-import React,{useState} from 'react';
-import {useQueryClient} from '@tanstack/react-query';
-import {api} from '../api';
-import {Logo} from '../components/Common';
-export default function Auth(){const cache=useQueryClient();const [signup,setSignup]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');async function submit(e){e.preventDefault();setBusy(true);setError('');const body=Object.fromEntries(new FormData(e.target));try{const user=await api('/auth/'+(signup?'signup':'login'),{method:'POST',body});cache.setQueryData(['/auth/me'],user);}catch(err){setError(err.message)}finally{setBusy(false)}}return <div id="ob"><div className="obc"><Logo/><h1>{signup?'Every inbox, with a clear owner for each reply.':'Welcome back.'}</h1><p>{signup?'Create your assistant account.':'Sign in to your Relay inbox.'}</p><form onSubmit={submit}>{signup&&<label>Name<input className="field" name="name" required autoComplete="name" maxLength={100}/></label>}<label>Email<input className="field" type="email" name="email" required autoComplete="username" defaultValue="alex@demo.com"/></label><label>Password<input className="field" type="password" name="password" required minLength={8} maxLength={72} autoComplete={signup?'new-password':'current-password'} defaultValue="demo1234"/></label>{error&&<p role="alert">{error}</p>}<button className="btn p" style={{width:'100%'}} disabled={busy}>{busy?'Please wait…':signup?'Create account':'Sign in'}</button></form><div className="auth-actions"><button className="btn" onClick={()=>setSignup(!signup)}>{signup?'Already have an account?':'Create an assistant account'}</button></div><p style={{marginTop:18,fontSize:13}}>Demo: alex@demo.com or maya@demo.com · demo1234<br/>Prototype: simulated connection and email delivery.</p></div></div>}
+import React, { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { api } from "../api";
+import { Logo } from "../components/Common";
+export default function Auth() {
+  const cache = useQueryClient();
+  const [signup, setSignup] = useState(false),
+    [busy, setBusy] = useState(false),
+    [error, setError] = useState("");
+  async function submit(e) {
+    e.preventDefault();
+    setBusy(true);
+    setError("");
+    const body = Object.fromEntries(new FormData(e.target));
+    try {
+      const user = await api("/auth/" + (signup ? "signup" : "login"), {
+        method: "POST",
+        body,
+      });
+      cache.setQueryData(["/auth/me"], user);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <div id="ob">
+      <div className="obc">
+        <Logo />
+        <h1>
+          {signup
+            ? "Every inbox, with a clear owner for each reply."
+            : "Welcome back."}
+        </h1>
+        <p>
+          {signup
+            ? "Create your assistant account."
+            : "Sign in to your Relay inbox."}
+        </p>
+        <form onSubmit={submit}>
+          {signup && (
+            <label>
+              Name
+              <input
+                className="field"
+                name="name"
+                required
+                autoComplete="name"
+                maxLength={100}
+              />
+            </label>
+          )}
+          <label>
+            Email
+            <input
+              className="field"
+              type="email"
+              name="email"
+              required
+              autoComplete="username"
+              defaultValue="alex@demo.com"
+            />
+          </label>
+          <label>
+            Password
+            <input
+              className="field"
+              type="password"
+              name="password"
+              required
+              minLength={8}
+              maxLength={72}
+              autoComplete={signup ? "new-password" : "current-password"}
+              defaultValue="demo1234"
+            />
+          </label>
+          {error && <p role="alert">{error}</p>}
+          <button className="btn p" style={{ width: "100%" }} disabled={busy}>
+            {busy ? "Please wait…" : signup ? "Create account" : "Sign in"}
+          </button>
+        </form>
+        <div className="auth-actions">
+          <button className="btn" onClick={() => setSignup(!signup)}>
+            {signup
+              ? "Already have an account?"
+              : "Create an assistant account"}
+          </button>
+        </div>
+        <p style={{ marginTop: 18, fontSize: 13 }}>
+          Demo: alex@demo.com or maya@demo.com · demo1234
+          <br />
+          Prototype: simulated connection and email delivery.
+        </p>
+      </div>
+    </div>
+  );
+}

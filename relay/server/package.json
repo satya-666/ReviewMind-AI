@@ -2,7 +2,7 @@
   "name": "relay-server",
   "type": "module",
   "scripts": {
-    "dev": "node --watch index.js",
+    "dev": "node index.js",
     "start": "node index.js",
     "seed": "node seed.js",
     "test": "node --test test.js"

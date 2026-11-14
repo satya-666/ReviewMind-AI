@@ -1,23 +1,256 @@
-import {test,before,after} from 'node:test';
-import assert from 'node:assert/strict';
-import mongoose from 'mongoose';
-import request from 'supertest';
-import {classifyMock} from './ai/mock.js';
-import {classify,ask} from './ai/service.js';
-import {createApp} from './app.js';
-import {seed} from './seed.js';
-import {User,Client,EmailAccount,Thread,Message,Draft} from './models.js';
-process.env.JWT_SECRET='relay-test-secret-is-at-least-32-characters';
-process.env.AI_API_KEY='';
-let app,alex,maya,other;
-before(async()=>{const uri=process.env.TEST_MONGODB_URI||'mongodb://127.0.0.1:27019/relay_test';if(!/\/relay_test(?:\?|$)/.test(uri))throw new Error('Tests require a database named relay_test');await mongoose.connect(uri);await mongoose.connection.dropDatabase();await seed();app=createApp();alex=request.agent(app);maya=request.agent(app);other=request.agent(app);await alex.post('/api/auth/login').send({email:'alex@demo.com',password:'demo1234'}).expect(200);await maya.post('/api/auth/login').send({email:'maya@demo.com',password:'demo1234'}).expect(200);});
-after(async()=>{await mongoose.connection.dropDatabase();await mongoose.disconnect();});
-test('classification distinguishes routine, automated, personal and ambiguous email',async()=>{const input=text=>({thread:{subject:text},messages:[{body:text,direction:'inbound'}],client:{name:'Maya'}});assert.equal(classifyMock(input('Automated receipt already paid')).owner,'none');assert.equal(classifyMock(input('Can we reschedule our call?')).owner,'assistant');assert.equal(classifyMock(input('Need your sign-off on allocation')).owner,'client');assert.equal((await classify(input('Intro to Marcus?'))).owner,'review');const outgoing=input('approval');outgoing.messages[0].direction='outbound';assert.equal((await classify(outgoing)).waiting,true);});
-test('seed is idempotent and assigns owner, reason, confidence to 25 threads',async()=>{await seed();assert.equal(await Thread.countDocuments(),25);assert.equal(await User.countDocuments(),2);const list=(await alex.get('/api/threads').expect(200)).body;assert.equal(list.length,25);assert.ok(list.every(t=>t.classification.reason&&typeof t.classification.confidence==='number'));assert.ok(list.some(t=>t.classification.owner==='review'));});
-test('unauthenticated access, role escalation and cross-tenant reads are rejected',async()=>{await request(app).get('/api/threads').expect(401);await maya.get('/api/threads').expect(403);await other.post('/api/auth/signup').send({name:'Other',email:'other@example.com',password:'password123',role:'assistant'}).expect(201);const id=(await Thread.findOne()).id;await other.get('/api/threads/'+id).expect(404);await other.post('/api/ai/draft/'+id).expect(404);await other.patch('/api/threads/'+id).send({important:true}).expect(404);assert.deepEqual((await other.get('/api/threads')).body,[]);const nonclient=await Thread.findOne({'classification.owner':'assistant'});await maya.get('/api/threads/'+nonclient.id).expect(404);await request(app).post('/api/auth/signup').send({name:'Attacker',email:'bad@example.com',password:'password123',role:'client',clientId:(await Client.findOne()).id}).expect(400);});
-test('manual assignment survives sync; inbound context changes force review',async()=>{const t=await Thread.findOne({'classification.owner':'assistant'});await alex.patch('/api/threads/'+t.id).send({classification:{owner:'client'}}).expect(200);await alex.post('/api/ai/classify/'+t.id).expect(200);let refreshed=(await alex.get('/api/threads/'+t.id)).body;assert.equal(refreshed.classification.source,'manual');assert.equal(refreshed.classification.confidence,100);await alex.post('/api/dev/incoming').send({threadId:t.id,body:'Updated requirements. Can you approve the allocation?'}).expect(201);refreshed=(await alex.get('/api/threads/'+t.id)).body;assert.equal(refreshed.classification.owner,'review');assert.match(refreshed.classification.reason,/new inbound/i);});
-test('client handoff and handled actions update assistant counts and activity',async()=>{let t=await Thread.findOne({'classification.owner':'client'});const old=(await alex.get('/api/stats')).body.client;await maya.post('/api/client/threads/'+t.id+'/handoff').expect(200);assert.equal((await alex.get('/api/stats')).body.client,old-1);let detail=(await alex.get('/api/threads/'+t.id)).body;assert.equal(detail.classification.owner,'assistant');assert.ok(detail.activity.some(a=>a.actor==='client'&&a.action==='Handed off to assistant'));t=await Thread.findOne({'classification.owner':'client'});await maya.post('/api/client/threads/'+t.id+'/handled').expect(200);assert.ok(!(await maya.get('/api/client/threads')).body.some(x=>x._id===t.id));});
-test('draft generation does not send; reply requires approval and preserves edited text',async()=>{const t=await Thread.findOne({'classification.owner':'assistant'});const before=await Message.countDocuments({threadId:t._id});await alex.post('/api/ai/draft/'+t.id).expect(200);assert.equal(await Message.countDocuments({threadId:t._id}),before);await alex.post('/api/threads/'+t.id+'/reply').send({body:'Edited reply'}).expect(400);await alex.post('/api/threads/'+t.id+'/reply').send({body:'Edited reply',approved:true}).expect(200);const detail=(await alex.get('/api/threads/'+t.id)).body;assert.equal(detail.messages.at(-1).body,'Edited reply');assert.equal(detail.waiting,true);assert.equal((await Draft.findOne({threadId:t._id})).status,'sent');});
-test('ask examples return only relevant authorized IDs and explain reasons',async()=>{for(const question of ['What needs the client’s attention?','What am I waiting on?','Which emails need review?','Why was this email assigned to the client?']){const response=(await alex.post('/api/ai/ask').send({question}).expect(200)).body;assert.equal(typeof response.answer,'string');assert.ok(Array.isArray(response.threadIds));assert.ok(response.threadIds.length);}assert.deepEqual((await other.post('/api/ai/ask').send({question:'client'})).body.threadIds,[]);});
-test('validation, search escaping, cookie policy and CSRF origin checks',async()=>{await alex.patch('/api/threads/not-an-id').send({done:true}).expect(400);await alex.post('/api/dev/incoming').send({body:''}).expect(400);await alex.get('/api/threads?q=%5B').expect(200);await alex.post('/api/dev/incoming').set('Origin','https://evil.example').send({}).expect(403);const response=await request(app).post('/api/auth/login').send({email:'alex@demo.com',password:'demo1234'});assert.match(response.headers['set-cookie'][0],/HttpOnly/);assert.match(response.headers['set-cookie'][0],/SameSite=Lax/);});
-test('signup, simulated provider connect and sync, then disconnect',async()=>{const account=(await other.post('/api/accounts/connect').send({provider:'outlook'}).expect(201)).body;let status;for(let i=0;i<100;i++){await new Promise(r=>setTimeout(r,50));status=(await other.get('/api/accounts')).body[0].status;if(status!=='syncing')break;}assert.equal(status,'connected');assert.equal((await other.get('/api/threads')).body.length,25);await alex.delete('/api/accounts/'+account._id).expect(404);await other.delete('/api/accounts/'+account._id).expect(200);assert.equal((await other.get('/api/threads')).body.length,0);});
+import { test, before, after } from "node:test";
+import assert from "node:assert/strict";
+import mongoose from "mongoose";
+import request from "supertest";
+import { classifyMock } from "./ai/mock.js";
+import { classify, ask } from "./ai/service.js";
+import { createApp } from "./app.js";
+import { seed } from "./seed.js";
+import {
+  User,
+  Client,
+  EmailAccount,
+  Thread,
+  Message,
+  Draft,
+} from "./models.js";
+process.env.JWT_SECRET = "relay-test-secret-is-at-least-32-characters";
+process.env.AI_API_KEY = "";
+let app, alex, maya, other;
+before(async () => {
+  const uri =
+    process.env.TEST_MONGODB_URI || "mongodb://127.0.0.1:27019/relay_test";
+  if (!/\/relay_test(?:\?|$)/.test(uri))
+    throw new Error("Tests require a database named relay_test");
+  await mongoose.connect(uri);
+  await mongoose.connection.dropDatabase();
+  await seed();
+  app = createApp();
+  alex = request.agent(app);
+  maya = request.agent(app);
+  other = request.agent(app);
+  await alex
+    .post("/api/auth/login")
+    .send({ email: "alex@demo.com", password: "demo1234" })
+    .expect(200);
+  await maya
+    .post("/api/auth/login")
+    .send({ email: "maya@demo.com", password: "demo1234" })
+    .expect(200);
+});
+after(async () => {
+  await mongoose.connection.dropDatabase();
+  await mongoose.disconnect();
+});
+test("classification distinguishes routine, automated, personal and ambiguous email", async () => {
+  const input = (text) => ({
+    thread: { subject: text },
+    messages: [{ body: text, direction: "inbound" }],
+    client: { name: "Maya" },
+  });
+  assert.equal(
+    classifyMock(input("Automated receipt already paid")).owner,
+    "none",
+  );
+  assert.equal(
+    classifyMock({
+      thread: { subject: "Your October invoice is ready" },
+      messages: [
+        {
+          from: "Stripe",
+          body: "Your invoice for October is available.",
+          direction: "inbound",
+        },
+      ],
+      client: { name: "Maya" },
+    }).owner,
+    "none",
+  );
+  assert.equal(
+    classifyMock(input("Can we reschedule our call?")).owner,
+    "assistant",
+  );
+  assert.equal(
+    classifyMock(input("Need your sign-off on allocation")).owner,
+    "client",
+  );
+  assert.equal((await classify(input("Intro to Marcus?"))).owner, "review");
+  const outgoing = input("approval");
+  outgoing.messages[0].direction = "outbound";
+  assert.equal((await classify(outgoing)).waiting, true);
+});
+test("seed is idempotent and assigns owner, reason, confidence to 25 threads", async () => {
+  await seed();
+  assert.equal(await Thread.countDocuments(), 25);
+  assert.equal(await User.countDocuments(), 2);
+  const list = (await alex.get("/api/threads").expect(200)).body;
+  assert.equal(list.length, 25);
+  assert.ok(
+    list.every(
+      (t) =>
+        t.classification.reason &&
+        typeof t.classification.confidence === "number",
+    ),
+  );
+  assert.ok(list.some((t) => t.classification.owner === "review"));
+});
+test("unauthenticated access, role escalation and cross-tenant reads are rejected", async () => {
+  await request(app).get("/api/threads").expect(401);
+  await maya.get("/api/threads").expect(403);
+  await other
+    .post("/api/auth/signup")
+    .send({
+      name: "Other",
+      email: "other@example.com",
+      password: "password123",
+      role: "assistant",
+    })
+    .expect(201);
+  const id = (await Thread.findOne()).id;
+  await other.get("/api/threads/" + id).expect(404);
+  await other.post("/api/ai/draft/" + id).expect(404);
+  await other
+    .patch("/api/threads/" + id)
+    .send({ important: true })
+    .expect(404);
+  assert.deepEqual((await other.get("/api/threads")).body, []);
+  const nonclient = await Thread.findOne({
+    "classification.owner": "assistant",
+  });
+  await maya.get("/api/threads/" + nonclient.id).expect(404);
+  await request(app)
+    .post("/api/auth/signup")
+    .send({
+      name: "Attacker",
+      email: "bad@example.com",
+      password: "password123",
+      role: "client",
+      clientId: (await Client.findOne()).id,
+    })
+    .expect(400);
+});
+test("manual assignment survives sync; inbound context changes force review", async () => {
+  const t = await Thread.findOne({ "classification.owner": "assistant" });
+  await alex
+    .patch("/api/threads/" + t.id)
+    .send({ classification: { owner: "client" } })
+    .expect(200);
+  await alex.post("/api/ai/classify/" + t.id).expect(200);
+  let refreshed = (await alex.get("/api/threads/" + t.id)).body;
+  assert.equal(refreshed.classification.source, "manual");
+  assert.equal(refreshed.classification.confidence, 100);
+  await alex
+    .post("/api/dev/incoming")
+    .send({
+      threadId: t.id,
+      body: "Updated requirements. Can you approve the allocation?",
+    })
+    .expect(201);
+  refreshed = (await alex.get("/api/threads/" + t.id)).body;
+  assert.equal(refreshed.classification.owner, "review");
+  assert.match(refreshed.classification.reason, /new inbound/i);
+});
+test("client handoff and handled actions update assistant counts and activity", async () => {
+  let t = await Thread.findOne({ "classification.owner": "client" });
+  const old = (await alex.get("/api/stats")).body.client;
+  await maya.post("/api/client/threads/" + t.id + "/handoff").expect(200);
+  assert.equal((await alex.get("/api/stats")).body.client, old - 1);
+  let detail = (await alex.get("/api/threads/" + t.id)).body;
+  assert.equal(detail.classification.owner, "assistant");
+  assert.ok(
+    detail.activity.some(
+      (a) => a.actor === "client" && a.action === "Handed off to assistant",
+    ),
+  );
+  t = await Thread.findOne({ "classification.owner": "client" });
+  await maya.post("/api/client/threads/" + t.id + "/handled").expect(200);
+  assert.ok(
+    !(await maya.get("/api/client/threads")).body.some((x) => x._id === t.id),
+  );
+});
+test("draft generation does not send; reply requires approval and preserves edited text", async () => {
+  const t = await Thread.findOne({ "classification.owner": "assistant" });
+  const before = await Message.countDocuments({ threadId: t._id });
+  await alex.post("/api/ai/draft/" + t.id).expect(200);
+  assert.equal(await Message.countDocuments({ threadId: t._id }), before);
+  await alex
+    .post("/api/threads/" + t.id + "/reply")
+    .send({ body: "Edited reply" })
+    .expect(400);
+  await alex
+    .post("/api/threads/" + t.id + "/reply")
+    .send({ body: "Edited reply", approved: true })
+    .expect(200);
+  const detail = (await alex.get("/api/threads/" + t.id)).body;
+  assert.equal(detail.messages.at(-1).body, "Edited reply");
+  assert.equal(detail.waiting, true);
+  assert.equal((await Draft.findOne({ threadId: t._id })).status, "sent");
+});
+test("ask examples return only relevant authorized IDs and explain reasons", async () => {
+  for (const question of [
+    "What needs the client’s attention?",
+    "What am I waiting on?",
+    "Which emails need review?",
+    "Why was this email assigned to the client?",
+  ]) {
+    const response = (
+      await alex.post("/api/ai/ask").send({ question }).expect(200)
+    ).body;
+    assert.equal(typeof response.answer, "string");
+    assert.ok(Array.isArray(response.threadIds));
+    assert.ok(response.threadIds.length);
+  }
+  assert.deepEqual(
+    (await other.post("/api/ai/ask").send({ question: "client" })).body
+      .threadIds,
+    [],
+  );
+});
+test("validation, search escaping, cookie policy and CSRF origin checks", async () => {
+  await alex.patch("/api/threads/not-an-id").send({ done: true }).expect(400);
+  await alex.post("/api/dev/incoming").send({ body: "" }).expect(400);
+  await alex.get("/api/threads?q=%5B").expect(200);
+  await alex
+    .post("/api/dev/incoming")
+    .set("Origin", "https://evil.example")
+    .send({})
+    .expect(403);
+  const response = await request(app)
+    .post("/api/auth/login")
+    .send({ email: "alex@demo.com", password: "demo1234" });
+  assert.match(response.headers["set-cookie"][0], /HttpOnly/);
+  assert.match(response.headers["set-cookie"][0], /SameSite=Lax/);
+});
+test("signup, simulated provider connect and sync, then disconnect", async () => {
+  const account = (
+    await other
+      .post("/api/accounts/connect")
+      .send({ provider: "outlook" })
+      .expect(201)
+  ).body;
+  let status;
+  for (let i = 0; i < 100; i++) {
+    await new Promise((r) => setTimeout(r, 50));
+    status = (await other.get("/api/accounts")).body[0].status;
+    if (status !== "syncing") break;
+  }
+  assert.equal(status, "connected");
+  assert.equal((await other.get("/api/threads")).body.length, 25);
+  await alex.delete("/api/accounts/" + account._id).expect(404);
+  await other.delete("/api/accounts/" + account._id).expect(200);
+  assert.equal((await other.get("/api/threads")).body.length, 0);
+});
+
+test('invalid provider JSON retries once and falls back to review', async () => {
+ const originalFetch = globalThis.fetch;
+ const originalKey = process.env.AI_API_KEY;
+ let calls = 0;
+ process.env.AI_API_KEY = 'test-key-never-sent';
+ globalThis.fetch = async () => {calls++;return {ok:true,json:async()=>({choices:[{message:{content:'{"owner":"invalid"}'}}]})};};
+ try {
+  const result=await classify({thread:{subject:'Scheduling'},messages:[{body:'Can we meet?',direction:'inbound'}],client:{name:'Maya'}});
+  assert.equal(calls,2);assert.equal(result.owner,'review');assert.equal(result.confidence,0);
+  globalThis.fetch=async()=>({ok:true,json:async()=>({choices:[{message:{content:JSON.stringify({answer:'One thread',threadIds:['owned','invented']})}}]})});
+  assert.deepEqual((await ask('client',[{id:'owned',subject:'Approval',owner:'client'}])).threadIds,['owned']);
+ } finally {globalThis.fetch=originalFetch;process.env.AI_API_KEY=originalKey;}
+});

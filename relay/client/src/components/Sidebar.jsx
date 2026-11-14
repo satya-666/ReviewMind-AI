@@ -1,5 +1,62 @@
-import React from 'react';
-import {Link} from 'react-router-dom';
-import {Logo,segments} from './Common';
-export default function Sidebar({segment,go,stats,accounts}){return <><aside><Logo/><nav id="nav">{segments.map(([key,label])=><React.Fragment key={key}><button className={'nav '+(segment===key?'on':'')} onClick={()=>go(key)}><span className="dot" style={{background:`var(--${{assistant:'a',client:'c',none:'n',review:'r'}[key]||'ln'})`}}/>{label}<em>{stats?.[key]||''}</em></button>{key==='none'&&<div className="sep"/>}</React.Fragment>)}</nav><Link to="/accounts" className="nav">Account settings</Link><Link to="/accounts" className="acct"><span className="dot"/><div><b>{accounts?.[0]?.provider||'No account'} · {accounts?.[0]?.address}</b><div className="mu">{accounts?.[0]?.status||'Connect an account'}</div></div></Link></aside></>}
-export function MobileNav({segment,go}){return <nav className="mnav">{segments.map(([key,label])=><button key={key} className={'chip '+(segment===key?'on':'')} onClick={()=>go(key)}>{label}</button>)}</nav>}
+import React from "react";
+import { Link } from "react-router-dom";
+import { Logo, segments } from "./Common";
+export default function Sidebar({ segment, go, stats, accounts }) {
+  return (
+    <>
+      <aside>
+        <Logo />
+        <nav id="nav">
+          {segments.map(([key, label]) => (
+            <React.Fragment key={key}>
+              <button
+                className={"nav " + (segment === key ? "on" : "")}
+                onClick={() => go(key)}
+              >
+                <span
+                  className="dot"
+                  style={{
+                    background: `var(--${{ assistant: "a", client: "c", none: "n", review: "r" }[key] || "ln"})`,
+                  }}
+                />
+                {label}
+                <em>{stats?.[key] || ""}</em>
+              </button>
+              {key === "none" && <div className="sep" />}
+            </React.Fragment>
+          ))}
+        </nav>
+        <Link to="/accounts" className="nav">
+          Account settings
+        </Link>
+        <Link to="/accounts" className="acct">
+          <span className="dot" />
+          <div>
+            <b>
+              {accounts?.[0]?.provider || "No account"} ·{" "}
+              {accounts?.[0]?.address}
+            </b>
+            <div className="mu">
+              {accounts?.[0]?.status || "Connect an account"}
+            </div>
+          </div>
+        </Link>
+      </aside>
+    </>
+  );
+}
+export function MobileNav({ segment, go }) {
+  return (
+    <nav className="mnav">
+      {segments.map(([key, label]) => (
+        <button
+          key={key}
+          className={"chip " + (segment === key ? "on" : "")}
+          onClick={() => go(key)}
+        >
+          {label}
+        </button>
+      ))}
+    </nav>
+  );
+}

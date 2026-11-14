@@ -56,6 +56,8 @@ Tests use and erase **only** a database named `relay_test`. Override its address
 
 ## Deploy: Atlas + Render + Vercel
 
+Configuration references: [Vercel rewrites](https://vercel.com/docs/routing/rewrites) and [Render Blueprint specification](https://render.com/docs/blueprint-spec).
+
 1. Create an Atlas cluster and a database user restricted to the `relay` database. Copy the `mongodb+srv` URI and configure network access for your backend's outbound IPs.
 2. Push the repository to GitHub. In Render, select **New → Blueprint**, choose this repository and set Blueprint path to `relay/render.yaml`. Alternatively create a Node web service with root directory `relay`, build `npm ci`, start `npm start`, health check `/api/health`.
 3. Set `MONGODB_URI`, generated `JWT_SECRET`, `NODE_ENV=production`, `CLIENT_ORIGIN=https://YOUR-VERCEL-DOMAIN`. Leave `AI_API_KEY` absent for rule-based mode. Deploy and verify `https://YOUR-RENDER-SERVICE.onrender.com/api/health` returns `{ok:true,simulated:true}`.

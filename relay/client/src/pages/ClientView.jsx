@@ -1,5 +1,91 @@
-import React,{useState} from 'react';
-import {useApi,useAction} from '../hooks/useApi';
-import {Logo,Skeleton,ErrorState,EmptyState} from '../components/Common';
-function ClientCard({thread,action}){const [open,setOpen]=useState(false),detail=useApi('/threads/'+thread._id,open);return <article className="cc"><div className="m"><span>{thread.participants[0]}</span><span>{new Date(thread.lastMessageAt).toLocaleDateString()}</span></div><h3>{thread.subject}</h3><div>{thread.summary}</div><div className="why"><b>Why you:</b> {thread.classification.reason}</div><div className="ac"><button className="btn p" disabled={action.isPending} onClick={()=>action.mutate({path:'/client/threads/'+thread._id+'/handled'})}>Mark handled</button><button className="btn" disabled={action.isPending} onClick={()=>action.mutate({path:'/client/threads/'+thread._id+'/handoff'})}>Let Alex take over</button><button className="btn" onClick={()=>setOpen(!open)}>View thread</button></div>{open&&<div className="thr">{detail.isPending?<Skeleton/>:detail.isError?<ErrorState query={detail}/>:detail.data.messages.map(m=><p key={m._id}><b>{m.from}:</b> {m.body}</p>)}</div>}</article>}
-export default function ClientView({user,toast}){const query=useApi('/client/threads'),action=useAction(toast);return <div id="cl"><div className="cw"><Logo/><h1 style={{marginTop:28}}>Good morning, {user.role==='client'?user.name:'Maya'}</h1><p className="mu">{query.data?.length||0} messages need you. Alex has handled the rest.</p>{query.isPending?<Skeleton/>:query.isError?<ErrorState query={query}/>:query.data.length?query.data.map(t=><ClientCard key={t._id} thread={t} action={action}/>):<EmptyState/>}</div></div>}
+import React, { useState } from "react";
+import { useApi, useAction } from "../hooks/useApi";
+import { Logo, Skeleton, ErrorState, EmptyState } from "../components/Common";
+function ClientCard({ thread, action }) {
+  const [open, setOpen] = useState(false),
+    detail = useApi("/threads/" + thread._id, open);
+  return (
+    <article className="cc">
+      <div className="m">
+        <span>{thread.participants[0]}</span>
+        <span>{new Date(thread.lastMessageAt).toLocaleDateString()}</span>
+      </div>
+      <h3>{thread.subject}</h3>
+      <div>{thread.summary}</div>
+      <div className="why">
+        <b>Why you:</b> {thread.classification.reason}
+      </div>
+      <div className="ac">
+        <button
+          className="btn p"
+          disabled={action.isPending}
+          onClick={() =>
+            action.mutate({
+              path: "/client/threads/" + thread._id + "/handled",
+            })
+          }
+        >
+          Mark handled
+        </button>
+        <button
+          className="btn"
+          disabled={action.isPending}
+          onClick={() =>
+            action.mutate({
+              path: "/client/threads/" + thread._id + "/handoff",
+            })
+          }
+        >
+          Let Alex take over
+        </button>
+        <button className="btn" onClick={() => setOpen(!open)}>
+          View thread
+        </button>
+      </div>
+      {open && (
+        <div className="thr">
+          {detail.isPending ? (
+            <Skeleton />
+          ) : detail.isError ? (
+            <ErrorState query={detail} />
+          ) : (
+            detail.data.messages.map((m) => (
+              <p key={m._id}>
+                <b>{m.from}:</b> {m.body}
+              </p>
+            ))
+          )}
+        </div>
+      )}
+    </article>
+  );
+}
+export default function ClientView({ user, toast }) {
+  const query = useApi("/client/threads"),
+    action = useAction(toast);
+  return (
+    <div id="cl">
+      <div className="cw">
+        <Logo />
+        <h1 style={{ marginTop: 28 }}>
+          Good morning, {user.role === "client" ? user.name : "Maya"}
+        </h1>
+        <p className="mu">
+          {query.data?.length || 0} messages need you. Alex has handled the
+          rest.
+        </p>
+        {query.isPending ? (
+          <Skeleton />
+        ) : query.isError ? (
+          <ErrorState query={query} />
+        ) : query.data.length ? (
+          query.data.map((t) => (
+            <ClientCard key={t._id} thread={t} action={action} />
+          ))
+        ) : (
+          <EmptyState />
+        )}
+      </div>
+    </div>
+  );
+}
