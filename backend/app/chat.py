@@ -61,7 +61,7 @@ class GeminiConversation:
                 if contents and contents[-1]['role']==role:contents[-1]['parts'].append({'text':text})
                 else:contents.append({'role':role,'parts':[{'text':text}]})
             payload={'systemInstruction':{'parts':[{'text':instruction}]},'contents':contents,
-              'generationConfig':{'maxOutputTokens':512,'temperature':0.2}}
+              'generationConfig':{'maxOutputTokens':1024,'temperature':0.2}}
             if tools:payload['tools']=[{'functionDeclarations':tools}]
             for round_number in range(2):
                 if round_number:

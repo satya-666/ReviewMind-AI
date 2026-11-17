@@ -121,7 +121,7 @@ def test_gemini_adapter_payload_and_key_header_only(monkeypatch):
     assert 'test-key-not-real' not in req.full_url and 'test-key-not-real' not in req.data.decode()
     assert req.get_header('X-goog-api-key')=='test-key-not-real' and timeout==30
     assert payload['contents'][0]['role']=='user' and payload['contents'][-1]['parts'][-1]['text']=='Hello'
-    assert payload['generationConfig']['maxOutputTokens']==512 and 'tools' not in payload
+    assert payload['generationConfig']['maxOutputTokens']==1024 and 'tools' not in payload
     assert provider.responded
     provider.calls.extend([provider.calls[0]]*9)
     with pytest.raises(ProviderError,match='rate_limited'):provider.generate('Hello',[],None,'en')
