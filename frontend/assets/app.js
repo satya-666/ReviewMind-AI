@@ -12,7 +12,7 @@ function setProcessingConsent(value) {
 }
 const HISTORY_KEY = 'reviewmind_guest_history_v1';
 const I18N = {
-  en:{hello:'What are you looking to buy?',sub:'Tell us what you need, your budget, and what matters most.',placeholder:'For example: A laptop under ₹60,000 for college and coding'},
+  en:{hello:'What are you looking to buy?',sub:'Tell us what you need, your budget, and what matters most.',placeholder:''},
   hi:{hello:'AI के साथ प्रोडक्ट रिव्यू समझें',sub:'रिव्यू का समग्र भाव और प्रोडक्ट फीचर देखें। हिन्दी की सटीकता अभी प्रमाणित नहीं है।',placeholder:'विश्लेषण के लिए प्रोडक्ट रिव्यू यहाँ लिखें…'},
   hinglish:{hello:'AI se product reviews samjhein',sub:'Review paste karein aur overall sentiment aur product features dekhein. Hinglish accuracy abhi verified nahi hai.',placeholder:'Product review yahan paste karein…'}
 };
@@ -67,7 +67,7 @@ function renderHistory() {
 function showCurrent() {
   $('#chat').replaceChildren();
   if (current) current.messages.forEach(addMessage);
-  else $('#chat').innerHTML = '<p class="empty" id="welcome">Try “I need a phone under ₹20,000 with good battery life.”</p>';
+  else $('#chat').replaceChildren();
   renderHistory();
 }
 function newAnalysis() {

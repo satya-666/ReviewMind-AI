@@ -33,13 +33,13 @@
   </section>
   <section id="results" aria-label="Conversation" aria-busy="false">
     <div class="section-heading"><h2>Conversation</h2><button class="btn" id="startNew" hidden>New Chat</button></div>
-    <div id="chat" aria-live="polite"><p class="empty" id="welcome">Try “I need a phone under ₹20,000 with good battery life.”</p></div>
+    <div id="chat" aria-live="polite"></div>
     <p id="loading" class="loading" role="status" hidden>Connecting to the assistant… The service may take up to a minute to wake up.</p>
   </section>
   <section class="input-panel" aria-label="Message the assistant">
     <form id="analysisForm" novalidate>
 
-      <div class="field"><label for="q">Your message</label><textarea id="q" maxlength="5000" rows="3" required aria-describedby="inputHelp hint" placeholder="For example: A laptop under ₹60,000 for college and coding"></textarea></div>
+      <div class="field"><label for="q">Your message</label><textarea id="q" maxlength="5000" rows="3" required aria-describedby="inputHelp hint" ></textarea></div>
       <div class="input-actions"><span class="note" id="inputHelp">Up to 5,000 characters · Enter to send · Shift+Enter for a new line</span><button class="btn primary" id="send" type="submit">Send</button></div>
       <p id="hint" class="error" role="alert"></p>
 
