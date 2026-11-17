@@ -10,7 +10,7 @@ function setProcessingConsent(value) {
   $('#processingConsent').value = processingConsent;
   try { localStorage.setItem(CONSENT_KEY,processingConsent); } catch { toast('Your processing choice stays in this tab because device storage is unavailable.'); }
 }
-const HISTORY_KEY = 'reviewmind_guest_history_v1';
+let HISTORY_KEY = 'reviewmind_guest_history_v1';
 const I18N = {
   en:{hello:'What are you looking to buy?',sub:'Tell us what you need, your budget, and what matters most.',placeholder:''},
   hi:{hello:'AI के साथ प्रोडक्ट रिव्यू समझें',sub:'रिव्यू का समग्र भाव और प्रोडक्ट फीचर देखें। हिन्दी की सटीकता अभी प्रमाणित नहीं है।',placeholder:'विश्लेषण के लिए प्रोडक्ट रिव्यू यहाँ लिखें…'},
@@ -97,32 +97,34 @@ async function send(failedMessage = null) {
   const retry = failedMessage?.retry;
   const text = (retry?.text ?? $('#q').value).trim(); $('#hint').textContent = '';
   if (busy) return;
+  if (!ReviewMindAuth.ready()) return toast('Sign in with Google to continue.');
   if (!text || text.length > 5000) { $('#hint').textContent = 'Enter a message between 1 and 5,000 characters.'; $('#q').focus(); return; }
   if (processingConsent === 'unknown' && (retry?.mode || $('#mode').value) !== 'review') {
     pendingConsent = failedMessage; $('#consentModal').showModal(); return;
   }
   const preferences = {category:retry?.category ?? $('#cat').value,language:retry?.language ?? $('#lang').value,mode:retry?.mode || $('#mode').value};
   if (!current) { current = {id:crypto.randomUUID(),title:text.slice(0,100),messages:[],preferences:{}}; chats.unshift(current); chats = chats.slice(0,20); }
-  if (!retry) rememberPreferences(current,text);
-  const messages = retry ? current.messages.slice(0,current.messages.indexOf(failedMessage)-1) : current.messages;
+  const chat=current;
+  if (!retry) rememberPreferences(chat,text);
+  const messages = retry ? chat.messages.slice(0,chat.messages.indexOf(failedMessage)-1) : chat.messages;
   const previous = [...messages].reverse().find(m => m.result?.type === 'analysis');
-  const body = {text,...preferences,history:retry?.history || contextFor(messages,current.preferences),analysis_request_id:retry?.analysis_request_id || previous?.result.request_id || null,allow_gemini:processingConsent === 'accepted',allow_product_search:processingConsent === 'accepted'};
+  const body = {text,...preferences,history:retry?.history || contextFor(messages,chat.preferences),analysis_request_id:retry?.analysis_request_id || previous?.result.request_id || null,allow_gemini:processingConsent === 'accepted',allow_product_search:processingConsent === 'accepted'};
   busy = true; $('#send').disabled = true; $('#send').textContent = 'Sending…'; $('#loading').hidden = false;
   $('#loading').textContent = 'Connecting to the assistant… The service may take up to a minute to wake up.';
   $('#results').setAttribute('aria-busy','true'); $('#welcome')?.remove();
-  if (retry) current.messages.splice(current.messages.indexOf(failedMessage),1);
-  else current.messages.push({role:'user',text,time:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})});
+  if (retry) chat.messages.splice(chat.messages.indexOf(failedMessage),1);
+  else chat.messages.push({role:'user',text,time:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})});
   if (!retry || $('#q').value.trim() === text) $('#q').value = '';
   showCurrent(); $('#results').scrollTop = $('#results').scrollHeight;
   try {
     const result = await ReviewMindAPI.chat(body,() => { $('#loading').textContent = 'Finding an answer for you…'; });
-    current.messages.push({role:'ai',result,time:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})});
+    chat.messages.push({role:'ai',result,time:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})});
   } catch (error) {
-    current.messages.push({role:'ai',text:error.message,retry:body});
-    if (!$('#q').value) $('#q').value = text;
+    chat.messages.push({role:'ai',text:error.message,retry:body});
+    if (current===chat && !$('#q').value) $('#q').value = text;
   } finally {
-    current.messages = current.messages.slice(-50); busy = false; $('#send').disabled = false; $('#send').textContent = 'Send'; $('#loading').hidden = true;
-    $('#results').setAttribute('aria-busy','false'); showCurrent(); persist();
+    chat.messages = chat.messages.slice(-50); busy = false; $('#send').disabled = false; $('#send').textContent = 'Send'; $('#loading').hidden = true;
+    $('#results').setAttribute('aria-busy','false'); showCurrent(); if (current===chat) persist();
     const latest = $('#chat .msg.ai:last-child'), area = $('#results');
     if (latest) area.scrollTop += latest.getBoundingClientRect().top - area.getBoundingClientRect().top - 8;
   }
@@ -172,20 +174,7 @@ function validStoredMessage(m) {
   try {
     const savedConsent = localStorage.getItem(CONSENT_KEY);
     if (['accepted','declined'].includes(savedConsent)) processingConsent = savedConsent;
-    const stored = localStorage.getItem(HISTORY_KEY);
-    if (stored && stored.length < 2000000) {
-      const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed.chats)) {
-        chats = parsed.chats.filter(c => c && typeof c.id === 'string' && typeof c.title === 'string' && Array.isArray(c.messages)).slice(0,20);
-        chats.forEach(c => {
-          c.title = c.title.slice(0,100); c.messages = c.messages.slice(-50).filter(validStoredMessage);
-          c.preferences = Object.fromEntries(Object.entries(c.preferences || {}).filter(([k,v]) => ['budget','brand','priorities'].includes(k) && typeof v === 'string').map(([k,v]) => [k,v.slice(0,200)]));
-          if (!Object.keys(c.preferences).length) c.messages.filter(m => m.role === 'user').forEach(m => rememberPreferences(c,m.text));
-        });
-        current = chats.find(c => c.id === parsed.current) || null; $('#remember').checked = true;
-      }
-    }
-  } catch { chats = []; current = null; }
+  } catch {}
   $('#processingConsent').value = processingConsent;
   $('#processingConsent').onchange = () => {
     if ($('#processingConsent').value === 'accepted' && processingConsent !== 'accepted') {
@@ -243,3 +232,31 @@ function validStoredMessage(m) {
     finally { state.deleting = false; if (feedbackTarget === id) updateFeedback(); }
   };
 })();
+
+
+window.addEventListener('reviewmind-auth',event => {
+  chats=[];current=null;$('#remember').checked=false;
+  $('#q').value='';$('#hint').textContent='';closeHistory();
+  document.querySelectorAll('dialog[open]').forEach(dialog => dialog.close());
+  feedbackTarget=null;feedbackStates.clear();
+  HISTORY_KEY=event.detail ? 'reviewmind_history_v1_'+event.detail.id : 'reviewmind_guest_history_v1';
+  if (event.detail || !ReviewMindAuth.required()) {
+    try {
+    const stored = localStorage.getItem(HISTORY_KEY);
+    if (stored && stored.length < 2000000) {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed.chats)) {
+        chats = parsed.chats.filter(c => c && typeof c.id === 'string' && typeof c.title === 'string' && Array.isArray(c.messages)).slice(0,20);
+        chats.forEach(c => {
+          c.title = c.title.slice(0,100); c.messages = c.messages.slice(-50).filter(validStoredMessage);
+          c.preferences = Object.fromEntries(Object.entries(c.preferences || {}).filter(([k,v]) => ['budget','brand','priorities'].includes(k) && typeof v === 'string').map(([k,v]) => [k,v.slice(0,200)]));
+          if (!Object.keys(c.preferences).length) c.messages.filter(m => m.role === 'user').forEach(m => rememberPreferences(c,m.text));
+        });
+        current = chats.find(c => c.id === parsed.current) || null; $('#remember').checked = true;
+      }
+    }
+    } catch { chats=[];current=null; }
+  }
+  showCurrent();
+});
+ReviewMindAuth.init();

@@ -202,3 +202,5 @@ Validation completed: **61 tests passed**, all three Phase 3 notebooks executed,
 ### Product research and default conversation
 
 Conversation now uses Gemini automatically after one-time permission, with persistent opt-out in Settings. Optional SerpApi India Shopping tools provide sourced product cards only when a backend key is configured and live retrieval succeeds. See [provider research, free-plan setup and limitations](docs/PRODUCT_RETRIEVAL.md). No trained model or paid infrastructure was changed.
+
+Google sign-in is implemented for production, with backend ID-token verification and per-account optional device history. Activation requires the owner's Google OAuth web client ID before deploying the authentication gate. See [setup and verification](docs/GOOGLE_AUTH.md). Sample buying prompts have been removed from the customer interface.

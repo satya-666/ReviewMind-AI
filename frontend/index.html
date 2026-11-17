@@ -10,14 +10,22 @@
 <body>
 <header>
   <a class="brand" href="./" aria-label="ReviewMind AI home"><span class="logo" aria-hidden="true">R</span><span>ReviewMind <b>AI</b></span></a>
-  <nav aria-label="Main navigation">
+  <nav aria-label="Main navigation" hidden>
     <button class="btn" id="historyBtn" aria-controls="side" aria-expanded="false">History</button>
     <button class="btn" id="settingsBtn">Settings</button>
     <button class="btn" id="helpBtn">Help</button>
     <button class="btn" id="themeBtn" aria-label="Switch to dark theme">Dark theme</button>
   </nav>
 </header>
-<div class="app">
+<section id="authPanel" class="card" aria-labelledby="authTitle">
+  <h1 id="authTitle">Sign in to ReviewMind</h1>
+  <p>Continue with your Google account to find products that fit your needs.</p>
+  <div id="googleSignIn"></div>
+  <p id="authStatus" role="status">Checking sign-in availability…</p>
+  <button class="btn" id="retryAuth" hidden>Retry sign-in</button>
+</section>
+<div id="account" hidden><span id="accountEmail"></span><button class="btn" id="signOut">Sign out</button></div>
+<div class="app" id="chatApp" hidden>
 <aside id="side" aria-label="Chat history" hidden>
   <div class="section-heading"><h2>History</h2><button class="btn" id="closeSide" aria-label="Close history">Close</button></div>
   <button class="btn primary" id="newChat">New Chat</button>
@@ -96,6 +104,7 @@
 <div id="toast" role="status" aria-live="polite"></div>
 <script src="assets/config.js"></script>
 <script src="assets/api-client.js"></script>
+<script src="assets/auth.js"></script>
 <script src="assets/app.js"></script>
 </body>
 </html>

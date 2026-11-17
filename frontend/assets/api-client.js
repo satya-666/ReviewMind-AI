@@ -5,9 +5,10 @@
   async function request(path, body, method = 'POST', headers = {}, timeoutMs = 45000) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    const authHeaders=window.ReviewMindAuth?.headers() || {};
     try {
       const response = await fetch(base + path, {method, signal: controller.signal,
-        headers: {'Content-Type': 'application/json', ...headers},
+        headers: {'Content-Type': 'application/json', ...authHeaders, ...headers},
         ...(body === undefined ? {} : {body: JSON.stringify(body)})});
       let data;
       try { data = await response.json(); } catch { throw new Error('The API returned an invalid response.'); }
@@ -27,7 +28,8 @@
           invalid_response:'Gemini returned an unusable response. Your message is preserved; retry shortly.',
           unavailable:'Gemini is temporarily unavailable. Your message is preserved; retry shortly.'};
         const code = data?.error?.code;
-        const error = new Error(providerMessages[code] || messages[response.status] || 'The service could not complete this request. Please try again later.');
+        if (response.status === 401 && authHeaders.Authorization === window.ReviewMindAuth?.headers().Authorization) window.ReviewMindAuth?.expired();
+        const error = new Error((['sign_in_required','auth_unavailable'].includes(code) ? data.error.message : null) || providerMessages[code] || messages[response.status] || 'The service could not complete this request. Please try again later.');
         error.code = code;
         if (response.status === 404 && path.startsWith('/api/chat')) error.message = 'Chat is not available on this backend yet. Both Render services need the latest phase-3.5/web-integration code.';
         error.status = response.status; throw error;
@@ -53,6 +55,8 @@
     return data;
   }
   window.ReviewMindAPI = {
+    authConfig: () => request('/api/auth/config',undefined,'GET'),
+    me: () => request('/api/auth/me',undefined,'GET'),
     chat: async (body, onReady) => {
       // Warm a sleeping service with GET, never automatically retry a billable POST.
       if (Date.now() - readyAt > 60000) {

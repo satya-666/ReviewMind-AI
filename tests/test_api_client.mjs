@@ -35,3 +35,17 @@ test('shopping chat allows both model rounds and retrieval within a bounded time
   await assert.rejects(context.window.ReviewMindAPI.chat({text:'phones under 20k',history:[]}),error => error.code==='timeout');
   assert.deepEqual(timeouts,[60000,90000]);
 });
+
+test('protected requests send bearer headers and an old 401 cannot sign out a new account',async () => {
+  let token='first-token',expired=0;
+  const auth={headers:() => ({Authorization:'Bearer '+token}),expired:() => expired++};
+  const context=vm.createContext({window:{ReviewMindAuth:auth},TextEncoder,AbortController,setTimeout,clearTimeout,
+    fetch:async (path,options) => {
+      assert.equal(options.headers.Authorization,'Bearer first-token');
+      token='second-token';
+      return {ok:false,status:401,json:async () => ({error:{code:'sign_in_required',message:'Sign in again.'}})};
+    }});
+  vm.runInContext(readFileSync(new URL('../frontend/assets/api-client.js',import.meta.url),'utf8'),context);
+  await assert.rejects(context.window.ReviewMindAPI.me(),error => error.code==='sign_in_required');
+  assert.equal(expired,0);
+});
