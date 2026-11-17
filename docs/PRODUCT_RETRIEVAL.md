@@ -1,6 +1,6 @@
 # Product research and default conversation
 
-Gemini is the primary conversational route after one-time permission. The normal composer has no provider checkbox. Consent is stored separately from optional transcripts under `reviewmind_processing_consent_v1`; unknown means ask, declined remains declined across reloads. Settings lets visitors withdraw or grant consent. Retry always uses current consent, so old requests cannot override withdrawal. Review analysis mode works without third-party permission. Existing deployments did not persist the old checkbox, so no earlier acceptance is inferred.
+Gemini is the primary conversational route after one-time permission. The normal composer has no provider checkbox. The customer screen asks for buying needs and budget; optional review controls live in Settings. Answers omit provider labels and focus on up to three evidence-backed suggestions. Consent is stored separately from optional transcripts under `reviewmind_processing_consent_v1`; unknown means ask, declined remains declined across reloads. Settings lets visitors withdraw or grant consent. Retry always uses current consent, so old requests cannot override withdrawal. Review analysis mode works without third-party permission. Existing deployments did not persist the old checkbox, so no earlier acceptance is inferred.
 
 ## Provider research (2026-11-13)
 

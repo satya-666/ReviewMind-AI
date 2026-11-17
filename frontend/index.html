@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ReviewMind AI — Review Assistant</title>
+<title>ReviewMind AI — Find your next product</title>
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="assets/styles.css">
 </head>
@@ -27,26 +27,19 @@
 </aside>
 <main id="main">
   <section class="intro">
-    <span class="eyebrow">YOUR PRODUCT REVIEW ASSISTANT</span>
-    <h1 data-i="hello">What are you researching today?</h1>
-    <p data-i="sub">Research a product, compare sourced listings, or paste a review to analyze.</p>
+    <span class="eyebrow">FIND WHAT FITS YOU</span>
+    <h1 data-i="hello">What are you looking to buy?</h1>
+    <p data-i="sub">Tell us what you need, your budget, and what matters most.</p>
   </section>
   <section id="results" aria-label="Conversation" aria-busy="false">
     <div class="section-heading"><h2>Conversation</h2><button class="btn" id="startNew" hidden>New Chat</button></div>
-    <div id="chat" aria-live="polite"><p class="empty" id="welcome">No messages yet. Say hello or paste a product review to get started.</p></div>
+    <div id="chat" aria-live="polite"><p class="empty" id="welcome">Try “I need a phone under ₹20,000 with good battery life.”</p></div>
     <p id="loading" class="loading" role="status" hidden>Connecting to the assistant… The service may take up to a minute to wake up.</p>
   </section>
   <section class="input-panel" aria-label="Message the assistant">
     <form id="analysisForm" novalidate>
-      <details id="chatOptions"><summary>Review settings (optional)</summary>
-      <div class="input-options">
-        <div class="field"><label for="cat">Product category</label><select id="cat" aria-describedby="categoryHelp"><option value="">Not selected</option><option>Smartphones</option><option>Laptops</option><option>Audio devices</option><option>Wearables</option><option>TVs and monitors</option><option>Computer accessories</option><option>Tablets</option><option>Networking devices</option><option>Chargers and power banks</option><option value="Other tech">Other technology · overall sentiment only</option></select></div>
-        <div class="field"><label for="lang">Language</label><select id="lang"><option value="en">English</option><option value="hi">हिन्दी</option><option value="hinglish">Hinglish</option></select></div>
-      </div>
-      <p class="note" id="categoryHelp">Choose a category when analyzing a review to enable feature detection.</p>
-      <div class="field mode-field"><label for="mode">Message type</label><select id="mode"><option value="auto">Automatic · question or review</option><option value="review">Review analysis · use the trained classifier</option></select></div>
-      </details>
-      <div class="field"><label for="q">Your message</label><textarea id="q" maxlength="5000" rows="3" required aria-describedby="inputHelp hint" placeholder="Ask about a review, or paste one to analyze…"></textarea></div>
+
+      <div class="field"><label for="q">Your message</label><textarea id="q" maxlength="5000" rows="3" required aria-describedby="inputHelp hint" placeholder="For example: A laptop under ₹60,000 for college and coding"></textarea></div>
       <div class="input-actions"><span class="note" id="inputHelp">Up to 5,000 characters · Enter to send · Shift+Enter for a new line</span><button class="btn primary" id="send" type="submit">Send</button></div>
       <p id="hint" class="error" role="alert"></p>
 
@@ -56,7 +49,7 @@
 </main>
 </div>
 <dialog id="consentModal" class="modal" aria-labelledby="consentTitle">
-  <div class="dialog-heading"><h2 id="consentTitle">Before you chat</h2></div>
+  <div class="dialog-heading"><h2 id="consentTitle">Privacy before your first message</h2></div>
   <div class="dialog-body"><p>ReviewMind uses Google Gemini for conversation. Your message, recent chat history (including reviews) and preference notes are sent to Google. Free-tier content may be used to improve its products. Avoid private information.</p><p>For product research, relevant shopping queries may also be sent to SerpApi when configured. Prices and availability can change. Review analysis uses our existing classifier and works without this permission.</p><p>We remember your choice on this device, separately from optional chat history. Change it in Settings.</p><p><a href="https://ai.google.dev/gemini-api/terms" target="_blank" rel="noopener noreferrer">Google data terms</a> · <a href="https://serpapi.com/privacy" target="_blank" rel="noopener noreferrer">SerpApi privacy</a></p></div>
   <div class="dialog-footer"><button class="btn" id="declineProcessing">Use review analysis only</button><button class="btn primary" id="acceptProcessing">Allow and send</button></div>
 </dialog>
@@ -80,6 +73,14 @@
 <dialog id="settingsModal" class="modal" aria-labelledby="settingsTitle">
   <div class="dialog-heading"><h2 id="settingsTitle">Device settings</h2><button class="btn" id="closeSettings" aria-label="Close settings">Close</button></div>
   <div class="dialog-body">
+      <details id="chatOptions"><summary>Review settings (optional)</summary>
+      <div class="input-options">
+        <div class="field"><label for="cat">Product category</label><select id="cat" aria-describedby="categoryHelp"><option value="">Not selected</option><option>Smartphones</option><option>Laptops</option><option>Audio devices</option><option>Wearables</option><option>TVs and monitors</option><option>Computer accessories</option><option>Tablets</option><option>Networking devices</option><option>Chargers and power banks</option><option value="Other tech">Other technology · overall sentiment only</option></select></div>
+        <div class="field"><label for="lang">Language</label><select id="lang"><option value="en">English</option><option value="hi">हिन्दी</option><option value="hinglish">Hinglish</option></select></div>
+      </div>
+      <p class="note" id="categoryHelp">Choose a category when analyzing a review to enable feature detection.</p>
+      <div class="field mode-field"><label for="mode">Message type</label><select id="mode"><option value="auto">Automatic · question or review</option><option value="review">Review analysis · use the trained classifier</option></select></div>
+      </details>
     <div class="field"><label for="processingConsent">Third-party AI and product search</label><select id="processingConsent"><option value="unknown">Ask before sending</option><option value="accepted">Allowed</option><option value="declined">Off — local review analysis only</option></select></div>
     <p class="note">Conversation sends recent messages and preference notes to Google. Product searches send relevant shopping queries to SerpApi when configured. You can withdraw consent here at any time.</p>
     <label class="checkbox"><input type="checkbox" id="remember"><span>Save chat history on this device</span></label>

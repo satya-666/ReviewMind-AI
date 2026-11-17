@@ -23,7 +23,7 @@ def intent_for(text,mode='auto'):
     # Short replies, typos and preferences need the LLM's context, not a canned guide.
     return 'conversation'
 
-from backend.app.products import ProductData
+from backend.app.products import ProductData,budget_from
 
 class ProviderError(Exception):
     def __init__(self,code,status=None):self.code=code;self.status=status;super().__init__(code)
@@ -89,7 +89,10 @@ class GeminiConversation:
                 payload.pop('tools',None)
             reply='\n'.join(p['text'] for p in candidate.get('content',{}).get('parts',[]) if isinstance(p.get('text'),str) and not p.get('thought')).strip()
             if not reply or len(reply)>6000:raise ProviderError('invalid_response')
-            supplied=' '.join([m.text for m in history if m.role=='user']+[message])+' '+' '.join('INR '+str(p['price_inr']) for p in context.get('product_data',{}).get('products',[]) if p.get('price_inr') is not None)
+            user_messages=[m.text for m in history if m.role=='user']+[message]
+            budget=budget_from(user_messages)
+            # A budget such as 'under 20k' can legitimately be restated as INR 20,000.
+            supplied=' '.join(user_messages)+(' INR '+str(budget) if budget is not None else '')+' '+' '.join('INR '+str(p['price_inr']) for p in context.get('product_data',{}).get('products',[]) if p.get('price_inr') is not None)
             urls=re.findall(r'https?://[^\s<>\]\)]+',reply)
             sources=context.get('product_data',{}).get('sources',[])
             if self.key in reply or any(url.rstrip('.,') not in sources for url in urls) or not currency_amounts(reply)<=currency_amounts(supplied):raise ProviderError('ungrounded_response')

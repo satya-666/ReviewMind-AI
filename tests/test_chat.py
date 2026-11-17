@@ -148,6 +148,17 @@ def test_user_budget_echo_is_not_misclassified_as_invented_market_price(monkeypa
     # A previous assistant's invented amount must not become user-supplied evidence.
     with pytest.raises(ProviderError):GeminiConversation(Settings(gemini_api_key='test-key-not-real')).generate('Hello',[ChatMessage(role='assistant',text='₹20,000')],None,'en')
 
+@pytest.mark.parametrize('message',['can you suggest some phones under 20k','phones below 20 thousand','budget is 20000'])
+def test_shorthand_budget_can_be_repeated_without_allowing_other_prices(monkeypatch,message):
+    def response(reply):
+        monkeypatch.setattr('urllib.request.OpenerDirector.open',lambda *a,**k:io.BytesIO(json.dumps({'candidates':[{'finishReason':'STOP','content':{'parts':[{'text':reply}]}}]}).encode()))
+    reply='Your budget is ₹20,000. Is battery life or camera quality more important?'
+    response(reply)
+    assert GeminiConversation(Settings(gemini_api_key='test-key-not-real')).generate(message,[],None,'en')==reply
+    response('This phone costs ₹19,999.')
+    with pytest.raises(ProviderError,match='ungrounded_response'):
+        GeminiConversation(Settings(gemini_api_key='test-key-not-real')).generate(message,[],None,'en')
+
 @pytest.mark.parametrize('message',['hellow','yes','How are you?','Can you help me buy a smartphone?','My budget is ₹20,000.','I prefer Samsung.','Battery life matters most.'])
 def test_normal_turns_reach_conversational_model_with_history(client,monkeypatch,message):
     seen=[]

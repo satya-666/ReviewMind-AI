@@ -12,7 +12,7 @@ function setProcessingConsent(value) {
 }
 const HISTORY_KEY = 'reviewmind_guest_history_v1';
 const I18N = {
-  en:{hello:'What are you researching today?',sub:'Ask a question, paste a review, or follow up on an analysis.',placeholder:'Ask about a review, or paste one to analyze…'},
+  en:{hello:'What are you looking to buy?',sub:'Tell us what you need, your budget, and what matters most.',placeholder:'For example: A laptop under ₹60,000 for college and coding'},
   hi:{hello:'AI के साथ प्रोडक्ट रिव्यू समझें',sub:'रिव्यू का समग्र भाव और प्रोडक्ट फीचर देखें। हिन्दी की सटीकता अभी प्रमाणित नहीं है।',placeholder:'विश्लेषण के लिए प्रोडक्ट रिव्यू यहाँ लिखें…'},
   hinglish:{hello:'AI se product reviews samjhein',sub:'Review paste karein aur overall sentiment aur product features dekhein. Hinglish accuracy abhi verified nahi hai.',placeholder:'Product review yahan paste karein…'}
 };
@@ -39,7 +39,7 @@ function addMessage(message) {
   else if (message.result?.type === 'analysis') el.innerHTML = renderAnalysis(message.result);
   else if (message.result?.type === 'chat') {
     const r = message.result;
-    el.innerHTML = `<article class="card chat-answer"><p class="response-source">${r.response_source === 'gemini' ? 'Gemini · conversational answer' : 'Built-in guide · not a language-model answer'}</p><div class="reply-text">${esc(r.reply)}</div>${productCards(r.products)}${['quota_exhausted','authentication_failed','unavailable','provider_error','rate_limited'].includes(r.product_status) ? '<p class="note">Product search could not complete ('+esc(r.product_status.replaceAll('_',' '))+'). No current listings were verified. Try again later.</p>' : ''}${['timeout','unavailable','busy','rate_limited','invalid_response','blocked','ungrounded_response'].includes(r.provider_status) ? '<p class="note">The conversational provider did not return an answer. You can resend your message when it is available.</p>' : ''}</article>`;
+    el.innerHTML = `<article class="card chat-answer"><div class="reply-text">${esc(r.reply)}</div>${productCards(r.products)}${['quota_exhausted','authentication_failed','unavailable','provider_error','rate_limited'].includes(r.product_status) ? '<p class="note">Product search could not complete ('+esc(r.product_status.replaceAll('_',' '))+'). No current listings were verified. Try again later.</p>' : ''}${['timeout','unavailable','busy','rate_limited','invalid_response','blocked','ungrounded_response'].includes(r.provider_status) ? '<p class="note">The conversational provider did not return an answer. You can resend your message when it is available.</p>' : ''}</article>`;
   }
   else if (message.result?.type === 'analysis_only') el.innerHTML = '<div class="card"><p>Product recommendations are not available. Paste a product review to analyze its sentiment instead.</p></div>';
   else el.innerHTML = `<div class="card error-card"><p role="alert">${esc(message.text || 'Analysis is unavailable. Please try again.')}</p>${message.retry ? '<button class="btn retry">Retry message</button>' : ''}</div>`;
@@ -67,7 +67,7 @@ function renderHistory() {
 function showCurrent() {
   $('#chat').replaceChildren();
   if (current) current.messages.forEach(addMessage);
-  else $('#chat').innerHTML = '<p class="empty" id="welcome">No messages yet. Say hello or paste a product review to get started.</p>';
+  else $('#chat').innerHTML = '<p class="empty" id="welcome">Try “I need a phone under ₹20,000 with good battery life.”</p>';
   renderHistory();
 }
 function newAnalysis() {
@@ -115,7 +115,7 @@ async function send(failedMessage = null) {
   if (!retry || $('#q').value.trim() === text) $('#q').value = '';
   showCurrent(); $('#results').scrollTop = $('#results').scrollHeight;
   try {
-    const result = await ReviewMindAPI.chat(body,() => { $('#loading').textContent = 'Preparing your reply… Review predictions and Gemini conversation use separate models.'; });
+    const result = await ReviewMindAPI.chat(body,() => { $('#loading').textContent = 'Finding an answer for you…'; });
     current.messages.push({role:'ai',result,time:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})});
   } catch (error) {
     current.messages.push({role:'ai',text:error.message,retry:body});
