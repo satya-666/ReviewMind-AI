@@ -21,6 +21,7 @@ class Settings:
     retention_days:int=30
     auto_create_db:bool=True
     gemini_api_key:str=field(default='',repr=False)
+    serpapi_api_key:str=field(default='',repr=False)
     gemini_model:str='gemini-3.1-flash-lite'
 
     @classmethod
@@ -36,6 +37,7 @@ class Settings:
           api_base_url=os.getenv('FRONTEND_API_URL','').rstrip('/'),
           rate_per_minute=int(os.getenv('RATE_LIMIT_PER_MINUTE','20')),
           global_rate_per_minute=int(os.getenv('GLOBAL_RATE_LIMIT_PER_MINUTE','120')),
+          serpapi_api_key=os.getenv('SERPAPI_API_KEY','').strip(),
           gemini_api_key=os.getenv('GEMINI_API_KEY','').strip(),
           gemini_model=os.getenv('GEMINI_MODEL','gemini-3.1-flash-lite'),
           auto_create_db=os.getenv('AUTO_CREATE_DB','false' if production else 'true')=='true')

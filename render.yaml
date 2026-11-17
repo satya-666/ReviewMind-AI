@@ -39,6 +39,8 @@ services:
     buildCommand: node scripts/build_frontend.mjs
     staticPublishPath: ./frontend
     envVars:
+      - key: SKIP_INSTALL_DEPS
+        value: 'true'
       - key: FRONTEND_API_URL
         sync: false
     headers:

@@ -13,7 +13,22 @@
       try { data = await response.json(); } catch { throw new Error('The API returned an invalid response.'); }
       if (!response.ok) {
         const messages = {429:'Too many requests. Wait one minute, then retry.',503:'Analysis or feedback is temporarily unavailable. The service may be waking up. Please retry shortly.',404:'This analysis or feedback has expired or could not be found.',409:'Feedback has already been saved for this analysis.',422:'Check the required fields and input length, then try again.'};
-        const error = new Error(messages[response.status] || 'The service could not complete this request. Please try again later.');
+        const providerMessages = {
+          not_configured:'Gemini is not configured on the backend. The owner needs to set its API key.',
+          authentication_failed:'Gemini rejected the backend key or access. The owner needs to check the key and model permissions.',
+          rate_limited:'The assistant reached its request limit. Wait one minute, then retry.',
+          provider_rate_limited:'Google reported a Gemini quota or rate limit. Retry later or check the free-tier quota.',
+          busy:'The assistant is handling other messages. Retry shortly.',
+          timeout:'Gemini took too long to respond. Your message is preserved; you can retry.',
+          network_error:'The backend could not reach Gemini. Your message is preserved; retry shortly.',
+          blocked:'Gemini could not answer this message. Rephrase it and try again.',
+          request_rejected:'Gemini rejected this request. The owner should check model access and configuration.',
+          ungrounded_response:'The response included unsupported information and was not shown. Try rephrasing your question.',
+          invalid_response:'Gemini returned an unusable response. Your message is preserved; retry shortly.',
+          unavailable:'Gemini is temporarily unavailable. Your message is preserved; retry shortly.'};
+        const code = data?.error?.code;
+        const error = new Error(providerMessages[code] || messages[response.status] || 'The service could not complete this request. Please try again later.');
+        error.code = code;
         if (response.status === 404 && path.startsWith('/api/chat')) error.message = 'Chat is not available on this backend yet. Both Render services need the latest phase-3.5/web-integration code.';
         error.status = response.status; throw error;
       }
@@ -49,14 +64,23 @@
       }
       onReady?.();
       const payload = {...body, history:[...body.history]};
-      while (payload.history.length && new TextEncoder().encode(JSON.stringify(payload)).length > 15000) payload.history.shift();
+      while (payload.history.length && new TextEncoder().encode(JSON.stringify(payload)).length > 15000) {
+        const index = payload.history.length > 1 && payload.history[0]?.text.startsWith('Previously stated preferences') ? 1 : 0;
+        payload.history.splice(index,1);
+      }
       if (new TextEncoder().encode(JSON.stringify(payload)).length > 16000) throw new Error('This message is too large. Please shorten it and retry.');
-      const data = await request('/api/chat', payload, 'POST', {}, 30000);
+      const data = await request('/api/chat', payload, 'POST', {}, 90000);
       if (data.type === 'analysis') return validateAnalysis(data);
       if (data.type !== 'chat' || typeof data.reply !== 'string' || !data.reply.trim() || data.reply.length > 6000 ||
           !['built_in','gemini'].includes(data.response_source) || typeof data.provider_status !== 'string') {
         throw new Error('The chat service returned an unsupported response format.');
       }
+      if (data.products !== undefined && (!Array.isArray(data.products) || data.products.length > 4 || data.products.some(p => {
+        if (!p || typeof p.title !== 'string' || p.title.length > 300 || typeof p.retrieved_at !== 'string' ||
+            !Array.isArray(p.specifications) || p.specifications.some(s => typeof s !== 'string') ||
+            (p.price_inr !== null && (!Number.isFinite(p.price_inr) || p.price_inr <= 0))) return true;
+        try { const u = new URL(p.source_url); return u.protocol !== 'https:' || !!u.username || !!u.password; } catch { return true; }
+      }))) throw new Error('The product provider returned an unsupported listing format.');
       return data;
     },
     analyze: async (text, preferences) => validateAnalysis(await request('/api/analyze', {

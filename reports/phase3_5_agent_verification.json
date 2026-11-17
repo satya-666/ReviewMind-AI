@@ -1,0 +1,20 @@
+{
+  "date": "2026-11-12",
+  "root_cause": "Live hellow/yes bypassed Gemini through unclear routing, while identity reached Gemini successfully. Product questions had canned short circuits; user budget echoes were rejected by a blanket currency filter.",
+  "pytest_passed": 159,
+  "additional_extracted_review_validation_regression": "passed after full suite",
+  "browser_workflows_passed": 32,
+  "browser_database": "isolated TLS PostgreSQL",
+  "node_transport_test_passed": true,
+  "frontend_build": "passed with production API origin",
+  "model_retrained": false,
+  "model_replaced": false,
+  "database_migrations_changed": false,
+  "new_dependencies": false,
+  "provider": "Gemini gemini-3.1-flash-lite (unchanged)",
+  "live_provider_before_repair": "Who are you reached real Gemini; hellow/yes returned identical built-in unclear messages.",
+  "live_provider_after_repair": "To be verified after deployment; fixtures are not live evidence.",
+  "privacy": "Opt-in Google context and device history unchanged; preferences stay per browser chat.",
+  "paid_resources_added": false,
+  "docs": "docs/AGENT_INTEGRATION.md"
+}

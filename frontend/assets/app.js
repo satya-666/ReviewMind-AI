@@ -3,9 +3,16 @@ const $ = selector => document.querySelector(selector);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const LABELS = ['positive','negative','neutral','mixed','unknown'];
 const label = value => value === 'unknown' ? 'Not determined' : value.charAt(0).toUpperCase() + value.slice(1);
+const CONSENT_KEY = 'reviewmind_processing_consent_v1';
+let processingConsent = 'unknown', pendingConsent = null;
+function setProcessingConsent(value) {
+  processingConsent = ['accepted','declined'].includes(value) ? value : 'unknown';
+  $('#processingConsent').value = processingConsent;
+  try { localStorage.setItem(CONSENT_KEY,processingConsent); } catch { toast('Your processing choice stays in this tab because device storage is unavailable.'); }
+}
 const HISTORY_KEY = 'reviewmind_guest_history_v1';
 const I18N = {
-  en:{hello:'Let’s understand your product reviews',sub:'Ask a question, paste a review, or follow up on an analysis.',placeholder:'Ask about a review, or paste one to analyze…'},
+  en:{hello:'What are you looking to buy?',sub:'Tell us what you need, your budget, and what matters most.',placeholder:'For example: A laptop under ₹60,000 for college and coding'},
   hi:{hello:'AI के साथ प्रोडक्ट रिव्यू समझें',sub:'रिव्यू का समग्र भाव और प्रोडक्ट फीचर देखें। हिन्दी की सटीकता अभी प्रमाणित नहीं है।',placeholder:'विश्लेषण के लिए प्रोडक्ट रिव्यू यहाँ लिखें…'},
   hinglish:{hello:'AI se product reviews samjhein',sub:'Review paste karein aur overall sentiment aur product features dekhein. Hinglish accuracy abhi verified nahi hai.',placeholder:'Product review yahan paste karein…'}
 };
@@ -20,13 +27,19 @@ function renderAnalysis(data) {
     <details class="analysis-about"><summary>About this analysis</summary><p>Model: ${esc(data.model_version)}</p><p>The overall model learned from star ratings rather than independently annotated sentiment. Scores are uncalibrated. Aspect rules can miss context and are not a trained aspect sentiment model.</p><ul>${data.warnings.map(w => `<li>${esc(w)}</li>`).join('')}</ul></details>
     <div class="analysis-actions"><button class="btn prediction-feedback" data-request="${esc(data.request_id)}">Give feedback on this analysis</button></div></article></div>`;
 }
+function productCards(products = []) {
+  return products.slice(0,4).filter(p => p && typeof p.title === 'string' && safeSource(p.source_url)).map(p => `<article class="card product-card"><h3>${esc(p.title)}</h3><p>${Number.isFinite(p.price_inr) ? '₹'+Number(p.price_inr).toLocaleString('en-IN') : 'Price unavailable'}</p><ul>${(Array.isArray(p.specifications) ? p.specifications : []).filter(s => typeof s === 'string').slice(0,8).map(s => `<li>${esc(s)}</li>`).join('')}</ul><p class="note">${p.rating != null ? `Listing rating: ${esc(p.rating)}/5${p.review_count != null ? ' · '+esc(p.review_count)+' reviews' : ''}. ` : ''}Availability unconfirmed. Check the source before buying.</p><a href="${esc(p.source_url)}" target="_blank" rel="noopener noreferrer">${esc(p.source || 'View source')}</a><p class="note">Retrieved: ${esc(p.retrieved_at)}</p></article>`).join('');
+}
+function safeSource(value) {
+  try { const u = new URL(value); return u.protocol === 'https:' && !u.username && !u.password && (!u.port || u.port === '443') && u.hostname.includes('.') && !/^(?:localhost|127\.|10\.|192\.168\.|169\.254\.)/.test(u.hostname); } catch { return false; }
+}
 function addMessage(message) {
   const el = document.createElement('div'); el.className = 'msg ' + (message.role === 'user' ? 'user' : 'ai');
   if (message.role === 'user') el.innerHTML = `<div class="bubble">${esc(message.text)}</div>`;
   else if (message.result?.type === 'analysis') el.innerHTML = renderAnalysis(message.result);
   else if (message.result?.type === 'chat') {
     const r = message.result;
-    el.innerHTML = `<article class="card chat-answer"><p class="response-source">${r.response_source === 'gemini' ? 'Gemini · conversational answer' : 'Built-in guide · not a language-model answer'}</p><div class="reply-text">${esc(r.reply)}</div>${['timeout','unavailable','busy','rate_limited','invalid_response','blocked','ungrounded_response'].includes(r.provider_status) ? '<p class="note">The conversational provider did not return an answer. You can resend your message when it is available.</p>' : ''}</article>`;
+    el.innerHTML = `<article class="card chat-answer"><div class="reply-text">${esc(r.reply)}</div>${productCards(r.products)}${['quota_exhausted','authentication_failed','unavailable','provider_error','rate_limited'].includes(r.product_status) ? '<p class="note">Product search could not complete ('+esc(r.product_status.replaceAll('_',' '))+'). No current listings were verified. Try again later.</p>' : ''}${['timeout','unavailable','busy','rate_limited','invalid_response','blocked','ungrounded_response'].includes(r.provider_status) ? '<p class="note">The conversational provider did not return an answer. You can resend your message when it is available.</p>' : ''}</article>`;
   }
   else if (message.result?.type === 'analysis_only') el.innerHTML = '<div class="card"><p>Product recommendations are not available. Paste a product review to analyze its sentiment instead.</p></div>';
   else el.innerHTML = `<div class="card error-card"><p role="alert">${esc(message.text || 'Analysis is unavailable. Please try again.')}</p>${message.retry ? '<button class="btn retry">Retry message</button>' : ''}</div>`;
@@ -38,7 +51,7 @@ function addMessage(message) {
   }
   el.appendChild(meta); $('#chat').appendChild(el);
   const retry = el.querySelector('.retry');
-  if (retry) retry.onclick = () => { $('#q').value = message.retry.text; $('#cat').value = message.retry.category; $('#lang').value = message.retry.language; $('#mode').value = message.retry.mode || 'auto'; send(); };
+  if (retry) retry.onclick = () => send(message);
 }
 function persist() {
   try {
@@ -54,43 +67,59 @@ function renderHistory() {
 function showCurrent() {
   $('#chat').replaceChildren();
   if (current) current.messages.forEach(addMessage);
-  else $('#chat').innerHTML = '<p class="empty" id="welcome">No messages yet. Say hello or paste a product review to get started.</p>';
+  else $('#chat').innerHTML = '<p class="empty" id="welcome">Try “I need a phone under ₹20,000 with good battery life.”</p>';
   renderHistory();
 }
 function newAnalysis() {
   if (busy) return toast('Please wait for the current reply.');
   current = null; showCurrent(); persist(); closeHistory(); $('#q').value = ''; $('#q').focus();
 }
-function contextFor(messages) {
-  let total = 0; const history = [];
+function rememberPreferences(chat,text) {
+  chat.preferences ||= {};
+  const patterns = {budget:/₹|\b(?:budget|rupees|rs)\b|\b(?:under|below)\s+\d/i,
+    brand:/\b(?:prefer|brand|only)\b/i,priorities:/\b(?:priorit\w*|matters most|important|care about)\b/i};
+  for (const [key,pattern] of Object.entries(patterns)) if (pattern.test(text)) chat.preferences[key] = text.slice(0,200);
+}
+function contextFor(messages,preferences = {}) {
+  const notes = Object.entries(preferences).filter(([k,v]) => ['budget','brand','priorities'].includes(k) && typeof v === 'string').map(([k,v]) => `${k}: ${v.slice(0,200)}`).join('\n');
+  const anchor = notes ? 'Previously stated preferences (user-provided, not verified product data):\n'+notes : '';
+  let total = anchor.length; const history = [];
   for (const m of [...messages].reverse()) {
-    let text = m.role === 'user' ? m.text : m.result?.type === 'chat' ? m.result.reply : m.result?.type === 'analysis' ?
+    let text = m.role === 'user' ? m.text : m.result?.type === 'chat' && m.result.response_source === 'gemini' ? m.result.reply : m.result?.type === 'analysis' ?
       `Review analysis: overall ${m.result.sentiment}. Rule-based aspects: ${m.result.aspects.map(a => a.name+': '+a.sentiment).join(', ')}. Scores are uncalibrated.` : null;
-    if (!text || history.length >= 8 || total >= 4000) continue;
+    if (!text || history.length >= (anchor ? 7 : 8) || total >= 4000) continue;
     text = text.slice(0,Math.min(1000,4000-total)); total += text.length;
     history.unshift({role:m.role === 'user' ? 'user' : 'assistant',text});
   }
-  return history;
+  return anchor ? [{role:'user',text:anchor},...history] : history;
 }
-async function send() {
-  const text = $('#q').value.trim(); $('#hint').textContent = '';
+async function send(failedMessage = null) {
+  const retry = failedMessage?.retry;
+  const text = (retry?.text ?? $('#q').value).trim(); $('#hint').textContent = '';
   if (busy) return;
   if (!text || text.length > 5000) { $('#hint').textContent = 'Enter a message between 1 and 5,000 characters.'; $('#q').focus(); return; }
-  const preferences = {category:$('#cat').value,language:$('#lang').value,mode:$('#mode').value};
-  const messages = current?.messages || [];
+  if (processingConsent === 'unknown' && (retry?.mode || $('#mode').value) !== 'review') {
+    pendingConsent = failedMessage; $('#consentModal').showModal(); return;
+  }
+  const preferences = {category:retry?.category ?? $('#cat').value,language:retry?.language ?? $('#lang').value,mode:retry?.mode || $('#mode').value};
+  if (!current) { current = {id:crypto.randomUUID(),title:text.slice(0,100),messages:[],preferences:{}}; chats.unshift(current); chats = chats.slice(0,20); }
+  if (!retry) rememberPreferences(current,text);
+  const messages = retry ? current.messages.slice(0,current.messages.indexOf(failedMessage)-1) : current.messages;
   const previous = [...messages].reverse().find(m => m.result?.type === 'analysis');
-  const body = {text,...preferences,history:contextFor(messages),analysis_request_id:previous?.result.request_id || null,allow_gemini:$('#allowGemini').checked};
+  const body = {text,...preferences,history:retry?.history || contextFor(messages,current.preferences),analysis_request_id:retry?.analysis_request_id || previous?.result.request_id || null,allow_gemini:processingConsent === 'accepted',allow_product_search:processingConsent === 'accepted'};
   busy = true; $('#send').disabled = true; $('#send').textContent = 'Sending…'; $('#loading').hidden = false;
   $('#loading').textContent = 'Connecting to the assistant… The service may take up to a minute to wake up.';
   $('#results').setAttribute('aria-busy','true'); $('#welcome')?.remove();
-  if (!current) { current = {id:crypto.randomUUID(),title:text.slice(0,100),messages:[]}; chats.unshift(current); chats = chats.slice(0,20); }
-  current.messages.push({role:'user',text,time:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})});
-  $('#q').value = ''; showCurrent(); $('#results').scrollTop = $('#results').scrollHeight;
+  if (retry) current.messages.splice(current.messages.indexOf(failedMessage),1);
+  else current.messages.push({role:'user',text,time:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})});
+  if (!retry || $('#q').value.trim() === text) $('#q').value = '';
+  showCurrent(); $('#results').scrollTop = $('#results').scrollHeight;
   try {
-    const result = await ReviewMindAPI.chat(body,() => { $('#loading').textContent = 'Preparing your reply… Review predictions and Gemini conversation use separate models.'; });
+    const result = await ReviewMindAPI.chat(body,() => { $('#loading').textContent = 'Finding an answer for you…'; });
     current.messages.push({role:'ai',result,time:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})});
   } catch (error) {
-    current.messages.push({role:'ai',text:error.message,retry:{text,...preferences}});
+    current.messages.push({role:'ai',text:error.message,retry:body});
+    if (!$('#q').value) $('#q').value = text;
   } finally {
     current.messages = current.messages.slice(-50); busy = false; $('#send').disabled = false; $('#send').textContent = 'Send'; $('#loading').hidden = true;
     $('#results').setAttribute('aria-busy','false'); showCurrent(); persist();
@@ -130,7 +159,8 @@ function validStoredMessage(m) {
   if (m.role === 'user') return typeof m.text === 'string' && m.text.length <= 5000;
   if (m.role !== 'ai') return false;
   if (!m.result) return typeof m.text === 'string' && m.text.length <= 2000 && (!m.retry ||
-    (typeof m.retry.text === 'string' && m.retry.text.length <= 5000 && typeof m.retry.category === 'string' && ['en','hi','hinglish'].includes(m.retry.language)));
+    (typeof m.retry.text === 'string' && m.retry.text.length <= 5000 && typeof m.retry.category === 'string' && ['en','hi','hinglish'].includes(m.retry.language) &&
+      (!m.retry.history || (Array.isArray(m.retry.history) && m.retry.history.length <= 8 && m.retry.history.every(h => h && ['user','assistant'].includes(h.role) && typeof h.text === 'string' && h.text.length <= 1000)))));
   const r = m.result;
   if (r.type === 'chat') return typeof r.reply === 'string' && r.reply.length <= 6000 && ['built_in','gemini'].includes(r.response_source) && typeof r.provider_status === 'string';
   if (r.type === 'analysis_only') return r.status === 'not_available';
@@ -140,16 +170,32 @@ function validStoredMessage(m) {
 }
 (function init() {
   try {
+    const savedConsent = localStorage.getItem(CONSENT_KEY);
+    if (['accepted','declined'].includes(savedConsent)) processingConsent = savedConsent;
     const stored = localStorage.getItem(HISTORY_KEY);
     if (stored && stored.length < 2000000) {
       const parsed = JSON.parse(stored);
       if (Array.isArray(parsed.chats)) {
         chats = parsed.chats.filter(c => c && typeof c.id === 'string' && typeof c.title === 'string' && Array.isArray(c.messages)).slice(0,20);
-        chats.forEach(c => { c.title = c.title.slice(0,100); c.messages = c.messages.slice(-50).filter(validStoredMessage); });
+        chats.forEach(c => {
+          c.title = c.title.slice(0,100); c.messages = c.messages.slice(-50).filter(validStoredMessage);
+          c.preferences = Object.fromEntries(Object.entries(c.preferences || {}).filter(([k,v]) => ['budget','brand','priorities'].includes(k) && typeof v === 'string').map(([k,v]) => [k,v.slice(0,200)]));
+          if (!Object.keys(c.preferences).length) c.messages.filter(m => m.role === 'user').forEach(m => rememberPreferences(c,m.text));
+        });
         current = chats.find(c => c.id === parsed.current) || null; $('#remember').checked = true;
       }
     }
   } catch { chats = []; current = null; }
+  $('#processingConsent').value = processingConsent;
+  $('#processingConsent').onchange = () => {
+    if ($('#processingConsent').value === 'accepted' && processingConsent !== 'accepted') {
+      $('#processingConsent').value = processingConsent; pendingConsent = undefined; $('#consentModal').showModal();
+    } else setProcessingConsent($('#processingConsent').value);
+  };
+  for (const [id,choice] of [['acceptProcessing','accepted'],['declineProcessing','declined']]) $("#"+id).onclick = () => {
+    const pending = pendingConsent; setProcessingConsent(choice); $('#consentModal').close();
+    if (pending !== undefined) send(pending);
+  };
   showCurrent();
   $('#analysisForm').onsubmit = e => { e.preventDefault(); send(); };
   $('#q').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(); } };

@@ -1,0 +1,69 @@
+import React, { useState } from "react";
+export default function AskBar({ action, answer, setAnswer }) {
+  const [question, setQuestion] = useState("");
+  async function ask(value) {
+    if (!value.trim()) return;
+    setQuestion(value);
+    const result = await action.mutateAsync({
+      path: "/ai/ask",
+      body: { question: value },
+    });
+    setAnswer(result);
+  }
+  return (
+    <div className="ask">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          ask(question).catch(() => {});
+        }}
+      >
+        <input
+          aria-label="Ask AI"
+          placeholder="Ask about your inbox…"
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          disabled={action.isPending}
+        />
+      </form>
+      <div className="chips">
+        {[
+          "What needs the client’s attention?",
+          "What am I waiting on?",
+          "Which emails need review?",
+          "Why was this email assigned to the client?",
+        ].map((q) => (
+          <button
+            className="chip"
+            key={q}
+            disabled={action.isPending}
+            onClick={() => ask(q).catch(() => {})}
+          >
+            {q}
+          </button>
+        ))}
+      </div>
+      {action.isPending && (
+        <p className="mu" role="status">
+          Reading your inbox…
+        </p>
+      )}
+      {answer && (
+        <div className="ans">
+          {answer.answer}
+          <div>
+            <button
+              className="chip"
+              onClick={() => {
+                setAnswer(null);
+                setQuestion("");
+              }}
+            >
+              Clear answer
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -50,6 +50,7 @@ class ChatInput(Analyze):
     analysis_request_id:UUID|None=None
     mode:Literal['auto','review']='auto'
     allow_gemini:bool=False
+    allow_product_search:bool=False
 
     @field_validator('history')
     @classmethod
