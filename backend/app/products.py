@@ -1,7 +1,9 @@
 """Optional SerpApi India Shopping retrieval; never fetch model-supplied URLs."""
 from datetime import datetime,timezone
 from decimal import Decimal,InvalidOperation
-import ipaddress,json,re,threading,time,urllib.parse,urllib.request,urllib.error
+import ipaddress,json,logging,re,threading,time,urllib.parse,urllib.request,urllib.error
+
+LOG=logging.getLogger(__name__)
 
 def public_url(value):
     if not isinstance(value,str) or len(value)>2000:return None
@@ -51,7 +53,8 @@ class ProductData:
             now=time.monotonic();self.calls=[t for t in self.calls if now-t<3600]
             if len(self.calls)>=40:return dict(result,status='rate_limited')
             self.calls.append(now)
-        params={'engine':'google_shopping','q':query,'gl':'in','hl':'en','google_domain':'google.co.in','api_key':self.key}
+        params={'engine':'google_shopping','q':query,'gl':'in','hl':'en','google_domain':'google.co.in','api_key':self.key,
+          'json_restrictor':'error,shopping_results[0:40].{title,product_id,product_link,link,price,extensions,rating,reviews,source}'}
         if budget:params['tbs']='mr:1,price:1,ppr_max:'+str(budget)
         try:
             request=urllib.request.Request('https://serpapi.com/search.json?'+urllib.parse.urlencode(params))
@@ -62,8 +65,12 @@ class ProductData:
             rows=data.get('shopping_results',[])
             if not isinstance(rows,list):raise ValueError()
         except urllib.error.HTTPError as error:
+            LOG.warning('Product search failed (http=%s)',error.code)
             return dict(result,status='quota_exhausted' if error.code==429 else 'authentication_failed' if error.code in {401,403} else 'unavailable')
-        except (TimeoutError,urllib.error.URLError,OSError,ValueError,TypeError):return dict(result,status='unavailable')
+        except (TimeoutError,urllib.error.URLError,OSError,ValueError,TypeError) as error:
+            # Exception text can contain the request URL and API key.
+            LOG.warning('Product search failed (type=%s)',type(error).__name__)
+            return dict(result,status='unavailable')
         stamp=datetime.now(timezone.utc).isoformat();products=[]
         for row in rows[:40]:
             if not isinstance(row,dict):continue

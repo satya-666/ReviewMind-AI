@@ -30,6 +30,9 @@ def test_india_retrieval_filters_and_preserves_evidence(monkeypatch):
     assert p['price_inr']==19999 and p['specifications']==['5000 mAh']
     assert p['source_url']=='https://retailer.example/one' and p['retrieved_at'].endswith('+00:00')
     assert 'gl=in' in captured[0] and 'google_domain=google.co.in' in captured[0]
+    from urllib.parse import urlsplit,parse_qs
+    fields=parse_qs(urlsplit(captured[0]).query)['json_restrictor'][0]
+    assert fields=='error,shopping_results[0:40].{title,product_id,product_link,link,price,extensions,rating,reviews,source}'
     assert 'fixture-only-key' not in json.dumps(result)
 
 def test_product_missing_key_quota_and_missing_fields(monkeypatch):
@@ -107,3 +110,13 @@ def test_tool_analysis_does_not_expose_invented_classifier_reasoning(tmp_path,mo
         assert result['type']=='analysis' and result['model_version']=='phase3-full-logistic_regression-seed42'
         assert 'averages' not in result['reply'] and 'Exact causal feature importance is unavailable' in result['reply']
         assert result['tools_used']==['sentiment','aspect_rules','gemini']
+
+
+def test_product_failure_logs_never_include_request_or_key(monkeypatch,caplog):
+    secret='fixture-secret-key'
+    def fail(*args,**kwargs):
+        raise urllib.error.URLError('https://serpapi.com/search.json?api_key='+secret)
+    monkeypatch.setattr('urllib.request.OpenerDirector.open',fail)
+    assert ProductData(secret).search('phone')['status']=='unavailable'
+    assert 'type=URLError' in caplog.text
+    assert secret not in caplog.text and 'https://' not in caplog.text
