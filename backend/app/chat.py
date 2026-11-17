@@ -72,7 +72,7 @@ class GeminiConversation:
                         self.calls.append(now)
                 request=urllib.request.Request('https://generativelanguage.googleapis.com/v1beta/models/'+self.model+':generateContent',
                   data=json.dumps(payload).encode(),headers={'Content-Type':'application/json','x-goog-api-key':self.key},method='POST')
-                with self.opener.open(request,timeout=20) as response:raw=response.read(65537)
+                with self.opener.open(request,timeout=30) as response:raw=response.read(65537)
                 if len(raw)>65536:raise ProviderError('invalid_response')
                 data=json.loads(raw);candidate=(data.get('candidates') or [{}])[0]
                 if candidate.get('finishReason') not in {'STOP','MAX_TOKENS'}:raise ProviderError('blocked')

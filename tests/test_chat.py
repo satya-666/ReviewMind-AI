@@ -119,7 +119,7 @@ def test_gemini_adapter_payload_and_key_header_only(monkeypatch):
     assert provider.generate('Hello',[ChatMessage(role='user',text='Earlier question')],{'sentiment':'positive'},'en')=='A response fixture.'
     req,timeout=captured[0];payload=json.loads(req.data)
     assert 'test-key-not-real' not in req.full_url and 'test-key-not-real' not in req.data.decode()
-    assert req.get_header('X-goog-api-key')=='test-key-not-real' and timeout==20
+    assert req.get_header('X-goog-api-key')=='test-key-not-real' and timeout==30
     assert payload['contents'][0]['role']=='user' and payload['contents'][-1]['parts'][-1]['text']=='Hello'
     assert payload['generationConfig']['maxOutputTokens']==512 and 'tools' not in payload
     assert provider.responded

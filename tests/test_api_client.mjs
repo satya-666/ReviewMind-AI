@@ -22,3 +22,16 @@ test('provider quota error preserves preference anchor and never automatically r
   assert.ok(new TextEncoder().encode(calls[1].options.body).length<=15000);
   assert.equal(body.history.length,3);
 });
+
+
+test('shopping chat allows both model rounds and retrieval within a bounded timeout', async () => {
+  const timeouts=[];
+  const context=vm.createContext({window:{},TextEncoder,AbortController,clearTimeout,
+    setTimeout:(callback,ms) => {timeouts.push(ms);return 1;},
+    fetch:async (path,options) => options.method==='GET'
+      ? {ok:true,json:async () => ({configured:true})}
+      : {ok:false,status:503,json:async () => ({error:{code:'timeout'}})}});
+  vm.runInContext(readFileSync(new URL('../frontend/assets/api-client.js',import.meta.url),'utf8'),context);
+  await assert.rejects(context.window.ReviewMindAPI.chat({text:'phones under 20k',history:[]}),error => error.code==='timeout');
+  assert.deepEqual(timeouts,[60000,90000]);
+});

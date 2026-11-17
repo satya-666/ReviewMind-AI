@@ -69,7 +69,7 @@
         payload.history.splice(index,1);
       }
       if (new TextEncoder().encode(JSON.stringify(payload)).length > 16000) throw new Error('This message is too large. Please shorten it and retry.');
-      const data = await request('/api/chat', payload, 'POST', {}, 60000);
+      const data = await request('/api/chat', payload, 'POST', {}, 90000);
       if (data.type === 'analysis') return validateAnalysis(data);
       if (data.type !== 'chat' || typeof data.reply !== 'string' || !data.reply.trim() || data.reply.length > 6000 ||
           !['built_in','gemini'].includes(data.response_source) || typeof data.provider_status !== 'string') {
