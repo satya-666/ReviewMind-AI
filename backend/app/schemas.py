@@ -45,7 +45,11 @@ class ChatMessage(Strict):
     role:Literal['user','assistant']
     text:str=Field(min_length=1,max_length=1000)
 
+class CreateChat(Strict):
+    title:str=Field(min_length=1,max_length=100)
+
 class ChatInput(Analyze):
+    chat_id:UUID|None=None
     history:list[ChatMessage]=Field(default_factory=list,max_length=8)
     analysis_request_id:UUID|None=None
     mode:Literal['auto','review']='auto'

@@ -54,32 +54,27 @@ test('missing configuration and failed verification never open the chat',async (
   assert.equal(failed.element('authStatus').textContent,'Sign-in rejected');
 });
 
-test('account changes isolate saved chat history and clear unsent messages',() => {
-  const elements=new Map(),storage=new Map(),listeners=new Map();
+test('account changes load only server-owned chats and clear unsent messages',async () => {
+  const elements=new Map(),listeners=new Map();
   const makeElement=() => ({value:'',checked:false,hidden:false,children:[],dataset:{},
     replaceChildren(){this.children=[];},appendChild(child){this.children.push(child);},
     setAttribute(){},addEventListener(){},querySelector(){return null;},close(){},focus(){}});
   const element=id => {if(!elements.has(id)) elements.set(id,makeElement());return elements.get(id);};
-  const saved=(id,title) => JSON.stringify({current:id,chats:[{id,title,messages:[{role:'user',text:title}]}]});
-  storage.set('reviewmind_history_v1_google-a',saved('chat-a','Private account A conversation'));
-  storage.set('reviewmind_history_v1_google-b',saved('chat-b','Private account B conversation'));
-  storage.set('reviewmind_guest_history_v1',saved('guest','Old guest conversation'));
+  let owner='alice';
   const auth={init(){},required:() => true,ready:() => true};
-  const context=vm.createContext({ReviewMindAuth:auth,Date,Map,Object,String,Array,Number,JSON,
+  const context=vm.createContext({ReviewMindAuth:auth,ReviewMindAPI:{chats:async () => ({chats:[{id:owner,title:owner+' private chat'}]})},Date,Map,Object,String,Array,Number,JSON,
     window:{addEventListener:(name,fn) => listeners.set(name,fn)},
     document:{querySelector:element,querySelectorAll:() => [],createElement:makeElement,addEventListener(){}},
-    localStorage:{getItem:key => storage.get(key) || null,setItem:(key,value) => storage.set(key,value),removeItem:key => storage.delete(key)}});
+    localStorage:{getItem:() => null}});
   vm.runInContext(readFileSync(new URL('../frontend/assets/app.js',import.meta.url),'utf8'),context);
   const change=detail => listeners.get('reviewmind-auth')({detail});
-  change({id:'google-a'});
-  assert.equal(vm.runInContext('current.title',context),'Private account A conversation');
+  await change({id:'alice'});
+  assert.equal(vm.runInContext('chats[0].title',context),'alice private chat');
   element('#q').value='Private unsent message';
-  change(null);
-  assert.equal(vm.runInContext('current',context),null);
+  await change(null);
+  assert.equal(vm.runInContext('chats.length',context),0);
   assert.equal(element('#q').value,'');
-  change({id:'google-b'});
-  assert.equal(vm.runInContext('current.title',context),'Private account B conversation');
-  assert.equal(vm.runInContext('HISTORY_KEY',context),'reviewmind_history_v1_google-b');
-  assert.ok(storage.has('reviewmind_history_v1_google-a'));
-  assert.ok(storage.has('reviewmind_guest_history_v1'));
+  owner='bob';await change({id:'bob'});
+  assert.equal(vm.runInContext('chats[0].title',context),'bob private chat');
+  assert.equal(vm.runInContext('current',context),null);
 });

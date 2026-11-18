@@ -13,9 +13,13 @@ Do not deploy the production authentication gate before the client ID is configu
 
 ## Session and history behavior
 
-Tokens stay in browser memory and are never written to localStorage, URLs, transcripts or application logs. Reloading or expiry requires signing in again. Sign-out clears in-memory identity and displayed conversation state. An already running request may finish server-side, but its answer cannot populate a different account's history.
+Tokens stay in browser memory and are never written to localStorage, URLs, transcripts or application logs. Reloading or expiry requires signing in again. Sign-out clears in-memory identity and displayed conversation state. An already running request may finish and save to its original account server-side, but its answer cannot populate a different account's history.
 
-Optional device history is keyed by verified Google subject. Existing guest history remains on the device and is not assigned to a Google account. Sign-out does not delete saved device history. This change adds authentication, not cloud chat storage or inbox integration. Google profile email is displayed locally and is not included in the model prompt.
+Chats are stored in the existing PostgreSQL database and keyed by the verified Google subject. Users can list, reopen and continue chats after signing in on another device. Each chat has a Delete control; Settings offers Delete all chats, both requiring confirmation. Ownership is checked on every read, append and deletion. Chat responses are saved directly from server execution, never accepted from client JSON. Chat text persists until deletion; feedback retains its separate 30-day retention. Database backups may retain deleted data according to the hosting provider's backup policy.
+
+The current limits are 100 chats per account and 100 messages (50 exchanges) per chat, with a 1 MB maximum stored payload per chat. Full chats require starting a new one; reaching the account limit requires deleting an old chat. Old guest/device-only history stays on the original browser and is not imported or assigned to a Google account. Authentication does not request Gmail inbox access. Account email is not included in model prompts.
+
+The new `0002_chats` migration runs through the existing `backend/start.sh` Alembic startup step. No database plan or paid infrastructure change is required. Chat content is stored only for authenticated users; development guest requests remain transient.
 
 The API caches Google's public certificates according to their cache headers and bounds certificate network requests to five seconds. Browser and backend timeouts remain bounded. Browser Content Security Policy permits the Google Identity Services script, styles, frame and connection endpoints.
 

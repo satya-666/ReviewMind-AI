@@ -10,7 +10,7 @@ function setProcessingConsent(value) {
   $('#processingConsent').value = processingConsent;
   try { localStorage.setItem(CONSENT_KEY,processingConsent); } catch { toast('Your processing choice stays in this tab because device storage is unavailable.'); }
 }
-let HISTORY_KEY = 'reviewmind_guest_history_v1';
+let signedUser=null,accountEpoch=0,historyLoading=false;
 const I18N = {
   en:{hello:'What are you looking to buy?',sub:'Tell us what you need, your budget, and what matters most.',placeholder:''},
   hi:{hello:'AI के साथ प्रोडक्ट रिव्यू समझें',sub:'रिव्यू का समग्र भाव और प्रोडक्ट फीचर देखें। हिन्दी की सटीकता अभी प्रमाणित नहीं है।',placeholder:'विश्लेषण के लिए प्रोडक्ट रिव्यू यहाँ लिखें…'},
@@ -43,7 +43,7 @@ function addMessage(message) {
   }
   else if (message.result?.type === 'analysis_only') el.innerHTML = '<div class="card"><p>Product recommendations are not available. Paste a product review to analyze its sentiment instead.</p></div>';
   else el.innerHTML = `<div class="card error-card"><p role="alert">${esc(message.text || 'Analysis is unavailable. Please try again.')}</p>${message.retry ? '<button class="btn retry">Retry message</button>' : ''}</div>`;
-  const meta = document.createElement('div'); meta.className = 'meta'; meta.textContent = message.time || '';
+  const meta = document.createElement('div'); meta.className = 'meta'; meta.textContent = message.time?.includes('T') ? new Date(message.time).toLocaleString() : message.time || '';
   if (message.role === 'ai') {
     const copy = document.createElement('button'); copy.className = 'copy'; copy.textContent = 'Copy result';
     copy.onclick = () => navigator.clipboard?.writeText(el.innerText).then(() => toast('Result copied.'),() => toast('Select the result and copy it manually.'));
@@ -54,14 +54,10 @@ function addMessage(message) {
   if (retry) retry.onclick = () => send(message);
 }
 function persist() {
-  try {
-    if ($('#remember').checked) localStorage.setItem(HISTORY_KEY,JSON.stringify({chats:chats.slice(0,20),current:current?.id || null}));
-    else localStorage.removeItem(HISTORY_KEY);
-  } catch { toast('Device storage is unavailable. This history stays in the current session.'); }
-  $('#historyNote').textContent = $('#remember').checked ? 'History is saved on this device. Clear it in Settings.' : 'History stays in this session unless you choose to save it on this device.';
+  $('#historyNote').textContent=signedUser ? 'Chats are saved to your account until you delete them.' : 'Sign in to save and access your chats.';
 }
 function renderHistory() {
-  $('#hist').innerHTML = chats.length ? chats.map(c => `<li><button data-chat="${esc(c.id)}" ${c === current ? 'aria-current="true"' : ''}>${esc(c.title)}</button></li>`).join('') : '<li class="empty">No local chats yet.</li>';
+  $('#hist').innerHTML = chats.length ? chats.map(c => `<li><button data-chat="${esc(c.id)}" ${c === current ? 'aria-current="true"' : ''}>${esc(c.title)}</button><button class="btn delete-chat" data-delete-chat="${esc(c.id)}" aria-label="Delete ${esc(c.title)}">Delete</button></li>`).join('') : '<li class="empty">No saved chats yet.</li>';
   $('#startNew').hidden = !current;
 }
 function showCurrent() {
@@ -96,15 +92,15 @@ function contextFor(messages,preferences = {}) {
 async function send(failedMessage = null) {
   const retry = failedMessage?.retry;
   const text = (retry?.text ?? $('#q').value).trim(); $('#hint').textContent = '';
-  if (busy) return;
+  if (busy || historyLoading) return;
   if (!ReviewMindAuth.ready()) return toast('Sign in with Google to continue.');
   if (!text || text.length > 5000) { $('#hint').textContent = 'Enter a message between 1 and 5,000 characters.'; $('#q').focus(); return; }
   if (processingConsent === 'unknown' && (retry?.mode || $('#mode').value) !== 'review') {
     pendingConsent = failedMessage; $('#consentModal').showModal(); return;
   }
   const preferences = {category:retry?.category ?? $('#cat').value,language:retry?.language ?? $('#lang').value,mode:retry?.mode || $('#mode').value};
-  if (!current) { current = {id:crypto.randomUUID(),title:text.slice(0,100),messages:[],preferences:{}}; chats.unshift(current); chats = chats.slice(0,20); }
-  const chat=current;
+  if (!current) { current = {id:crypto.randomUUID(),title:text.slice(0,100),messages:[],preferences:{}}; chats.unshift(current); }
+  const chat=current,epoch=accountEpoch;
   if (!retry) rememberPreferences(chat,text);
   const messages = retry ? chat.messages.slice(0,chat.messages.indexOf(failedMessage)-1) : chat.messages;
   const previous = [...messages].reverse().find(m => m.result?.type === 'analysis');
@@ -117,13 +113,21 @@ async function send(failedMessage = null) {
   if (!retry || $('#q').value.trim() === text) $('#q').value = '';
   showCurrent(); $('#results').scrollTop = $('#results').scrollHeight;
   try {
+    if (signedUser && !chat.saved) {
+      const saved=await ReviewMindAPI.createChat(chat.title);
+      if (epoch!==accountEpoch) return;
+      chat.id=saved.id;chat.saved=true;renderHistory();
+    }
+    if (signedUser) body.chat_id=chat.id;
     const result = await ReviewMindAPI.chat(body,() => { $('#loading').textContent = 'Finding an answer for you…'; });
+    if (epoch!==accountEpoch) return;
     chat.messages.push({role:'ai',result,time:new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})});
   } catch (error) {
+    if (epoch!==accountEpoch) return;
     chat.messages.push({role:'ai',text:error.message,retry:body});
     if (current===chat && !$('#q').value) $('#q').value = text;
   } finally {
-    chat.messages = chat.messages.slice(-50); busy = false; $('#send').disabled = false; $('#send').textContent = 'Send'; $('#loading').hidden = true;
+    busy = false; $('#send').disabled = false; $('#send').textContent = 'Send'; $('#loading').hidden = true;
     $('#results').setAttribute('aria-busy','false'); showCurrent(); if (current===chat) persist();
     const latest = $('#chat .msg.ai:last-child'), area = $('#results');
     if (latest) area.scrollTop += latest.getBoundingClientRect().top - area.getBoundingClientRect().top - 8;
@@ -199,18 +203,45 @@ function validStoredMessage(m) {
   $('#closeSettings').onclick = () => $('#settingsModal').close();
   $('#mclose').onclick = () => $('#modal').close(); $('#modal').addEventListener('close',rememberDraft);
   $('#feedbackForm').oninput = rememberDraft;
-  document.addEventListener('click',e => {
-    const chat = e.target.closest('[data-chat]'); if (chat && !busy) { current = chats.find(c => c.id === chat.dataset.chat); showCurrent(); persist(); closeHistory(); }
-    const button = e.target.closest('[data-request]'); if (button) openFeedback(button.dataset.request);
+  document.addEventListener('click',async e => {
+    const deletion=e.target.closest('[data-delete-chat]');
+    if (deletion && !busy && !historyLoading) {
+      const chat=chats.find(c => c.id===deletion.dataset.deleteChat);
+      if (!chat || !window.confirm('Delete this chat? This cannot be undone.')) return;
+      const epoch=accountEpoch;busy=true;
+      try {
+        if (signedUser && chat.saved) await ReviewMindAPI.deleteChat(chat.id);
+        if (epoch!==accountEpoch) return;
+        chats=chats.filter(c => c!==chat);if(current===chat)current=null;showCurrent();toast('Chat deleted.');
+      } catch(error) {toast(error.message);} finally {busy=false;}
+    }
+    const chatButton=e.target.closest('[data-chat]');
+    if (chatButton && !busy && !historyLoading) {
+      const chat=chats.find(c => c.id===chatButton.dataset.chat),epoch=accountEpoch;
+      if (!chat)return;
+      busy=true;
+      try {
+        if (chat.saved) {
+          const saved=await ReviewMindAPI.getChat(chat.id);
+          if (epoch!==accountEpoch)return;
+          chat.messages=(saved.messages || []).filter(validStoredMessage);chat.preferences={};
+          chat.messages.filter(m => m.role==='user').forEach(m => rememberPreferences(chat,m.text));
+        }
+        current=chat;showCurrent();persist();closeHistory();
+      } catch(error) {toast(error.message);} finally {busy=false;}
+    }
+    const button=e.target.closest('[data-request]');if(button)openFeedback(button.dataset.request);
   });
   document.addEventListener('keydown',e => { if (e.key === 'Escape' && !$('#side').hidden) { closeHistory(); $('#historyBtn').focus(); } });
-  $('#remember').onchange = persist;
-  $('#clearHist').onclick = () => {
-    if (busy) return toast('Wait for the current analysis before clearing history.');
-    chats = []; current = null;
-    try { localStorage.removeItem(HISTORY_KEY); toast('Analysis history cleared. Submitted feedback is kept separately.'); }
-    catch { toast('Session cleared, but device storage could not be accessed.'); }
-    showCurrent();
+  $('#clearHist').onclick = async () => {
+    if (busy || historyLoading) return toast('Please wait for the current request.');
+    if (!chats.length || !window.confirm('Delete all your saved chats? This cannot be undone.')) return;
+    const epoch=accountEpoch;busy=true;
+    try {
+      if (signedUser) await ReviewMindAPI.clearChats();
+      if (epoch!==accountEpoch) return;
+      chats=[];current=null;showCurrent();toast('Chats deleted.');
+    } catch(error) {toast(error.message);} finally {busy=false;}
   };
   $('#themeBtn').onclick = () => { const dark = document.documentElement.dataset.theme !== 'dark'; document.documentElement.dataset.theme = dark ? 'dark' : 'light'; $('#themeBtn').textContent = dark ? 'Light theme' : 'Dark theme'; $('#themeBtn').setAttribute('aria-label',dark ? 'Switch to light theme' : 'Switch to dark theme'); };
   $('#feedbackForm').onsubmit = async e => {
@@ -234,29 +265,19 @@ function validStoredMessage(m) {
 })();
 
 
-window.addEventListener('reviewmind-auth',event => {
-  chats=[];current=null;$('#remember').checked=false;
-  $('#q').value='';$('#hint').textContent='';closeHistory();
+window.addEventListener('reviewmind-auth',async event => {
+  const epoch=++accountEpoch;signedUser=event.detail;
+  chats=[];current=null;$('#q').value='';$('#hint').textContent='';closeHistory();
   document.querySelectorAll('dialog[open]').forEach(dialog => dialog.close());
-  feedbackTarget=null;feedbackStates.clear();
-  HISTORY_KEY=event.detail ? 'reviewmind_history_v1_'+event.detail.id : 'reviewmind_guest_history_v1';
-  if (event.detail || !ReviewMindAuth.required()) {
-    try {
-    const stored = localStorage.getItem(HISTORY_KEY);
-    if (stored && stored.length < 2000000) {
-      const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed.chats)) {
-        chats = parsed.chats.filter(c => c && typeof c.id === 'string' && typeof c.title === 'string' && Array.isArray(c.messages)).slice(0,20);
-        chats.forEach(c => {
-          c.title = c.title.slice(0,100); c.messages = c.messages.slice(-50).filter(validStoredMessage);
-          c.preferences = Object.fromEntries(Object.entries(c.preferences || {}).filter(([k,v]) => ['budget','brand','priorities'].includes(k) && typeof v === 'string').map(([k,v]) => [k,v.slice(0,200)]));
-          if (!Object.keys(c.preferences).length) c.messages.filter(m => m.role === 'user').forEach(m => rememberPreferences(c,m.text));
-        });
-        current = chats.find(c => c.id === parsed.current) || null; $('#remember').checked = true;
-      }
-    }
-    } catch { chats=[];current=null; }
-  }
-  showCurrent();
+  feedbackTarget=null;feedbackStates.clear();showCurrent();persist();
+  if (!signedUser) {historyLoading=false;return;}
+  historyLoading=true;$('#send').disabled=true;$('#historyNote').textContent='Loading your chats…';
+  try {
+    const result=await ReviewMindAPI.chats();
+    if (epoch!==accountEpoch)return;
+    chats=result.chats.map(c => ({...c,saved:true,messages:[],preferences:{}}));
+    showCurrent();persist();
+  } catch(error) {if(epoch===accountEpoch) $('#historyNote').textContent=error.message;}
+  finally {if(epoch===accountEpoch){historyLoading=false;$('#send').disabled=busy;}}
 });
 ReviewMindAuth.init();

@@ -12,7 +12,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from sqlalchemy.exc import IntegrityError,SQLAlchemyError
 from backend.app.settings import Settings,ROOT
 from backend.app.db import Database,Base
-from backend.app.schemas import Analyze,Recommend,FeedbackInput,ChatInput
+from backend.app.schemas import Analyze,Recommend,FeedbackInput,ChatInput,CreateChat
 from backend.app.chat import intent_for,ProductData,GeminiConversation,ProviderError
 from backend.app.agent import ReviewMindAgent
 from backend.app.model_service import ModelService
@@ -75,6 +75,35 @@ def create_app(settings=None):
     @app.get('/api/auth/me')
     def me(user=Depends(auth.user)):
         return {'user':user}
+
+    def account(user=Depends(auth.user)):
+        if user is None:raise HTTPException(401,detail='Sign in with Google to access saved chats.')
+        return user
+
+    def chat_database():
+        if app.state.database is None:raise HTTPException(503,detail='Chat storage is temporarily unavailable.')
+        return app.state.database
+
+    @app.get('/api/chats')
+    def list_chats(user=Depends(account),db=Depends(chat_database)):
+        return {'chats':db.list_chats(user['id'])}
+
+    @app.post('/api/chats',status_code=201)
+    def create_chat(body:CreateChat,user=Depends(account),db=Depends(chat_database)):
+        try:return db.create_chat(user['id'],body.title)
+        except ValueError as problem:return error(409,'chat_limit',str(problem))
+
+    @app.get('/api/chats/{identifier}')
+    def get_chat(identifier:uuid.UUID,user=Depends(account),db=Depends(chat_database)):
+        return db.get_chat(user['id'],identifier) or error(404,'chat_not_found','Chat not found.')
+
+    @app.delete('/api/chats/{identifier}')
+    def delete_chat(identifier:uuid.UUID,user=Depends(account),db=Depends(chat_database)):
+        return {'status':'deleted'} if db.delete_chat(user['id'],identifier) else error(404,'chat_not_found','Chat not found.')
+
+    @app.delete('/api/chats')
+    def clear_chats(user=Depends(account),db=Depends(chat_database)):
+        db.clear_chats(user['id']);return {'status':'deleted'}
 
     @app.exception_handler(RequestValidationError)
     async def invalid(request,exception):
@@ -139,12 +168,22 @@ def create_app(settings=None):
     def chat_status():
         return {'provider':'Gemini','model':settings.gemini_model,'agent_version':4,'configured':app.state.conversation.configured,
           'provider_responded_since_start':app.state.conversation.responded,'requires_consent':True,'verified_product_data':False,'product_provider':'SerpApi','product_provider_configured':app.state.products.configured,
-          'context_policy':'Up to 8 recent messages, 4000 history characters; no server chat transcript storage.'}
+          'context_policy':'Up to 8 recent messages and 4000 history characters sent to the model. Signed-in chats are saved to the account until deleted.'}
 
-    @app.post('/api/chat',dependencies=[Depends(auth.user)])
-    def chat(body:ChatInput):
+    @app.post('/api/chat')
+    def chat(body:ChatInput,user=Depends(auth.user)):
         try:
-            return app.state.agent.respond(body,analyze,app.state.database)
+            if user and not body.chat_id:return error(422,'chat_required','Start a saved chat before sending a message.')
+            if body.chat_id:
+                if not user:return error(401,'sign_in_required','Sign in to access this chat.')
+                db=chat_database();saved=db.get_chat(user['id'],body.chat_id)
+                if saved is None:return error(404,'chat_not_found','Chat not found.')
+                if len(saved['messages'])>=100:return error(409,'chat_limit','This chat is full. Start a new chat to continue.')
+            result=app.state.agent.respond(body,analyze,app.state.database)
+            if body.chat_id and isinstance(result,dict):
+                if not db.append_chat(user['id'],body.chat_id,body.text,result):return error(404,'chat_not_found','This chat was deleted while the reply was being prepared.')
+            return result
+        except ValueError as problem:return error(409,'chat_limit',str(problem))
         except SQLAlchemyError:
             return error(503,'storage_unavailable','The previous prediction could not be checked. Please retry shortly.')
         except ProviderError as problem:

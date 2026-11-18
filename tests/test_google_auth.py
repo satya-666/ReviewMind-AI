@@ -65,7 +65,8 @@ def test_api_enforces_google_sign_in_and_cors(tmp_path,monkeypatch,signed_auth):
         headers={'Authorization':'Bearer '+token()}
         me=client.get('/api/auth/me',headers=headers)
         assert me.status_code==200 and me.json()['user']['id']=='google-subject-123'
-        assert client.post('/api/chat',headers=headers,json={'text':'hello'}).status_code==200
+        chat=client.post('/api/chats',headers=headers,json={'title':'Hello'}).json()
+        assert client.post('/api/chat',headers=headers,json={'text':'hello','chat_id':chat['id']}).status_code==200
         rejected=client.get('/api/auth/me',headers={'Authorization':'Bearer bogus'})
         assert rejected.status_code==401 and 'bogus' not in rejected.text
         preflight=client.options('/api/chat',headers={'Origin':'http://localhost:8000','Access-Control-Request-Method':'POST','Access-Control-Request-Headers':'authorization,content-type'})

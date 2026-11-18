@@ -55,6 +55,11 @@
     return data;
   }
   window.ReviewMindAPI = {
+    chats: () => request('/api/chats',undefined,'GET'),
+    createChat: title => request('/api/chats',{title}),
+    getChat: id => request('/api/chats/'+encodeURIComponent(id),undefined,'GET'),
+    deleteChat: id => request('/api/chats/'+encodeURIComponent(id),undefined,'DELETE'),
+    clearChats: () => request('/api/chats',undefined,'DELETE'),
     authConfig: () => request('/api/auth/config',undefined,'GET'),
     me: () => request('/api/auth/me',undefined,'GET'),
     chat: async (body, onReady) => {
