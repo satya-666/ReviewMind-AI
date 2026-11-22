@@ -1,6 +1,6 @@
 # ReviewMind AI
 
-[Live demo](https://reviewmind-web.onrender.com/) · [Evaluation report](reports/portfolio_evaluation.md) · [Source repository](https://github.com/satya-666/ReviewMind-AI)
+[Live demo](https://reviewmind-web.onrender.com/) · [Evaluation report](reports/portfolio_evaluation.md) · [Source repository](https://github.com/satya-666/ReviewMind-AI) · [Public-access preparation](docs/PUBLIC_ACCESS.md)
 
 An applied ML demo that separates **trained review classification** from **provider-backed shopping advice**. Analyze overall sentiment with TF-IDF + logistic regression, inspect category-specific aspect rules and exact review evidence, or retrieve India shopping listings with source links.
 

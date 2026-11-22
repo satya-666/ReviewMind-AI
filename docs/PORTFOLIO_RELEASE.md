@@ -30,3 +30,10 @@ Run `scripts/evaluate_portfolio.py`. See [measured report](../reports/portfolio_
 - The exact shopping request returned HTTP 200 in **8.87 seconds**, with actual provider source cards and `product_status=ok`. The generated comparison failed the grounding guard (`ungrounded_response`), so a clearly labeled built-in notice and Retry were shown instead. The production browser also showed retrieved prices/source links, unknown specifications, unconfirmed availability, restored draft and an enabled Send button. This is a verified recoverable comparison failure, not a claim that generated comparison quality passed.
 - Follow-up regression: **20 passed** after canonical URL encoding, three-option request handling and the mobile label fix. Static production build passed again. Google account login itself was not exercised; identity signature and account-isolation tests passed locally. No user chats were deleted in production.
 - The repository remains private; changing visibility requires owner approval. All pre-existing `relay/` work was excluded from the release.
+
+
+## Final revision follow-up
+
+Both Render services report **43dc54b** live (static build 16.3s, backend Docker build/deploy 58.1s). The final public stylesheet includes the nonwrapping sentiment-label fix. A fresh isolated signed-out browser at 390×844 reran the sample successfully; [mobile screenshot](images/review-mobile.jpg) shows the final layout. The exact shopping request returned HTTP 200 in **4.32 seconds**, with three source cards, percent-encoded source URLs and a recoverable `ungrounded_response` comparison notice. The model remains available independently of third-party AI permission.
+
+Public-access preparation and full-history scan scope are in [PUBLIC_ACCESS.md](PUBLIC_ACCESS.md). No repository visibility, source-code license, default branch or unrelated service was changed.
