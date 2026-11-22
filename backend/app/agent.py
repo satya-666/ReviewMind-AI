@@ -39,6 +39,8 @@ class ReviewMindAgent:
         if shopping and body.allow_product_search:
             searched=True;used.append('product_search')
             product=self.products.search(body.text[:300],budget,brand_from(messages))
+            if product['available'] and re.search(r'\bcompare\s+(?:three|3)\b',body.text,re.I):
+                product={**product,'products':product['products'][:3],'sources':product['sources'][:3]}
             context['product_data']=product
             if not product['available']:
                 status=product.get('status','unavailable')

@@ -120,3 +120,11 @@ def test_product_failure_logs_never_include_request_or_key(monkeypatch,caplog):
     assert ProductData(secret).search('phone')['status']=='unavailable'
     assert 'type=URLError' in caplog.text
     assert secret not in caplog.text and 'https://' not in caplog.text
+
+
+def test_source_urls_encode_spaces_and_unicode_without_changing_query_structure():
+    from backend.app.products import public_url
+    url=public_url('https://www.google.co.in/search?q=earbuds under ₹3,000&prds=productid:123')
+    assert ' ' not in url and '₹' not in url
+    assert 'q=earbuds%20under%20%E2%82%B93,000&prds=productid:123' in url
+    assert public_url(url)==url

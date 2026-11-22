@@ -36,12 +36,13 @@ def test_retrieved_sources_survive_conversation_timeout(tmp_path,monkeypatch):
         listing={'title':'Fixture listing','source_url':'https://example.com/earbuds','price_inr':2500,'specifications':[],'retrieved_at':'2026-11-22'}
         def search(query,budget,brand):
             assert query==SHOP and budget==3000
-            return {'available':True,'products':[listing],'sources':[listing['source_url']],'status':'ok'}
+            return {'available':True,'products':[listing]*4,'sources':[listing['source_url']]*4,'status':'ok'}
         monkeypatch.setattr(client.app.state.products,'search',search)
         def timeout(*args):raise ProviderError('timeout')
         monkeypatch.setattr(client.app.state.conversation,'generate',timeout)
         result=client.post('/api/chat',json={'text':SHOP,'allow_gemini':True,'allow_product_search':True}).json()
-        assert result['products']==[listing] and result['sources']==[listing['source_url']]
+        assert result['products']==[listing]*3 and result['sources']==[listing['source_url']]*3
+        assert result['response_source']=='built_in'
         assert result['provider_status']=='timeout'
 
 def test_diagnostic_fixture_evidence_is_verbatim():

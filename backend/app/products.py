@@ -15,7 +15,7 @@ def public_url(value):
         try:
             if not ipaddress.ip_address(host).is_global:return None
         except ValueError:pass
-        return value
+        return urllib.parse.quote(value,safe=":/?#[]@!$&'()*+,;=%")
     except ValueError:return None
 
 def budget_from(messages):
