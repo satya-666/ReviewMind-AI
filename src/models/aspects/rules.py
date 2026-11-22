@@ -39,7 +39,7 @@ def aspects(text,category,taxonomy=None):
                 near={p for d,p in cues if d<=closest+5}
                 sentiment=next(iter(near)) if len(near)==1 else 'mixed'
             result.append({'aspect':name,'term':match.group(),'start':match.start(),'end':match.end(),
-              'sentiment':sentiment,'confidence':None,'method':'category_alias_and_nearest_clause_lexicon',
+              'sentiment':sentiment,'evidence':clause.strip() if cues else match.group(),'confidence':None,'method':'category_alias_and_nearest_clause_lexicon',
               'label_status':'rule_generated_not_ground_truth'})
     return sorted(result,key=lambda r:(r['start'],r['end'],r['aspect']))
 

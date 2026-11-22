@@ -1,0 +1,27 @@
+{
+  "scope": "All locally reachable Git refs, unique blobs; pattern scan only, not a guarantee that no secret exists.",
+  "reachable_commits": 34,
+  "text_blobs_checked": 452,
+  "binary_blobs_not_text_scanned": 40,
+  "findings": [],
+  "tracked_raw_data_files": [],
+  "tracked_relay_files": 41,
+  "source_license_files": [],
+  "reviewed_commit": "43dc54b0d0df1fc71bfcabc400afa60f542e934b",
+  "remote_refs_fetched": true,
+  "repository_visibility_changed": false,
+  "default_branch_observed": "phase-1/data-pipeline",
+  "live_branch": "phase-3.5/web-integration",
+  "raw_review_text_published": false,
+  "interpretation": "No matches in the listed credential patterns. Forty binary blobs were not text scanned; pattern scanning cannot prove that no private material exists.",
+  "publication_exposure": [
+    "All remote branches and commit history",
+    "41 committed files from the separate relay project",
+    "Checksum-pinned trained classifier",
+    "Git author metadata and public source-evidence files"
+  ],
+  "owner_decisions": [
+    "Approve whole-repository public visibility, including relay and history",
+    "Choose a source-code license if reuse rights are desired; none is selected"
+  ]
+}

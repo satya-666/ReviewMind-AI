@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 import asyncio,json,logging,uuid
 from contextlib import suppress
 from starlette.concurrency import run_in_threadpool
-from fastapi import FastAPI,Request,Header
+from fastapi import FastAPI,Request,Header,Depends,HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse,FileResponse,Response
 from fastapi.staticfiles import StaticFiles
@@ -12,11 +12,12 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from sqlalchemy.exc import IntegrityError,SQLAlchemyError
 from backend.app.settings import Settings,ROOT
 from backend.app.db import Database,Base
-from backend.app.schemas import Analyze,Recommend,FeedbackInput,ChatInput
+from backend.app.schemas import Analyze,Recommend,FeedbackInput,ChatInput,CreateChat
 from backend.app.chat import intent_for,ProductData,GeminiConversation,ProviderError
 from backend.app.agent import ReviewMindAgent
 from backend.app.model_service import ModelService
 from backend.app.security import Guard
+from backend.app.auth import GoogleAuth
 
 LOG=logging.getLogger('reviewmind.api')
 CATEGORIES={
@@ -53,13 +54,56 @@ def create_app(settings=None):
         task.cancel()
         with suppress(asyncio.CancelledError):await task
         if app.state.database:app.state.database.engine.dispose()
+        auth.session.close()
     app=FastAPI(title='ReviewMind AI beta',version='3.5',lifespan=lifespan,debug=False,
       docs_url='/api/docs' if settings.environment=='development' else None,redoc_url=None,
       openapi_url='/api/openapi.json' if settings.environment=='development' else None)
+    auth=GoogleAuth(settings.google_client_id,settings.environment=='production' or bool(settings.google_client_id))
     app.add_middleware(Guard,settings=settings)
     app.add_middleware(CORSMiddleware,allow_origins=settings.origins,allow_credentials=False,
-      allow_methods=['GET','POST','DELETE'],allow_headers=['Content-Type','X-Delete-Token'])
+      allow_methods=['GET','POST','DELETE'],allow_headers=['Content-Type','X-Delete-Token','Authorization'])
     app.add_middleware(TrustedHostMiddleware,allowed_hosts=settings.hosts)
+
+    @app.exception_handler(HTTPException)
+    async def auth_error(request,exception):
+        return error(exception.status_code,'sign_in_required' if exception.status_code==401 else 'auth_unavailable',exception.detail)
+
+    @app.get('/api/auth/config')
+    def auth_config():
+        return {'required':auth.required,'client_id':settings.google_client_id}
+
+    @app.get('/api/auth/me')
+    def me(user=Depends(auth.user)):
+        return {'user':user}
+
+    def account(user=Depends(auth.user)):
+        if user is None:raise HTTPException(401,detail='Sign in with Google to access saved chats.')
+        return user
+
+    def chat_database():
+        if app.state.database is None:raise HTTPException(503,detail='Chat storage is temporarily unavailable.')
+        return app.state.database
+
+    @app.get('/api/chats')
+    def list_chats(user=Depends(account),db=Depends(chat_database)):
+        return {'chats':db.list_chats(user['id'])}
+
+    @app.post('/api/chats',status_code=201)
+    def create_chat(body:CreateChat,user=Depends(account),db=Depends(chat_database)):
+        try:return db.create_chat(user['id'],body.title)
+        except ValueError as problem:return error(409,'chat_limit',str(problem))
+
+    @app.get('/api/chats/{identifier}')
+    def get_chat(identifier:uuid.UUID,user=Depends(account),db=Depends(chat_database)):
+        return db.get_chat(user['id'],identifier) or error(404,'chat_not_found','Chat not found.')
+
+    @app.delete('/api/chats/{identifier}')
+    def delete_chat(identifier:uuid.UUID,user=Depends(account),db=Depends(chat_database)):
+        return {'status':'deleted'} if db.delete_chat(user['id'],identifier) else error(404,'chat_not_found','Chat not found.')
+
+    @app.delete('/api/chats')
+    def clear_chats(user=Depends(account),db=Depends(chat_database)):
+        db.clear_chats(user['id']);return {'status':'deleted'}
 
     @app.exception_handler(RequestValidationError)
     async def invalid(request,exception):
@@ -92,12 +136,12 @@ def create_app(settings=None):
             'hinglish':{'accepted':True,'evaluation':'Insufficient examples; no reliable capability claim'}},
           'capabilities':{'sentiment_analysis':model.predictor is not None,'aspects':'category-aware lexical rules, not supervised ABSA',
             'recommendations':False,'fake_review_detection':False,'product_comparison':False,'review_evidence':False,
-            'authentication':False,'billing':False,'conversation_provider':'Gemini' if app.state.conversation.configured else None},
+            'authentication':auth.required,'billing':False,'conversation_provider':'Gemini' if app.state.conversation.configured else None},
           'limitations':['Overall labels learned from star ratings, not independent human annotations.',
              'Aspect sentiments are heuristic and may be unknown or mixed; no aspect percentages are supported.'],
-          'privacy':{'raw_review_text_stored':False,'feedback_retention_days':settings.retention_days,'guest_only':True}}
+          'privacy':{'raw_review_text_stored':False,'feedback_retention_days':settings.retention_days,'guest_only':not auth.required}}
 
-    @app.post('/api/analyze')
+    @app.post('/api/analyze',dependencies=[Depends(auth.optional_user)])
     def analyze(body:Analyze):
         model=app.state.model;db=app.state.database
         if model.predictor is None or db is None:return error(503,'model_unavailable','Analysis is unavailable while the model or storage is not ready.')
@@ -124,12 +168,25 @@ def create_app(settings=None):
     def chat_status():
         return {'provider':'Gemini','model':settings.gemini_model,'agent_version':4,'configured':app.state.conversation.configured,
           'provider_responded_since_start':app.state.conversation.responded,'requires_consent':True,'verified_product_data':False,'product_provider':'SerpApi','product_provider_configured':app.state.products.configured,
-          'context_policy':'Up to 8 recent messages, 4000 history characters; no server chat transcript storage.'}
+          'context_policy':'Up to 8 recent messages and 4000 history characters sent to the model. Signed-in chats are saved to the account until deleted.'}
 
     @app.post('/api/chat')
-    def chat(body:ChatInput):
+    def chat(body:ChatInput,user=Depends(auth.optional_user)):
         try:
-            return app.state.agent.respond(body,analyze,app.state.database)
+            if user and not body.chat_id:return error(422,'chat_required','Start a saved chat before sending a message.')
+            if body.chat_id:
+                if not user:return error(401,'sign_in_required','Sign in to access this chat.')
+                db=chat_database();saved=db.get_chat(user['id'],body.chat_id)
+                if saved is None:return error(404,'chat_not_found','Chat not found.')
+                if len(saved['messages'])>=100:return error(409,'chat_limit','This chat is full. Start a new chat to continue.')
+            result=app.state.agent.respond(body,analyze,app.state.database)
+            recoverable=isinstance(result,dict) and (
+                result.get('product_status') in {'timeout','unavailable','quota_exhausted','authentication_failed','provider_error','rate_limited','invalid_query','not_configured'}
+                or (result.get('product_status')=='ok' and result.get('provider_status')!='ready'))
+            if body.chat_id and isinstance(result,dict) and not recoverable:
+                if not db.append_chat(user['id'],body.chat_id,body.text,result):return error(404,'chat_not_found','This chat was deleted while the reply was being prepared.')
+            return result
+        except ValueError as problem:return error(409,'chat_limit',str(problem))
         except SQLAlchemyError:
             return error(503,'storage_unavailable','The previous prediction could not be checked. Please retry shortly.')
         except ProviderError as problem:
@@ -150,13 +207,13 @@ def create_app(settings=None):
             status=429 if problem.code in {'rate_limited','provider_rate_limited'} else 503
             return error(status,problem.code,messages.get(problem.code,messages['unavailable']))
 
-    @app.post('/api/recommend')
+    @app.post('/api/recommend',dependencies=[Depends(auth.user)])
     def recommend(body:Recommend):
         return {'request_id':str(uuid.uuid4()),'status':'not_available','type':'analysis_only','products':[],
           'message':'Product recommendations, prices, ranking, comparisons and fake-review scoring are not available in this beta. Paste a review in Analyze review mode for real model inference.',
           'available_actions':['analyze_review'],'model_ready':app.state.model.predictor is not None}
 
-    @app.post('/api/feedback',status_code=201)
+    @app.post('/api/feedback',status_code=201,dependencies=[Depends(auth.user)])
     def feedback(body:FeedbackInput):
         db=app.state.database
         if db is None:return error(503,'storage_unavailable','Feedback storage is unavailable.')
@@ -168,7 +225,7 @@ def create_app(settings=None):
             LOG.error('Feedback write failed')
             return error(503,'storage_unavailable','Feedback was not stored. Please retry later.')
 
-    @app.delete('/api/feedback/{identifier}')
+    @app.delete('/api/feedback/{identifier}',dependencies=[Depends(auth.user)])
     def remove_feedback(identifier:uuid.UUID,x_delete_token:str=Header(default='',max_length=128)):
         if app.state.database is None:return error(503,'storage_unavailable','Feedback storage is unavailable.')
         try:removed=app.state.database.delete_feedback(identifier,x_delete_token)

@@ -15,7 +15,7 @@ def public_url(value):
         try:
             if not ipaddress.ip_address(host).is_global:return None
         except ValueError:pass
-        return value
+        return urllib.parse.quote(value,safe=":/?#[]@!$&'()*+,;=%")
     except ValueError:return None
 
 def budget_from(messages):
@@ -43,7 +43,7 @@ class ProductData:
     @property
     def configured(self):return bool(self.key)
     def lookup(self,intent,messages):
-        return {'available':False,'configured':self.configured,'sources':[],'products':[],
+        return {'available':False,'configured':self.configured,'status':'not_searched' if self.configured else 'not_configured','sources':[],'products':[],
           'limitation':'Use product tools for current data if configured. Otherwise no verified catalogue is connected; give general guidance without inventing products, prices, ratings or availability.'}
     def search(self,query,budget=None,brand=None):
         result=self.lookup('',[])
@@ -67,7 +67,10 @@ class ProductData:
         except urllib.error.HTTPError as error:
             LOG.warning('Product search failed (http=%s)',error.code)
             return dict(result,status='quota_exhausted' if error.code==429 else 'authentication_failed' if error.code in {401,403} else 'unavailable')
-        except (TimeoutError,urllib.error.URLError,OSError,ValueError,TypeError) as error:
+        except TimeoutError:
+            LOG.warning('Product search timed out')
+            return dict(result,status='timeout')
+        except (urllib.error.URLError,OSError,ValueError,TypeError) as error:
             # Exception text can contain the request URL and API key.
             LOG.warning('Product search failed (type=%s)',type(error).__name__)
             return dict(result,status='unavailable')

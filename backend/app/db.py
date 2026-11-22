@@ -1,8 +1,8 @@
-"""Persist prediction metadata and consented feedback, never raw review text."""
+"""Persist account-owned chats, prediction metadata and consented feedback."""
 from datetime import datetime,timedelta,timezone
 from pathlib import Path
-import hashlib,secrets,uuid
-from sqlalchemy import create_engine,String,Integer,DateTime,ForeignKey,Text,select,delete
+import hashlib,json,secrets,uuid
+from sqlalchemy import create_engine,JSON,String,Integer,DateTime,ForeignKey,Text,select,delete
 from sqlalchemy.orm import DeclarativeBase,Mapped,mapped_column,Session
 
 class Base(DeclarativeBase):pass
@@ -25,6 +25,14 @@ class Feedback(Base):
     message:Mapped[str|None]=mapped_column(Text,nullable=True)
     delete_token_sha256:Mapped[str]=mapped_column(String(64))
     created_at:Mapped[datetime]=mapped_column(DateTime(timezone=True),index=True)
+
+class Chat(Base):
+    __tablename__='chats'
+    id:Mapped[str]=mapped_column(String(36),primary_key=True)
+    owner:Mapped[str]=mapped_column(String(255),index=True)
+    title:Mapped[str]=mapped_column(String(100))
+    messages:Mapped[list]=mapped_column(JSON,default=list)
+    updated_at:Mapped[datetime]=mapped_column(DateTime(timezone=True),index=True)
 
 class Database:
     def __init__(self,url,retention_days=30):
@@ -82,3 +90,42 @@ class Database:
             row=session.get(Feedback,str(identifier))
             if row is None or not secrets.compare_digest(row.delete_token_sha256,hashlib.sha256(token.encode()).hexdigest()):return False
             session.delete(row);session.commit();return True
+
+    def list_chats(self,owner):
+        with Session(self.engine) as session:
+            rows=session.execute(select(Chat.id,Chat.title,Chat.updated_at).where(Chat.owner==owner).order_by(Chat.updated_at.desc()).limit(100))
+            return [dict(id=row.id,title=row.title,updated_at=row.updated_at.isoformat()) for row in rows]
+
+    def create_chat(self,owner,title):
+        with Session(self.engine) as session:
+            # shortcut: 100 chats per account, add pagination before increasing this beta limit.
+            if len(session.scalars(select(Chat.id).where(Chat.owner==owner).limit(100)).all())>=100:
+                raise ValueError('You have 100 saved chats. Delete an old chat before starting another.')
+            row=Chat(id=str(uuid.uuid4()),owner=owner,title=title,messages=[],updated_at=datetime.now(timezone.utc))
+            session.add(row);session.commit()
+            return {'id':row.id,'title':row.title,'messages':[],'updated_at':row.updated_at.isoformat()}
+
+    def get_chat(self,owner,identifier):
+        with Session(self.engine) as session:
+            row=session.scalar(select(Chat).where(Chat.id==str(identifier),Chat.owner==owner))
+            return {'id':row.id,'title':row.title,'messages':row.messages,'updated_at':row.updated_at.isoformat()} if row else None
+
+    def append_chat(self,owner,identifier,text,result):
+        with Session(self.engine) as session:
+            row=session.scalar(select(Chat).where(Chat.id==str(identifier),Chat.owner==owner).with_for_update())
+            if row is None:return False
+            stamp=datetime.now(timezone.utc).isoformat()
+            messages=row.messages+[{'role':'user','text':text,'time':stamp},{'role':'ai','result':result,'time':stamp}]
+            if len(messages)>100 or len(json.dumps(messages).encode())>1000000:
+                raise ValueError('This chat is full. Start a new chat to continue.')
+            row.messages=messages;row.updated_at=datetime.now(timezone.utc);session.commit()
+            return True
+
+    def delete_chat(self,owner,identifier):
+        with Session(self.engine) as session:
+            removed=session.execute(delete(Chat).where(Chat.id==str(identifier),Chat.owner==owner)).rowcount
+            session.commit();return bool(removed)
+
+    def clear_chats(self,owner):
+        with Session(self.engine) as session:
+            session.execute(delete(Chat).where(Chat.owner==owner));session.commit()

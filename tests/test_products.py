@@ -79,9 +79,9 @@ def test_agent_product_calls_require_consent_and_real_results(tmp_path,monkeypat
         body={'text':'Suggest a Samsung smartphone under ₹20,000','allow_gemini':True}
         assert client.post('/api/chat',json=body).status_code==200 and not captured
         result=client.post('/api/chat',json={**body,'allow_product_search':True}).json()
-        assert captured==[('Samsung phone',20000,'Samsung')]
-        assert result['products']==[] and not result['product_data_available']
-        assert result['tools_used']==['product_search','gemini']
+        assert captured==[(body['text'],20000,None)]
+        assert result['products']==[] and result['product_status']=='no_results'
+        assert result['response_source']=='built_in'
 
 def test_tool_cannot_classify_greeting_or_bypass_product_consent(tmp_path,monkeypatch):
     from fastapi.testclient import TestClient
@@ -120,3 +120,11 @@ def test_product_failure_logs_never_include_request_or_key(monkeypatch,caplog):
     assert ProductData(secret).search('phone')['status']=='unavailable'
     assert 'type=URLError' in caplog.text
     assert secret not in caplog.text and 'https://' not in caplog.text
+
+
+def test_source_urls_encode_spaces_and_unicode_without_changing_query_structure():
+    from backend.app.products import public_url
+    url=public_url('https://www.google.co.in/search?q=earbuds under ₹3,000&prds=productid:123')
+    assert ' ' not in url and '₹' not in url
+    assert 'q=earbuds%20under%20%E2%82%B93,000&prds=productid:123' in url
+    assert public_url(url)==url

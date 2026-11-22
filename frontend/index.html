@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ReviewMind AI — Find your next product</title>
+<title>ReviewMind AI — Review analysis and shopping advice</title>
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="assets/styles.css">
 </head>
@@ -17,40 +17,57 @@
     <button class="btn" id="themeBtn" aria-label="Switch to dark theme">Dark theme</button>
   </nav>
 </header>
-<div class="app">
+<section id="authPanel" class="card" aria-labelledby="authTitle">
+  <h1 id="authTitle">Save your chats with Google</h1>
+  <p>Try the demo below without signing in. Sign in to save and reopen chats across devices.</p>
+  <div id="googleSignIn"></div>
+  <p id="authStatus" role="status">Checking sign-in availability…</p>
+  <button class="btn" id="retryAuth" hidden>Retry sign-in</button>
+</section>
+<div id="account" hidden><span id="accountEmail"></span><button class="btn" id="signOut">Sign out</button></div>
+<div class="app" id="chatApp">
 <aside id="side" aria-label="Chat history" hidden>
   <div class="section-heading"><h2>History</h2><button class="btn" id="closeSide" aria-label="Close history">Close</button></div>
   <button class="btn primary" id="newChat">New Chat</button>
-  <p class="note" id="historyNote">History stays in this session unless you choose to save it on this device.</p>
+  <p class="note" id="historyNote">Chats are saved to your account until you delete them.</p>
   <ul id="hist"></ul>
   <button class="btn" id="sideSettings">Settings</button><button class="btn" id="sideHelp">Help</button>
 </aside>
 <main id="main">
   <section class="intro">
-    <span class="eyebrow">FIND WHAT FITS YOU</span>
-    <h1 data-i="hello">What are you looking to buy?</h1>
-    <p data-i="sub">Tell us what you need, your budget, and what matters most.</p>
+    <span class="eyebrow">REVIEW INTELLIGENCE</span>
+    <h1 data-i="hello">Understand a product review</h1>
+    <p data-i="sub">Explore overall sentiment and product aspects with our trained classifier.</p>
   </section>
   <section id="results" aria-label="Conversation" aria-busy="false">
     <div class="section-heading"><h2>Conversation</h2><button class="btn" id="startNew" hidden>New Chat</button></div>
-    <div id="chat" aria-live="polite"><p class="empty" id="welcome">Try “I need a phone under ₹20,000 with good battery life.”</p></div>
+    <div id="chat" aria-live="polite"></div>
     <p id="loading" class="loading" role="status" hidden>Connecting to the assistant… The service may take up to a minute to wake up.</p>
   </section>
   <section class="input-panel" aria-label="Message the assistant">
     <form id="analysisForm" novalidate>
+      <div class="mode-picker field"><label for="mode">What would you like to do?</label><select id="mode"><option value="review">Analyze a review</option><option value="auto">Ask for shopping advice</option></select></div>
+      <div id="reviewOptions">
+      <div class="input-options">
+        <div class="field"><label for="cat">Product category</label><select id="cat" aria-describedby="categoryHelp"><option value="">Not selected</option><option>Smartphones</option><option>Laptops</option><option>Audio devices</option><option>Wearables</option><option>TVs and monitors</option><option>Computer accessories</option><option>Tablets</option><option>Networking devices</option><option>Chargers and power banks</option><option value="Other tech">Other technology · overall sentiment only</option></select></div>
+        <div class="field"><label for="lang">Language</label><select id="lang"><option value="en">English</option><option value="hi">हिन्दी</option><option value="hinglish">Hinglish</option></select></div>
+      </div>
+      <p class="note" id="categoryHelp">Choose a category when analyzing a review to enable feature detection.</p>
+      </div>
+      <button class="btn" id="sampleReview" type="button">Try sample review</button>
 
-      <div class="field"><label for="q">Your message</label><textarea id="q" maxlength="5000" rows="3" required aria-describedby="inputHelp hint" placeholder="For example: A laptop under ₹60,000 for college and coding"></textarea></div>
+      <div class="field"><label for="q">Your message</label><textarea id="q" maxlength="5000" rows="3" required aria-describedby="inputHelp hint" ></textarea></div>
       <div class="input-actions"><span class="note" id="inputHelp">Up to 5,000 characters · Enter to send · Shift+Enter for a new line</span><button class="btn primary" id="send" type="submit">Send</button></div>
       <p id="hint" class="error" role="alert"></p>
 
     </form>
   </section>
-  <footer>AI answers and predictions can be wrong. Product listings require a configured provider; prices and availability can change. Chat transcripts are not saved on our server. Device history is optional.</footer>
+  <footer>Predictions can be wrong. Aspect results use rules. Shopping prices and availability can change. Guest chats stay in this tab unless you enable device history; signed-in chats are saved to your account until deleted.</footer>
 </main>
 </div>
 <dialog id="consentModal" class="modal" aria-labelledby="consentTitle">
   <div class="dialog-heading"><h2 id="consentTitle">Privacy before your first message</h2></div>
-  <div class="dialog-body"><p>ReviewMind uses Google Gemini for conversation. Your message, recent chat history (including reviews) and preference notes are sent to Google. Free-tier content may be used to improve its products. Avoid private information.</p><p>For product research, relevant shopping queries may also be sent to SerpApi when configured. Prices and availability can change. Review analysis uses our existing classifier and works without this permission.</p><p>We remember your choice on this device, separately from optional chat history. Change it in Settings.</p><p><a href="https://ai.google.dev/gemini-api/terms" target="_blank" rel="noopener noreferrer">Google data terms</a> · <a href="https://serpapi.com/privacy" target="_blank" rel="noopener noreferrer">SerpApi privacy</a></p></div>
+  <div class="dialog-body"><p>ReviewMind uses Google Gemini for conversation. Your message, recent chat history (including reviews) and preference notes are sent to Google. Free-tier content may be used to improve its products. Avoid private information.</p><p>For product research, relevant shopping queries may also be sent to SerpApi when configured. Prices and availability can change. Review analysis uses our existing classifier and works without this permission.</p><p>We remember your choice on this device, separately from your saved chats. Change it in Settings.</p><p><a href="https://ai.google.dev/gemini-api/terms" target="_blank" rel="noopener noreferrer">Google data terms</a> · <a href="https://serpapi.com/privacy" target="_blank" rel="noopener noreferrer">SerpApi privacy</a></p></div>
   <div class="dialog-footer"><button class="btn" id="declineProcessing">Use review analysis only</button><button class="btn primary" id="acceptProcessing">Allow and send</button></div>
 </dialog>
 <dialog id="modal" class="modal" aria-labelledby="mtitle">
@@ -73,29 +90,23 @@
 <dialog id="settingsModal" class="modal" aria-labelledby="settingsTitle">
   <div class="dialog-heading"><h2 id="settingsTitle">Device settings</h2><button class="btn" id="closeSettings" aria-label="Close settings">Close</button></div>
   <div class="dialog-body">
-      <details id="chatOptions"><summary>Review settings (optional)</summary>
-      <div class="input-options">
-        <div class="field"><label for="cat">Product category</label><select id="cat" aria-describedby="categoryHelp"><option value="">Not selected</option><option>Smartphones</option><option>Laptops</option><option>Audio devices</option><option>Wearables</option><option>TVs and monitors</option><option>Computer accessories</option><option>Tablets</option><option>Networking devices</option><option>Chargers and power banks</option><option value="Other tech">Other technology · overall sentiment only</option></select></div>
-        <div class="field"><label for="lang">Language</label><select id="lang"><option value="en">English</option><option value="hi">हिन्दी</option><option value="hinglish">Hinglish</option></select></div>
-      </div>
-      <p class="note" id="categoryHelp">Choose a category when analyzing a review to enable feature detection.</p>
-      <div class="field mode-field"><label for="mode">Message type</label><select id="mode"><option value="auto">Automatic · question or review</option><option value="review">Review analysis · use the trained classifier</option></select></div>
-      </details>
+
+    <label class="checkbox" id="deviceHistoryOption"><input id="rememberGuest" type="checkbox"><span>Remember guest chats on this device (optional)</span></label>
     <div class="field"><label for="processingConsent">Third-party AI and product search</label><select id="processingConsent"><option value="unknown">Ask before sending</option><option value="accepted">Allowed</option><option value="declined">Off — local review analysis only</option></select></div>
     <p class="note">Conversation sends recent messages and preference notes to Google. Product searches send relevant shopping queries to SerpApi when configured. You can withdraw consent here at any time.</p>
-    <label class="checkbox"><input type="checkbox" id="remember"><span>Save chat history on this device</span></label>
-    <p class="note">Off by default. When enabled, your messages, preference notes and results stay in this browser. Avoid saving on shared devices. This is not an account or cloud backup.</p>
-    <button class="btn danger" id="clearHist">Clear chat history</button>
-    <p class="note">Clears session and device history. Submitted feedback is separate; use its Delete button while this session is open, or it expires after 30 days.</p>
+    <p class="note">Your chats are saved to your account so you can access them after signing in on another device. Avoid including private information.</p>
+    <button class="btn danger" id="clearHist">Delete all chats</button>
+    <p class="note">Deletes all chats saved to this account. This cannot be undone. Submitted feedback is separate; use its Delete button while this session is open, or it expires after 30 days.</p>
   </div>
 </dialog>
 <dialog id="helpModal" class="modal" aria-labelledby="helpTitle">
   <div class="dialog-heading"><h2 id="helpTitle">How ReviewMind AI works</h2><button class="btn" id="closeHelp">Close</button></div>
-  <div class="dialog-body"><p>Ask a question or paste a product review. Automatic routing separates questions from review analysis. If it misunderstands, choose Review analysis mode for a review.</p><p>The trained TF-IDF classifier predicts overall sentiment. Product aspects use keyword rules. Scores are not reliability percentages.</p><p>Gemini handles conversation only when configured and you opt in. If Gemini fails, a specific error and Retry are shown instead of a simulated answer. When SerpApi is configured and permitted, product tools retrieve Indian shopping listings. Cards show the exact retrieved evidence; missing specifications and availability stay unknown.</p><p>New Chat starts without the previous chat’s context. History is session-only unless you enable device storage in Settings. Gemini receives bounded recent messages and your user-stated preference notes from this chat, under Google’s data-use terms. Feedback is only for actual sentiment predictions.</p></div>
+  <div class="dialog-body"><p>Choose Analyze a review for local classifier inference, or Ask for shopping advice for provider-backed conversation. The sample button fills an editable smartphone review; it does not submit it.</p><p>The trained TF-IDF classifier predicts overall sentiment. Product aspects use keyword rules. Scores are not reliability percentages.</p><p>Gemini handles conversation only when configured and you opt in. If Gemini fails, a specific error and Retry are shown instead of a simulated answer. When SerpApi is configured and permitted, product tools retrieve Indian shopping listings. Cards show the exact retrieved evidence; missing specifications and availability stay unknown.</p><p>New Chat starts without the previous chat’s context. Chats are saved to your account until you delete them in History or Settings. Gemini receives bounded recent messages and your user-stated preference notes from this chat, under Google’s data-use terms. Feedback is only for actual sentiment predictions.</p></div>
 </dialog>
 <div id="toast" role="status" aria-live="polite"></div>
 <script src="assets/config.js"></script>
 <script src="assets/api-client.js"></script>
+<script src="assets/auth.js"></script>
 <script src="assets/app.js"></script>
 </body>
 </html>

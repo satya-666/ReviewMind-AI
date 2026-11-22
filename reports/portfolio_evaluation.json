@@ -1,0 +1,724 @@
+{
+  "dataset": {
+    "label_provenance": "rating-derived weak overall labels only; no human-verified sentiment benchmark",
+    "input_sha256": {
+      "data/splits/train.parquet": "6091da21f6399493459fa843a2604410b627be25a10f115b71680791dc7b116e",
+      "data/splits/validation.parquet": "e46484e264212c6c633588b8b4d9e1b2c545bb5c6bf7636b3dda687a382394b6",
+      "data/splits/test.parquet": "9d5be4bf66cdfbe1aa4ade5b69f6a4aa3259cf4a8c29c28a19624248d147cb0f"
+    },
+    "structural_validation": {
+      "missing_or_blank_review_ids": 0,
+      "repeated_review_ids": 0,
+      "invalid_ratings": 0,
+      "invalid_categories": 0,
+      "invalid_language_labels": 0,
+      "unusable_original_text": 0,
+      "unusable_cleaned_text": 0,
+      "missing_product_groups": 0,
+      "missing_duplicate_groups": 0,
+      "review_id_cross_split_groups": 0,
+      "product_group_cross_split_groups": 0,
+      "duplicate_group_cross_split_groups": 0,
+      "product_groups_with_conflicting_categories": 0,
+      "known_product_ids_cross_split": 0,
+      "invalid_nonmissing_dates": 0
+    },
+    "original_split_sizes": {
+      "test": 2463,
+      "train": 18367,
+      "validation": 2492
+    },
+    "canonical_quarantine_removed": {
+      "test": 12,
+      "validation": 3
+    },
+    "derivation": "Full Phase 2 token-canonical key; retain train before validation before test; never move evaluation data into training",
+    "splits": {
+      "train": {
+        "reviews": 18367,
+        "classes": {
+          "negative": 2073,
+          "neutral": 1144,
+          "positive": 15150
+        },
+        "languages": {
+          "english": 8515,
+          "hinglish": 15,
+          "other": 180,
+          "unknown": 9657
+        },
+        "categories": {
+          "accessories": 2882,
+          "audio_devices": 5747,
+          "chargers_power_banks": 3834,
+          "laptops": 2356,
+          "networking_devices": 888,
+          "tablets": 1043,
+          "wearables": 1617
+        },
+        "product_groups": 50,
+        "review_ids_sha256": "ec481ceb923932fe7f3bed13e12ab81e870f4bfa820ba55f92a995c42def78bd"
+      },
+      "validation": {
+        "reviews": 2489,
+        "classes": {
+          "negative": 410,
+          "neutral": 160,
+          "positive": 1919
+        },
+        "languages": {
+          "english": 2058,
+          "hinglish": 5,
+          "other": 27,
+          "unknown": 399
+        },
+        "categories": {
+          "accessories": 317,
+          "audio_devices": 1080,
+          "chargers_power_banks": 550,
+          "laptops": 318,
+          "networking_devices": 142,
+          "wearables": 82
+        },
+        "product_groups": 13,
+        "review_ids_sha256": "2f9d34273c01229c58137cb2cf2f7f90d1bda2bb2f42ecb5984b2ec241e9762b"
+      },
+      "test": {
+        "reviews": 2451,
+        "classes": {
+          "negative": 474,
+          "neutral": 184,
+          "positive": 1793
+        },
+        "languages": {
+          "english": 1859,
+          "hinglish": 3,
+          "other": 42,
+          "unknown": 547
+        },
+        "categories": {
+          "accessories": 414,
+          "audio_devices": 849,
+          "chargers_power_banks": 442,
+          "laptops": 396,
+          "networking_devices": 145,
+          "wearables": 205
+        },
+        "product_groups": 12,
+        "review_ids_sha256": "115fa5f1a5691fc4ca7942bcc91fe81a8532993b97ac7e04b8738c51a095a086"
+      }
+    },
+    "catalog_product_identity_verified": false,
+    "human_sentiment_test_available": false,
+    "scope": "Exploratory weak-label benchmark, previously inspected during EDA; not an independent final test set"
+  },
+  "model_sha256": "edb379f3f5ed60fb3f8321b12a90bed4c08b3a408e2812112bf12b988b3462d0",
+  "labels": [
+    "negative",
+    "neutral",
+    "positive"
+  ],
+  "train_only_tfidf_refit_identical": true,
+  "majority_training_class": "positive",
+  "majority": {
+    "reviews": 2451,
+    "accuracy": 0.7315381476948184,
+    "macro_precision": 0.24384604923160613,
+    "macro_recall": 0.3333333333333333,
+    "macro_f1": 0.2816525290606346,
+    "weighted_f1": 0.618118708207733,
+    "per_class": {
+      "negative": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 474
+      },
+      "neutral": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 184
+      },
+      "positive": {
+        "precision": 0.7315381476948184,
+        "recall": 1.0,
+        "f1": 0.8449575871819038,
+        "support": 1793
+      }
+    },
+    "confusion_matrix": [
+      [
+        0,
+        0,
+        474
+      ],
+      [
+        0,
+        0,
+        184
+      ],
+      [
+        0,
+        0,
+        1793
+      ]
+    ],
+    "label_basis": "rating-derived weak supervision; not verified sentiment understanding"
+  },
+  "classifier": {
+    "reviews": 2451,
+    "accuracy": 0.8461852305181559,
+    "macro_precision": 0.6615768204515008,
+    "macro_recall": 0.6887158998270485,
+    "macro_f1": 0.6728351649622764,
+    "weighted_f1": 0.8549416658679423,
+    "per_class": {
+      "negative": {
+        "precision": 0.8102766798418972,
+        "recall": 0.8649789029535865,
+        "f1": 0.8367346938775511,
+        "support": 474
+      },
+      "neutral": {
+        "precision": 0.22857142857142856,
+        "recall": 0.30434782608695654,
+        "f1": 0.26107226107226106,
+        "support": 184
+      },
+      "positive": {
+        "precision": 0.9458823529411765,
+        "recall": 0.8968209704406024,
+        "f1": 0.9206985399370169,
+        "support": 1793
+      }
+    },
+    "confusion_matrix": [
+      [
+        410,
+        42,
+        22
+      ],
+      [
+        58,
+        56,
+        70
+      ],
+      [
+        38,
+        147,
+        1608
+      ]
+    ],
+    "label_basis": "rating-derived weak supervision; not verified sentiment understanding"
+  },
+  "diagnostic_slices": {
+    "negation_marker": {
+      "reviews": 479,
+      "accuracy": 0.7599164926931107,
+      "macro_precision": 0.7046301908464244,
+      "macro_recall": 0.6778637170104235,
+      "macro_f1": 0.6806646345107884,
+      "weighted_f1": 0.7666588430037924,
+      "per_class": {
+        "negative": {
+          "precision": 0.8202247191011236,
+          "recall": 0.9125,
+          "f1": 0.863905325443787,
+          "support": 240
+        },
+        "neutral": {
+          "precision": 0.34408602150537637,
+          "recall": 0.4444444444444444,
+          "f1": 0.3878787878787879,
+          "support": 72
+        },
+        "positive": {
+          "precision": 0.9495798319327731,
+          "recall": 0.6766467065868264,
+          "f1": 0.7902097902097902,
+          "support": 167
+        }
+      },
+      "confusion_matrix": [
+        [
+          219,
+          19,
+          2
+        ],
+        [
+          36,
+          32,
+          4
+        ],
+        [
+          12,
+          42,
+          113
+        ]
+      ],
+      "label_basis": "rating-derived weak supervision; not verified sentiment understanding"
+    },
+    "mixed_opinion_marker": {
+      "reviews": 332,
+      "accuracy": 0.6385542168674698,
+      "macro_precision": 0.5426762969866418,
+      "macro_recall": 0.5574775453803152,
+      "macro_f1": 0.5334160196067065,
+      "weighted_f1": 0.6712822330109368,
+      "per_class": {
+        "negative": {
+          "precision": 0.4827586206896552,
+          "recall": 0.4666666666666667,
+          "f1": 0.4745762711864407,
+          "support": 30
+        },
+        "neutral": {
+          "precision": 0.2702702702702703,
+          "recall": 0.5172413793103449,
+          "f1": 0.35502958579881655,
+          "support": 58
+        },
+        "positive": {
+          "precision": 0.875,
+          "recall": 0.6885245901639344,
+          "f1": 0.7706422018348624,
+          "support": 244
+        }
+      },
+      "confusion_matrix": [
+        [
+          14,
+          12,
+          4
+        ],
+        [
+          8,
+          30,
+          20
+        ],
+        [
+          7,
+          69,
+          168
+        ]
+      ],
+      "label_basis": "rating-derived weak supervision; not verified sentiment understanding"
+    },
+    "sarcasm_marker_only": {
+      "reviews": 1,
+      "accuracy": 1.0,
+      "macro_precision": 0.3333333333333333,
+      "macro_recall": 0.3333333333333333,
+      "macro_f1": 0.3333333333333333,
+      "weighted_f1": 1.0,
+      "per_class": {
+        "negative": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        },
+        "neutral": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        },
+        "positive": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        }
+      },
+      "confusion_matrix": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1
+        ]
+      ],
+      "label_basis": "rating-derived weak supervision; not verified sentiment understanding"
+    },
+    "hinglish_label": {
+      "reviews": 3,
+      "accuracy": 0.6666666666666666,
+      "macro_precision": 0.2222222222222222,
+      "macro_recall": 0.3333333333333333,
+      "macro_f1": 0.26666666666666666,
+      "weighted_f1": 0.5333333333333333,
+      "per_class": {
+        "negative": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 1
+        },
+        "neutral": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        },
+        "positive": {
+          "precision": 0.6666666666666666,
+          "recall": 1.0,
+          "f1": 0.8,
+          "support": 2
+        }
+      },
+      "confusion_matrix": [
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          2
+        ]
+      ],
+      "label_basis": "rating-derived weak supervision; not verified sentiment understanding"
+    },
+    "roman_hindi_marker": {
+      "reviews": 3,
+      "accuracy": 0.6666666666666666,
+      "macro_precision": 0.2222222222222222,
+      "macro_recall": 0.3333333333333333,
+      "macro_f1": 0.26666666666666666,
+      "weighted_f1": 0.5333333333333333,
+      "per_class": {
+        "negative": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 1
+        },
+        "neutral": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        },
+        "positive": {
+          "precision": 0.6666666666666666,
+          "recall": 1.0,
+          "f1": 0.8,
+          "support": 2
+        }
+      },
+      "confusion_matrix": [
+        [
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          2
+        ]
+      ],
+      "label_basis": "rating-derived weak supervision; not verified sentiment understanding"
+    },
+    "short_under_3_words": {
+      "reviews": 153,
+      "accuracy": 0.8627450980392157,
+      "macro_precision": 0.6583594566353187,
+      "macro_recall": 0.7663780663780665,
+      "macro_f1": 0.6785123966942148,
+      "weighted_f1": 0.8829201101928376,
+      "per_class": {
+        "negative": {
+          "precision": 0.8181818181818182,
+          "recall": 0.8181818181818182,
+          "f1": 0.8181818181818182,
+          "support": 22
+        },
+        "neutral": {
+          "precision": 0.2,
+          "recall": 0.6,
+          "f1": 0.3,
+          "support": 5
+        },
+        "positive": {
+          "precision": 0.9568965517241379,
+          "recall": 0.8809523809523809,
+          "f1": 0.9173553719008265,
+          "support": 126
+        }
+      },
+      "confusion_matrix": [
+        [
+          18,
+          1,
+          3
+        ],
+        [
+          0,
+          3,
+          2
+        ],
+        [
+          4,
+          11,
+          111
+        ]
+      ],
+      "label_basis": "rating-derived weak supervision; not verified sentiment understanding"
+    },
+    "long_over_50_words": {
+      "reviews": 168,
+      "accuracy": 0.8571428571428571,
+      "macro_precision": 0.65625,
+      "macro_recall": 0.7271866717152594,
+      "macro_f1": 0.6771343512916547,
+      "weighted_f1": 0.8753412629817124,
+      "per_class": {
+        "negative": {
+          "precision": 0.75,
+          "recall": 0.7894736842105263,
+          "f1": 0.7692307692307693,
+          "support": 19
+        },
+        "neutral": {
+          "precision": 0.25,
+          "recall": 0.5,
+          "f1": 0.3333333333333333,
+          "support": 10
+        },
+        "positive": {
+          "precision": 0.96875,
+          "recall": 0.8920863309352518,
+          "f1": 0.9288389513108615,
+          "support": 139
+        }
+      },
+      "confusion_matrix": [
+        [
+          15,
+          3,
+          1
+        ],
+        [
+          2,
+          5,
+          3
+        ],
+        [
+          3,
+          12,
+          124
+        ]
+      ],
+      "label_basis": "rating-derived weak supervision; not verified sentiment understanding"
+    },
+    "product_term_marker": {
+      "reviews": 703,
+      "accuracy": 0.802275960170697,
+      "macro_precision": 0.6297497474983328,
+      "macro_recall": 0.6582166199813259,
+      "macro_f1": 0.6413331918794892,
+      "weighted_f1": 0.8126885918166786,
+      "per_class": {
+        "negative": {
+          "precision": 0.7341772151898734,
+          "recall": 0.8285714285714286,
+          "f1": 0.7785234899328859,
+          "support": 140
+        },
+        "neutral": {
+          "precision": 0.21839080459770116,
+          "recall": 0.27941176470588236,
+          "f1": 0.24516129032258063,
+          "support": 68
+        },
+        "positive": {
+          "precision": 0.9366812227074236,
+          "recall": 0.8666666666666667,
+          "f1": 0.9003147953830011,
+          "support": 495
+        }
+      },
+      "confusion_matrix": [
+        [
+          116,
+          19,
+          5
+        ],
+        [
+          25,
+          19,
+          24
+        ],
+        [
+          17,
+          49,
+          429
+        ]
+      ],
+      "label_basis": "rating-derived weak supervision; not verified sentiment understanding"
+    }
+  },
+  "duplicate_audit": {
+    "cross_split_groups": 0,
+    "exact_pairs": 8682,
+    "near_pairs": 3,
+    "method": "All retained rows: exact casefold text plus seeded 128-permutation MinHash candidates; character 5-gram Jaccard >=0.90 for text >=80 characters. Approximate candidate search is not proof of universal absence."
+  },
+  "error_examples": [
+    {
+      "review_id": "0078ea1d00a94f8dd52b0b82e1a90aa811c7423f22f4670ff4f6423016765267",
+      "weak_label": "negative",
+      "prediction": "neutral"
+    },
+    {
+      "review_id": "016bb55786d0065f60a1668021679aa0e34cd7b2ec180b10c9b773e36a1f15e3",
+      "weak_label": "positive",
+      "prediction": "neutral"
+    },
+    {
+      "review_id": "01c1a5724ab0c16ef02e523e67bc178bac4e364522b03e082af5112491b09679",
+      "weak_label": "negative",
+      "prediction": "neutral"
+    },
+    {
+      "review_id": "0247744006437a5efb31915f9ebaa13d3fe98b3af9350e06b48cdd3a14a9df05",
+      "weak_label": "neutral",
+      "prediction": "positive"
+    },
+    {
+      "review_id": "02568249de2601022af5387561714ceefe311ba848f9036010d2320f2e45ec0f",
+      "weak_label": "neutral",
+      "prediction": "negative"
+    }
+  ],
+  "error_examples_private_path": "data/interim/portfolio_errors.json",
+  "manual_aspects": {
+    "reviews": 10,
+    "true_positive": 12,
+    "false_positive": 0,
+    "false_negative": 0,
+    "detection_precision": 1.0,
+    "detection_recall": 1.0,
+    "polarity_accuracy_on_matched_aspects": 0.8333333333333334,
+    "matched_aspects": 12,
+    "limitations": "Small developer-authored English/Hinglish diagnostic set, selected with knowledge of rules; no independent annotator or representative sampling; not a supervised ABSA benchmark.",
+    "cases": [
+      {
+        "id": "mixed-smartphone",
+        "expected": {
+          "camera": "positive",
+          "battery": "negative",
+          "charging_speed": "negative"
+        },
+        "actual": {
+          "camera": "positive",
+          "battery": "negative",
+          "charging_speed": "negative"
+        }
+      },
+      {
+        "id": "negated-battery",
+        "expected": {
+          "battery": "negative"
+        },
+        "actual": {
+          "battery": "negative"
+        }
+      },
+      {
+        "id": "negated-sound",
+        "expected": {
+          "sound_quality": "positive"
+        },
+        "actual": {
+          "sound_quality": "positive"
+        }
+      },
+      {
+        "id": "unknown-feature",
+        "expected": {
+          "battery": "unknown"
+        },
+        "actual": {
+          "battery": "unknown"
+        }
+      },
+      {
+        "id": "hinglish-positive",
+        "expected": {
+          "battery": "positive"
+        },
+        "actual": {
+          "battery": "positive"
+        }
+      },
+      {
+        "id": "hinglish-negative",
+        "expected": {
+          "battery": "negative"
+        },
+        "actual": {
+          "battery": "negative"
+        }
+      },
+      {
+        "id": "mixed-audio",
+        "expected": {
+          "sound_quality": "positive",
+          "microphone": "negative"
+        },
+        "actual": {
+          "sound_quality": "positive",
+          "microphone": "negative"
+        }
+      },
+      {
+        "id": "no-aspects",
+        "expected": {},
+        "actual": {}
+      },
+      {
+        "id": "context-limit",
+        "expected": {
+          "battery": "positive"
+        },
+        "actual": {
+          "battery": "unknown"
+        }
+      },
+      {
+        "id": "negation-limit",
+        "expected": {
+          "camera": "negative"
+        },
+        "actual": {
+          "camera": "unknown"
+        }
+      }
+    ]
+  }
+}

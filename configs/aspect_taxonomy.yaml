@@ -1,4 +1,5 @@
 smartphones:
+  charging_speed: [charging, charge]
   battery: [battery, backup, बैटरी]
   camera: [camera, photo, कैमरा]
   display: [display, screen, स्क्रीन]

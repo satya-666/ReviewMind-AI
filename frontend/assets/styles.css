@@ -125,3 +125,18 @@ main{height:calc(100dvh - 78px);display:flex;flex-direction:column;padding-top:2
 
 #q{height:72px}.input-panel summary{font-weight:500}.gemini-consent{margin-top:8px}
 @media(max-width:600px){header #settingsBtn,header #helpBtn{display:none}header #themeBtn{font-size:0;min-width:40px}header #themeBtn::after{content:'◐';font-size:18px}header{flex-wrap:nowrap}.brand{font-size:.9rem}main{height:calc(100dvh - 70px)}.intro h1{font-size:1.25rem}.input-panel{margin-top:6px}#q{height:64px}.gemini-consent .note{line-height:1.35}footer{font-size:.65rem}}
+
+#authPanel{max-width:500px;margin:64px auto;padding:28px}#authPanel h1{font-size:1.7rem}#account{display:flex;justify-content:flex-end;align-items:center;gap:12px;padding:10px 24px;font-size:.85rem}#accountEmail{overflow-wrap:anywhere}@media(max-width:600px){#authPanel{margin:32px 16px}#account{padding:8px 16px}}
+
+#hist li{display:flex;align-items:center;gap:8px}#hist li button[data-chat]{flex:1;min-width:0;overflow-wrap:anywhere}#hist .delete-chat{width:auto;flex-shrink:0;font-size:.75rem;padding:6px}
+/* The demo controls and results share normal page flow, including narrow screens. */
+main{height:auto;min-height:calc(100dvh - 78px)}
+#results{flex:none;overflow:visible;min-height:0;order:2;margin-top:24px}
+.input-panel{order:1}footer{order:3}
+#authPanel{max-width:952px;margin:16px auto;padding:16px 24px}
+#authPanel h1{font-size:1.1rem;margin:0 0 4px}#authPanel p{font-size:.8rem;margin-bottom:8px}
+#sampleReview{margin:0 0 12px}.mode-picker select{font-weight:600}
+.aspect-evidence{display:block;color:var(--muted);font-size:.8rem;font-weight:400;max-width:640px}
+@media(max-width:600px){#authPanel{margin:12px 16px}#reviewOptions .input-options{grid-template-columns:1fr}main{min-height:0}header{flex-wrap:wrap}}
+
+.aspect-list li>span:first-child{min-width:0}.aspect-list li>span:last-child{flex-shrink:0;white-space:nowrap}

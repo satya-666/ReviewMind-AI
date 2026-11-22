@@ -21,7 +21,7 @@ class Guard:
                   (b'permissions-policy',b'camera=(), microphone=(), geolocation=()')]
                 if self.settings.environment=='production':message['headers'].append((b'strict-transport-security',b'max-age=31536000'))
                 connect="'self'"+(' '+self.settings.api_base_url if self.settings.api_base_url else '')
-                policy=f"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src {connect}; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
+                policy=f"default-src 'self'; script-src 'self' https://accounts.google.com/gsi/client; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com/gsi/style; font-src 'self' https://fonts.gstatic.com; connect-src {connect} https://accounts.google.com/gsi/; frame-src https://accounts.google.com/gsi/; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
                 message['headers'].append((b'content-security-policy',policy.encode()))
             await send(message)
         if scope['method'] in {'POST','DELETE'} and scope['path'].startswith('/api/'):

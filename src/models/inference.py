@@ -44,7 +44,7 @@ class ReviewPredictor:
         return [{'sentiment':LABELS[int(label)],'confidence':float(confidence[i]) if confidence[i] is not None else None,
           'scores':{name:float(scores[i,j]) for j,name in enumerate(LABELS)},'confidence_semantics':semantics,
           'model_version':self.version,'label_training_basis':'rating-derived weak supervision',
-          'aspects':aspects(cleaned[i],category) if category else []} for i,label in enumerate(ids)]
+          'aspects':aspects(texts[i],category) if category else []} for i,label in enumerate(ids)]
 
     def single(self,text,category=None):
         return self.batch([text],category)[0]
