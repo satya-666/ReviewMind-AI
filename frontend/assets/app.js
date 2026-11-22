@@ -296,6 +296,7 @@ function validStoredMessage(m) {
     try {
       state.receipt = await ReviewMindAPI.feedback({request_id:id,rating:Number(state.draft.rating),correction:state.draft.correction || null,message:state.draft.message.trim() || null,consent:state.draft.consent});
       state.status = 'Feedback saved. Thank you. You can delete it below while this session is open.';
+      if (feedbackTarget === id) { $('#modal').close(); toast('Feedback saved. Thank you.'); }
     } catch (error) { state.exists = error.status === 409; state.status = state.exists ? 'Feedback has already been saved for this analysis. Another submission will not be sent.' : error.message; }
     finally { state.pending = false; if (feedbackTarget === id) updateFeedback(); }
   };
