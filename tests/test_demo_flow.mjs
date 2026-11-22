@@ -8,7 +8,7 @@ function setup() {
   const elements=new Map(),calls=[];
   const makeElement=() => ({value:'',checked:false,hidden:false,children:[],dataset:{},scrollTop:0,scrollHeight:0,
     classList:{add(){},remove(){}},replaceChildren(){this.children=[];},appendChild(child){this.children.push(child);},
-    setAttribute(name,value){this[name]=value;},addEventListener(){},querySelector(){return null;},getBoundingClientRect(){return {top:0};},close(){},focus(){},remove(){}});
+    setAttribute(name,value){this[name]=value;},addEventListener(){},querySelector(){return null;},getBoundingClientRect(){return {top:0};},close(){this.closed=true;},reportValidity(){return true;},focus(){},remove(){}});
   const element=id => {if(!elements.has(id))elements.set(id,makeElement());return elements.get(id);};
   const result={type:'analysis',sentiment:'negative',confidence:.6,aspects:[],warnings:[],request_id:'fixture',model_version:'real-format-fixture'};
   const api={chat:async body => {calls.push(body);return result;}};
@@ -44,4 +44,27 @@ test('timeout preserves request and retry replaces failed reply without duplicat
   assert.equal(vm.runInContext("current.messages.filter(m => m.role==='user').length",s.context),1);
   assert.equal(vm.runInContext("current.messages.filter(m => m.role==='ai').length",s.context),1);
   assert.equal(s.element('#loading').hidden,true);
+});
+
+for (const succeeds of [true,false]) test(`feedback ${succeeds ? 'closes after confirmed save' : 'stays open after a failed save'}`,async () => {
+  const s=setup();let submitted=0;
+  vm.runInContext("feedbackTarget='fixture'",s.context);
+  s.element('#feedbackRating').value='4';s.element('#feedbackConsent').checked=true;
+  s.element('#feedbackMessage').value='Keep this draft';
+  s.api.feedback=async () => {
+    submitted++;
+    if(!succeeds) throw new Error('Storage unavailable');
+    return {feedback_id:'receipt',delete_token:'fixture-token',status:'stored'};
+  };
+  await s.element('#feedbackForm').onsubmit({preventDefault(){}});
+  assert.equal(submitted,1);
+  assert.equal(!!s.element('#modal').closed,succeeds);
+  assert.equal(s.element('#feedbackMessage').value,'Keep this draft');
+  assert.equal(s.element('#sendFb').disabled,succeeds);
+  if(succeeds) {
+    assert.equal(s.element('#toast').textContent,'Feedback saved. Thank you.');
+    assert.equal(vm.runInContext("feedbackState('fixture').receipt.feedback_id",s.context),'receipt');
+    await s.element('#feedbackForm').onsubmit({preventDefault(){}});
+    assert.equal(submitted,1);
+  } else assert.equal(s.element('#feedbackStatus').textContent,'Storage unavailable');
 });
