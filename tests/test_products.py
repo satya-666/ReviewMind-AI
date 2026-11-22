@@ -79,9 +79,9 @@ def test_agent_product_calls_require_consent_and_real_results(tmp_path,monkeypat
         body={'text':'Suggest a Samsung smartphone under ₹20,000','allow_gemini':True}
         assert client.post('/api/chat',json=body).status_code==200 and not captured
         result=client.post('/api/chat',json={**body,'allow_product_search':True}).json()
-        assert captured==[('Samsung phone',20000,'Samsung')]
-        assert result['products']==[] and not result['product_data_available']
-        assert result['tools_used']==['product_search','gemini']
+        assert captured==[(body['text'],20000,None)]
+        assert result['products']==[] and result['product_status']=='no_results'
+        assert result['response_source']=='built_in'
 
 def test_tool_cannot_classify_greeting_or_bypass_product_consent(tmp_path,monkeypatch):
     from fastapi.testclient import TestClient

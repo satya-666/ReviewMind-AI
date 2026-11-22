@@ -2,7 +2,7 @@
 import re
 from backend.app.products import budget_from,brand_from
 from pydantic import ValidationError
-from backend.app.chat import intent_for
+from backend.app.chat import intent_for,ProviderError
 from backend.app.schemas import Analyze
 
 class ReviewMindAgent:
@@ -34,6 +34,16 @@ class ReviewMindAgent:
         used=[];analysis_result=None;searched=False
         messages=[m.text for m in body.history if m.role=='user']+[body.text]
         budget=budget_from(messages)
+        # Retrieve explicit shopping requests first so an LLM outage cannot hide sources.
+        shopping=intent in {'recommendation','comparison','product_info'} or bool(re.search(r'\b(?:i need|i want|looking for)\b.*(?:under|budget|₹)',body.text,re.I))
+        if shopping and body.allow_product_search:
+            searched=True;used.append('product_search')
+            product=self.products.search(body.text[:300],budget,brand_from(messages))
+            context['product_data']=product
+            if not product['available']:
+                status=product.get('status','unavailable')
+                reply='Search completed, but no listings matched your filters.' if status=='no_results' else 'Live shopping search could not complete. No current products were verified. Check the search status below and retry.'
+                return dict(self.notice(intent,reply,'not_used'),product_status=status,products=[],sources=[])
         def execute(name,args):
             nonlocal analysis_result,searched
             if not isinstance(args,dict):return {'error':'invalid_arguments'}
@@ -66,13 +76,20 @@ class ReviewMindAgent:
             tools.append({'name':name,'description':'Run the existing trained sentiment classifier and category-specific lexical aspect rules on a real review.',
               'parameters':{'type':'OBJECT','properties':{'text':{'type':'STRING'},'category':{'type':'STRING'}},'required':['text']}})
         # Product tools are advertised only when configured; no simulated retrieval success.
-        if not self.products.configured or not body.allow_product_search:tools=tools[3:]
-        if tools:reply=self.conversation.generate(body.text,body.history,context,body.language,tools,execute)
-        else:reply=self.conversation.generate(body.text,body.history,context,body.language)
+        if searched or not self.products.configured or not body.allow_product_search:tools=tools[3:]
+        provider_status='ready'
+        try:
+            if tools:reply=self.conversation.generate(body.text,body.history,context,body.language,tools,execute)
+            else:reply=self.conversation.generate(body.text,body.history,context,body.language)
+        except ProviderError as problem:
+            product=context['product_data']
+            if not product.get('products'):raise
+            provider_status=problem.code
+            reply='Shopping listings were retrieved, but the conversational comparison could not complete. The source cards below show the retrieved evidence. Call quality and battery life are unknown unless stated in a listing. Retry for a comparison.'
         if isinstance(analysis_result,dict):
             return dict(analysis_result,reply='The trained classifier predicts '+analysis_result['sentiment']+'. Exact causal feature importance is unavailable. Aspect results use separate lexical rules.',response_source='sentiment_model',tools_used=used+['gemini'])
         product=context['product_data']
-        return {'type':'chat','intent':intent,'reply':reply,'response_source':'gemini','provider_status':'ready',
+        return {'type':'chat','intent':intent,'reply':reply,'response_source':'gemini' if provider_status=='ready' else 'built_in','provider_status':provider_status,
           'conversation_model':self.conversation.model,'product_data_available':product['available'],'sources':product['sources'],
           'products':product['products'],'product_status':product.get('status','not_configured'),
           'tools_used':used+['gemini']}

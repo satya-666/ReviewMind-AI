@@ -141,7 +141,7 @@ def create_app(settings=None):
              'Aspect sentiments are heuristic and may be unknown or mixed; no aspect percentages are supported.'],
           'privacy':{'raw_review_text_stored':False,'feedback_retention_days':settings.retention_days,'guest_only':not auth.required}}
 
-    @app.post('/api/analyze',dependencies=[Depends(auth.user)])
+    @app.post('/api/analyze',dependencies=[Depends(auth.optional_user)])
     def analyze(body:Analyze):
         model=app.state.model;db=app.state.database
         if model.predictor is None or db is None:return error(503,'model_unavailable','Analysis is unavailable while the model or storage is not ready.')
@@ -171,7 +171,7 @@ def create_app(settings=None):
           'context_policy':'Up to 8 recent messages and 4000 history characters sent to the model. Signed-in chats are saved to the account until deleted.'}
 
     @app.post('/api/chat')
-    def chat(body:ChatInput,user=Depends(auth.user)):
+    def chat(body:ChatInput,user=Depends(auth.optional_user)):
         try:
             if user and not body.chat_id:return error(422,'chat_required','Start a saved chat before sending a message.')
             if body.chat_id:
@@ -180,7 +180,10 @@ def create_app(settings=None):
                 if saved is None:return error(404,'chat_not_found','Chat not found.')
                 if len(saved['messages'])>=100:return error(409,'chat_limit','This chat is full. Start a new chat to continue.')
             result=app.state.agent.respond(body,analyze,app.state.database)
-            if body.chat_id and isinstance(result,dict):
+            recoverable=isinstance(result,dict) and (
+                result.get('product_status') in {'timeout','unavailable','quota_exhausted','authentication_failed','provider_error','rate_limited','invalid_query','not_configured'}
+                or (result.get('product_status')=='ok' and result.get('provider_status')!='ready'))
+            if body.chat_id and isinstance(result,dict) and not recoverable:
                 if not db.append_chat(user['id'],body.chat_id,body.text,result):return error(404,'chat_not_found','This chat was deleted while the reply was being prepared.')
             return result
         except ValueError as problem:return error(409,'chat_limit',str(problem))

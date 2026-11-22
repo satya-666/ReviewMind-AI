@@ -24,8 +24,8 @@ function setup(config={required:true,client_id:'fixture.apps.googleusercontent.c
 
 test('verified login, expiry and sign-out protect the chat and clear bearer credentials',async () => {
   const s=setup();await s.auth.init();
-  assert.equal(s.auth.ready(),false);
-  assert.equal(s.element('chatApp').hidden,true);
+  assert.equal(s.auth.ready(),true);
+  assert.equal(s.element('chatApp').hidden,false);
   assert.equal(s.element('authPanel').hidden,false);
   await s.credential({credential:'fixture-token'});
   assert.equal(s.auth.headers().Authorization,'Bearer fixture-token');
@@ -33,23 +33,23 @@ test('verified login, expiry and sign-out protect the chat and clear bearer cred
   assert.equal(s.element('accountEmail').textContent,'person@gmail.com');
   assert.equal(s.events.at(-1).detail.id,'google-id');
   s.timers[0].fn();
-  assert.equal(s.auth.ready(),false);
+  assert.equal(s.auth.ready(),true);
   assert.equal(s.auth.headers().Authorization,undefined);
-  assert.equal(s.element('chatApp').hidden,true);
+  assert.equal(s.element('chatApp').hidden,false);
   await s.credential({credential:'another-fixture-token'});
   s.element('signOut').onclick();
-  assert.equal(s.auth.ready(),false);
+  assert.equal(s.auth.ready(),true);
   assert.equal(s.events.at(-1).detail,null);
 });
 
-test('missing configuration and failed verification never open the chat',async () => {
+test('missing configuration and failed verification keep guest demo available without credentials',async () => {
   const missing=setup({required:true,client_id:''});await missing.auth.init();
-  assert.equal(missing.auth.ready(),false);
+  assert.equal(missing.auth.ready(),true);
   assert.equal(missing.element('retryAuth').hidden,false);
   const failed=setup();await failed.auth.init();
   failed.api.me=async () => {throw new Error('Sign-in rejected');};
   await failed.credential({credential:'forged'});
-  assert.equal(failed.auth.ready(),false);
+  assert.equal(failed.auth.ready(),true);
   assert.equal(failed.auth.headers().Authorization,undefined);
   assert.equal(failed.element('authStatus').textContent,'Sign-in rejected');
 });

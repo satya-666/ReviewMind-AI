@@ -1,0 +1,12 @@
+[
+ {"id":"mixed-smartphone","text":"The camera is excellent in daylight, but the battery drains by noon and charging is painfully slow.","category":"smartphones","aspects":{"camera":"positive","battery":"negative","charging_speed":"negative"}},
+ {"id":"negated-battery","text":"Battery is not good.","category":"smartphones","aspects":{"battery":"negative"}},
+ {"id":"negated-sound","text":"The sound is not bad.","category":"audio_devices","aspects":{"sound_quality":"positive"}},
+ {"id":"unknown-feature","text":"Battery included in the box.","category":"smartphones","aspects":{"battery":"unknown"}},
+ {"id":"hinglish-positive","text":"battery acha hai","category":"smartphones","aspects":{"battery":"positive"}},
+ {"id":"hinglish-negative","text":"battery kharab hai","category":"smartphones","aspects":{"battery":"negative"}},
+ {"id":"mixed-audio","text":"Sound is great but the microphone is poor.","category":"audio_devices","aspects":{"sound_quality":"positive","microphone":"negative"}},
+ {"id":"no-aspects","text":"It arrived yesterday.","category":"smartphones","aspects":{}},
+ {"id":"context-limit","text":"Battery lasts all day.","category":"smartphones","aspects":{"battery":"positive"}},
+ {"id":"negation-limit","text":"I cannot recommend the camera.","category":"smartphones","aspects":{"camera":"negative"}}
+]

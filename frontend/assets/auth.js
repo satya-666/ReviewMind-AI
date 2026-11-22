@@ -4,9 +4,9 @@
   const el=id => document.getElementById(id);
   function render() {
     const ready=!required || !!user;
-    el('authPanel').hidden=ready;el('chatApp').hidden=!ready;
+    el('authPanel').hidden=ready;el('chatApp').hidden=false;
     el('account').hidden=!user;el('accountEmail').textContent=user?.email || '';
-    document.querySelector('header nav').hidden=!ready;
+    document.querySelector('header nav').hidden=false;
   }
   function reset(message='Sign in with Google to continue.') {
     token='';user=null;clearTimeout(timer);render();
@@ -48,6 +48,6 @@
   }
   el('signOut').onclick=() => {window.google?.accounts?.id.disableAutoSelect();reset('You are signed out.');};
   el('retryAuth').onclick=init;
-  window.ReviewMindAuth={init,ready:() => !required || !!user,required:() => required,
+  window.ReviewMindAuth={init,ready:() => true,required:() => required,
     headers:() => token ? {Authorization:'Bearer '+token} : {},expired:() => reset('Your sign-in expired. Sign in again.')};
 })();

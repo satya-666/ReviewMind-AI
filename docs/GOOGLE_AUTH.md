@@ -1,13 +1,17 @@
-# Google sign-in
+# Google sign-in and public demo
 
-Production requires Google sign-in before chat, review analysis, recommendations or feedback. Health checks and public configuration remain accessible. The browser sends a Google ID token in the Authorization header; the API verifies Google's signature, issuer, audience and expiration using google-auth and cached public certificates. A verified email is required, and Google's `sub` identifies the account. No Gmail read/send permission or client secret is used.
+Review analysis and shopping demo requests are available without login. Account chat APIs (`/api/chats`, including read/delete) require a verified Google identity; a supplied invalid token is rejected even on public demo requests. Guest conversations are tab-only unless the user enables device history. Signed-in chats are saved to their account until deletion. Third-party provider consent is separate from sign-in.
+
+## Token verification
+
+Google sign-in is required for account history and feedback. Public review and shopping demo requests remain available without a token. The browser sends a Google ID token in the Authorization header; the API verifies Google's signature, issuer, audience and expiration using google-auth and cached public certificates. A verified email is required, and Google's `sub` identifies the account. No Gmail read/send permission or client secret is used.
 
 ## Activate on the existing deployment
 
 1. Open [Google Auth Platform](https://console.cloud.google.com/auth/overview) in the owner's Google Cloud project. Complete Branding and Audience as required. For an external app in Testing, add the intended test users; production customer access requires the appropriate published audience.
 2. Under Clients, create an OAuth client with application type **Web application**. Add `https://reviewmind-web.onrender.com` as an **Authorized JavaScript origin**. The JavaScript button uses a popup callback; this implementation needs no redirect URI. Optionally add localhost origins for local sign-in testing.
 3. Copy the public client ID ending in `.apps.googleusercontent.com`. Set `GOOGLE_CLIENT_ID` on **reviewmind-api** in Render and save/redeploy the backend. Keep client secrets out of source and chat; this flow does not need one. Frontend retrieves the public ID from `/api/auth/config`.
-4. Deploy both services with the authentication change. Verify the Google button, account selection, successful authenticated chat and sign-out. An unauthenticated POST to `/api/chat` must return 401. With the ID missing in production, protected routes return 503 rather than allowing guest access.
+4. Deploy both services with the authentication change. Verify the Google button, account selection, successful authenticated chat and sign-out. An unauthenticated GET to `/api/chats` must return 401. With the ID missing in production, account routes return 503; public demo requests still work.
 
 Do not deploy the production authentication gate before the client ID is configured. Development without a client ID retains local guest access for model tests. Set a client ID to exercise authentication locally.
 
@@ -25,4 +29,4 @@ The API caches Google's public certificates according to their cache headers and
 
 References: [Google ID-token verification](https://developers.google.com/identity/gsi/web/guides/verify-google-id-token), [Google sign-in button](https://developers.google.com/identity/gsi/web/guides/display-button), [client setup](https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid).
 
-Tests use real RSA-signed fixture tokens to exercise the Google verification library (audience, issuer, expiration, signature and email verification). Browser lifecycle tests cover signed-out gating, successful verification, expiry, sign-out and rejected credentials. These fixtures are not evidence of a live Google account login; that requires the owner's OAuth client setup.
+Tests use real RSA-signed fixture tokens to exercise the Google verification library (audience, issuer, expiration, signature and email verification). Browser lifecycle tests cover protected account credentials and public guest demo access, successful verification, expiry, sign-out and rejected credentials. These fixtures are not evidence of a live Google account login; that requires the owner's OAuth client setup.

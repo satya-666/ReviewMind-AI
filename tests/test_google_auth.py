@@ -58,10 +58,14 @@ def test_api_enforces_google_sign_in_and_cors(tmp_path,monkeypatch,signed_auth):
     settings=Settings(google_client_id=CLIENT,database_url='sqlite:///'+str(tmp_path/'auth.db'),rate_per_minute=100)
     with TestClient(create_app(settings)) as client:
         assert client.get('/api/auth/config').json()=={'required':True,'client_id':CLIENT}
-        for path in ['/api/chat','/api/analyze','/api/recommend','/api/feedback']:
+        for path in ['/api/recommend','/api/feedback']:
             assert client.post(path,json={}).status_code==401
         assert client.delete('/api/feedback/00000000-0000-0000-0000-000000000000').status_code==401
         assert client.get('/api/auth/me').status_code==401
+        assert client.get('/api/chats').status_code==401
+        guest=client.post('/api/chat',json={'text':'The battery is good.','mode':'review','category':'Smartphones','allow_gemini':False})
+        assert guest.status_code==200 and guest.json()['type']=='analysis'
+        assert client.post('/api/analyze',json={'text':'The battery is good.','category':'Smartphones'},headers={'Authorization':'Bearer forged'}).status_code==401
         headers={'Authorization':'Bearer '+token()}
         me=client.get('/api/auth/me',headers=headers)
         assert me.status_code==200 and me.json()['user']['id']=='google-subject-123'

@@ -23,6 +23,9 @@ class GoogleAuth:
             raise HTTPException(401,detail='A verified Google email address is required.')
         return {'id':claims['sub'],'email':claims['email'],'expires_at':claims['exp']}
 
+    def optional_user(self,request:WebRequest):
+        return self.user(request) if request.headers.get("authorization") else None
+
     def user(self,request:WebRequest):
         if not self.required:return None
         if not self.client_id:raise HTTPException(503,detail='Google sign-in has not been configured yet.')
